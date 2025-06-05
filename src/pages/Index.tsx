@@ -5,16 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { MessageSquare, Clock, Activity } from "lucide-react";
+import { MessageSquare, Clock, Activity, Server, Cpu, HardDrive, AlertTriangle, Zap } from "lucide-react";
 import { MetricsChart } from "@/components/MetricsChart";
 import { QueueCard } from "@/components/QueueCard";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { RecentAlerts } from "@/components/RecentAlerts";
+import { ResourceUsage } from "@/components/ResourceUsage";
+import { ConnectedNodes } from "@/components/ConnectedNodes";
 
 const Index = () => {
   const [metrics, setMetrics] = useState({
     messagesPerSec: 15200,
     activeQueues: 127,
     avgLatency: 2.3,
+    queueDepth: 8450,
+    connectedNodes: 3,
+    totalMemory: 12.8,
+    cpuUsage: 45.2,
+    diskUsage: 67.8
   });
 
   const [queues] = useState([
@@ -60,6 +68,11 @@ const Index = () => {
         messagesPerSec: prev.messagesPerSec + Math.floor(Math.random() * 200 - 100),
         activeQueues: prev.activeQueues + Math.floor(Math.random() * 6 - 3),
         avgLatency: Math.max(0.1, prev.avgLatency + (Math.random() * 0.4 - 0.2)),
+        queueDepth: Math.max(0, prev.queueDepth + Math.floor(Math.random() * 100 - 50)),
+        connectedNodes: prev.connectedNodes,
+        totalMemory: Math.max(1, prev.totalMemory + (Math.random() * 0.2 - 0.1)),
+        cpuUsage: Math.max(0, Math.min(100, prev.cpuUsage + (Math.random() * 4 - 2))),
+        diskUsage: Math.max(0, Math.min(100, prev.diskUsage + (Math.random() * 0.2 - 0.1)))
       }));
     }, 3000);
 
@@ -88,8 +101,8 @@ const Index = () => {
               </Button>
             </div>
 
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Primary Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Messages/sec</CardTitle>
@@ -116,12 +129,59 @@ const Index = () => {
 
               <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Queue Depth</CardTitle>
+                  <Zap className="h-5 w-5 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-gray-900">{metrics.queueDepth.toLocaleString()}</div>
+                  <p className="text-xs text-orange-600 mt-1">Total pending messages</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Avg Latency</CardTitle>
                   <Clock className="h-5 w-5 text-purple-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">{metrics.avgLatency.toFixed(1)}ms</div>
                   <p className="text-xs text-red-500 mt-1">↗ +0.2ms from baseline</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Secondary Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Connected Nodes</CardTitle>
+                  <Server className="h-5 w-5 text-cyan-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{metrics.connectedNodes}</div>
+                  <p className="text-xs text-green-600 mt-1">All nodes healthy</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">CPU Usage</CardTitle>
+                  <Cpu className="h-5 w-5 text-yellow-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{metrics.cpuUsage.toFixed(1)}%</div>
+                  <p className="text-xs text-gray-500 mt-1">Cluster average</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Memory Usage</CardTitle>
+                  <HardDrive className="h-5 w-5 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{metrics.totalMemory.toFixed(1)} GB</div>
+                  <p className="text-xs text-gray-500 mt-1">Total allocated</p>
                 </CardContent>
               </Card>
             </div>
@@ -153,6 +213,15 @@ const Index = () => {
                     ))}
                   </CardContent>
                 </Card>
+              </div>
+            </div>
+
+            {/* Bottom Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ConnectedNodes />
+              <div className="space-y-6">
+                <RecentAlerts />
+                <ResourceUsage metrics={metrics} />
               </div>
             </div>
           </div>
