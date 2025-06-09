@@ -12,7 +12,12 @@ export const MetricsChart = ({ data }: MetricsChartProps) => {
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart 
+          data={data} 
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          width={undefined}
+          height={undefined}
+        >
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#8b5cf6" />
