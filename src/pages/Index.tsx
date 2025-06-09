@@ -219,21 +219,19 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Message Throughput Chart */}
-              <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-gray-900">Message Throughput</CardTitle>
-                  <p className="text-sm text-gray-500">Real-time message flow over the last 24 hours</p>
-                </CardHeader>
-                <CardContent>
-                  <MetricsChart data={chartData} />
-                </CardContent>
-              </Card>
+            {/* Message Throughput Chart - Full Width */}
+            <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-gray-900">Message Throughput</CardTitle>
+                <p className="text-sm text-gray-500">Real-time message flow over the last 24 hours</p>
+              </CardHeader>
+              <CardContent>
+                <MetricsChart data={chartData} />
+              </CardContent>
+            </Card>
 
-              {/* Connected Nodes */}
-              <ConnectedNodes />
-            </div>
+            {/* Connected Nodes - Full Width */}
+            <ConnectedNodes />
 
             {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
