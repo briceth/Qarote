@@ -1,0 +1,163 @@
+import { Context } from 'hono';
+import { sign, verify } from 'hono/jwt';
+import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
+import prisma from './prisma';
+import { UserRole } from '@prisma/client';
+
+// Environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'secret-key-change-in-production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// JWT Token interfaces
+interface JWTPayload {
+  sub: string;
+  email: string;
+  role: UserRole;
+  companyId?: string | null;
+  exp?: number;
+  iat?: number;
+}
+
+// User interface without sensitive data
+export interface SafeUser {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: UserRole;
+  companyId: string | null;
+  isActive: boolean;
+  lastLogin: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Password utilities
+export const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+export const comparePassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
+  return bcrypt.compare(password, hashedPassword);
+};
+
+// Token generation
+export const generateToken = async (user: { id: string; email: string; role: UserRole; companyId: string | null }): Promise<string> => {
+  const payload: JWTPayload = {
+    sub: user.id,
+    email: user.email,
+    role: user.role,
+    companyId: user.companyId,
+  };
+
+  return sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+};
+
+// Token verification
+export const verifyToken = async (token: string): Promise<JWTPayload> => {
+  try {
+    return await verify(token, JWT_SECRET);
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
+};
+
+// Extract user from token
+export const extractUserFromToken = async (token: string): Promise<SafeUser | null> => {
+  try {
+    const payload = await verifyToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        companyId: true,
+        isActive: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return user;
+  } catch (error) {
+    return null;
+  }
+};
+
+// Authentication middleware
+export const authenticate = async (c: Context, next: () => Promise<void>) => {
+  const authHeader = c.req.header('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized', message: 'Authentication required' }, 401);
+  }
+
+  const token = authHeader.split(' ')[1];
+  const user = await extractUserFromToken(token);
+
+  if (!user) {
+    return c.json({ error: 'Unauthorized', message: 'Invalid or expired token' }, 401);
+  }
+
+  if (!user.isActive) {
+    return c.json({ error: 'Forbidden', message: 'Account is inactive' }, 403);
+  }
+
+  // Set user in the context variables for use in route handlers
+  c.set('user', user);
+  await next();
+};
+
+// Role-based authorization middleware
+export const authorize = (allowedRoles: UserRole[]) => {
+  return async (c: Context, next: () => Promise<void>) => {
+    const user = c.get('user') as SafeUser | undefined;
+
+    if (!user) {
+      return c.json({ error: 'Unauthorized', message: 'Authentication required' }, 401);
+    }
+
+    if (!allowedRoles.includes(user.role)) {
+      return c.json({ error: 'Forbidden', message: 'Insufficient permissions' }, 403);
+    }
+
+    await next();
+  };
+};
+
+// Company access check middleware
+export const checkCompanyAccess = async (c: Context, next: () => Promise<void>) => {
+  const user = c.get('user') as SafeUser | undefined;
+  const companyId = c.req.param('companyId');
+
+  if (!user) {
+    return c.json({ error: 'Unauthorized', message: 'Authentication required' }, 401);
+  }
+
+  // Allow ADMIN users to access any company
+  if (user.role === UserRole.ADMIN) {
+    await next();
+    return;
+  }
+
+  // Check if user belongs to the requested company
+  if (!user.companyId || user.companyId !== companyId) {
+    return c.json({ error: 'Forbidden', message: 'Cannot access resources for this company' }, 403);
+  }
+
+  await next();
+};
+
+// Generate a random token
+export const generateRandomToken = (length = 32): string => {
+  return randomBytes(length).toString('hex');
+};

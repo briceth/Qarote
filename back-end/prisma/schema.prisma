@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  READONLY
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model Company {
+  id           String         @id @default(uuid())
+  name         String
+  contactEmail String?
+  logoUrl      String?
+  planType     String         @default("FREE") // FREE, PREMIUM, ENTERPRISE
+  users        User[]
+  servers      RabbitMQServer[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  invitations  Invitation[]
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String
+  firstName      String?
+  lastName       String?
+  role           UserRole  @default(USER)
+  isActive       Boolean   @default(true)
+  lastLogin      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  companyId      String?
+  company        Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  invitations    Invitation[] @relation("InvitedUser")
+  invitedBy      Invitation[] @relation("InvitingUser")
+  alerts         Alert[]
+}
+
+model Invitation {
+  id             String           @id @default(uuid())
+  email          String
+  token          String           @unique
+  companyId      String
+  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invitedById    String
+  invitedBy      User             @relation("InvitingUser", fields: [invitedById], references: [id], onDelete: Cascade)
+  invitedUserId  String?
+  invitedUser    User?            @relation("InvitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
+  role           UserRole         @default(USER)
+  status         InvitationStatus @default(PENDING)
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model RabbitMQServer {
+  id        String   @id @default(uuid())
+  name      String
+  host      String
+  port      Int
+  username  String
+  password  String
+  vhost     String   @default("/")
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Queues    Queue[]
+}
+
+model Queue {
+  id             String        @id @default(uuid())
+  name           String
+  vhost          String
+  serverId       String
+  server         RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages       Int
+  messagesReady  Int
+  messagesUnack  Int
+  lastFetched    DateTime
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  QueueMetrics   QueueMetric[]
+
+  @@unique([name, vhost, serverId])
+}
+
+model QueueMetric {
+  id            String   @id @default(uuid())
+  queueId       String
+  queue         Queue    @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  timestamp     DateTime @default(now())
+  messages      Int
+  messagesReady Int
+  messagesUnack Int
+  publishRate   Float
+  consumeRate   Float
+
+  @@index([queueId, timestamp])
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  severity    String   @default("info") // info, warning, error
+  status      String   @default("active") // active, acknowledged, resolved
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt  DateTime?
+}

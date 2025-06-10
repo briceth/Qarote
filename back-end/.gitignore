@@ -4,7 +4,7 @@ logs
 npm-debug.log*
 
 .env
-node_modules
+.node_modules
 dist
 
 # Editor directories and files
