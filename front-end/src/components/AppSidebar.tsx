@@ -23,13 +23,13 @@ import { Activity, MessageSquare, Clock, Server, Plus } from "lucide-react";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerForm";
+import { useLocation, Link } from "react-router-dom";
 
 const menuItems = [
   {
     title: "Dashboard",
     url: "/",
     icon: Activity,
-    isActive: true,
   },
   {
     title: "Queues",
@@ -54,6 +54,7 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
+  const location = useLocation();
   const { selectedServerId, setSelectedServerId } = useServerContext();
   const { data: serversData } = useServers();
   const servers = serversData?.servers || [];
@@ -137,26 +138,29 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    className={`w-full justify-start transition-all duration-200 ${
-                      item.isActive
-                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
-                        : "hover:bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    <a
-                      href={item.url}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg"
+              {menuItems.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      className={`w-full justify-start transition-all duration-200 ${
+                        isActive
+                          ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+                          : "hover:bg-gray-100 text-gray-700"
+                      }`}
                     >
-                      <item.icon className="w-4 h-4" />
-                      <span className="font-medium">{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <Link
+                        to={item.url}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span className="font-medium">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
