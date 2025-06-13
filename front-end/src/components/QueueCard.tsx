@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Queue } from "@/lib/api";
+import { useNavigate } from "react-router-dom";
 
 interface QueueCardProps {
   queue: Queue;
@@ -7,6 +8,8 @@ interface QueueCardProps {
 }
 
 export const QueueCard = ({ queue, index }: QueueCardProps) => {
+  const navigate = useNavigate();
+
   const getStatus = () => {
     if (queue.consumers > 0) return "active";
     if (queue.messages > 0) return "waiting";
@@ -26,13 +29,20 @@ export const QueueCard = ({ queue, index }: QueueCardProps) => {
 
   const status = getStatus();
 
+  const handleClick = () => {
+    navigate(`/queues/${encodeURIComponent(queue.name)}`);
+  };
+
   return (
     <div
-      className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:shadow-md transition-all duration-300 animate-fade-in"
+      className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300 animate-fade-in cursor-pointer group"
       style={{ animationDelay: `${index * 100}ms` }}
+      onClick={handleClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-gray-900 truncate">{queue.name}</h3>
+        <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+          {queue.name}
+        </h3>
         <Badge variant="secondary" className={getStatusColor(status)}>
           {status}
         </Badge>

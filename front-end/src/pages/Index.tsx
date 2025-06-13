@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -30,6 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
   const {
     data: overviewData,
@@ -366,7 +368,11 @@ const Index = () => {
                       Currently processing messages
                     </p>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/queues")}
+                  >
                     View All Queues
                   </Button>
                 </div>

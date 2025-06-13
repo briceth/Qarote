@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import { Queue } from "@/lib/api";
 
 const Queues = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
   const {
     data: queuesData,
@@ -283,7 +285,17 @@ const Queues = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    navigate(
+                                      `/queues/${encodeURIComponent(
+                                        queue.name
+                                      )}`
+                                    )
+                                  }
+                                >
                                   View
                                 </Button>
                                 <Button

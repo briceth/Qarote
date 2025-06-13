@@ -1,18 +1,41 @@
-const amqp = require("amqplib");
+/**
+ * RabbitMQ Connection Simulation Script
+ * 
+ * This script creates multiple RabbitMQ connections to simulate a real-world environment
+ * with producers, consumers, and idle connections for testing and demonstration purposes.
+ */
+
+import * as amqp from "amqplib";
+
+// Types for better type safety
+interface MessageContent {
+  id: string;
+  timestamp: string;
+  producer: string;
+  data: string;
+  routing_key: string;
+}
 
 // Connection parameters
 const RABBITMQ_URL = "amqp://admin:admin123@localhost:5672/";
 
-// Store connections for cleanup
-const connections = [];
-const channels = [];
+// Store connections for cleanup - using the actual return types from amqplib
+const connections: amqp.ChannelModel[] = [];
+const channels: amqp.Channel[] = [];
 
+/**
+ * Creates a producer connection that publishes messages periodically
+ * @param name - Name identifier for the producer connection
+ * @param exchange - Exchange name to publish to
+ * @param routingKeys - Array of routing keys to use for publishing
+ * @param interval - Interval in milliseconds between message publications
+ */
 async function createProducerConnection(
-  name,
-  exchange,
-  routingKeys,
-  interval = 10000
-) {
+  name: string,
+  exchange: string,
+  routingKeys: string[],
+  interval: number = 10000
+): Promise<void> {
   try {
     console.log(`Creating producer connection: ${name}`);
     const connection = await amqp.connect(RABBITMQ_URL, {
@@ -32,7 +55,7 @@ async function createProducerConnection(
     const intervalId = setInterval(async () => {
       try {
         for (const routingKey of routingKeys) {
-          const message = {
+          const message: MessageContent = {
             id: `${name}-${counter}`,
             timestamp: new Date().toISOString(),
             producer: name,
@@ -75,7 +98,17 @@ async function createProducerConnection(
   }
 }
 
-async function createConsumerConnection(name, queue, prefetchCount = 1) {
+/**
+ * Creates a consumer connection that processes messages from a queue
+ * @param name - Name identifier for the consumer connection
+ * @param queue - Queue name to consume from
+ * @param prefetchCount - Number of unacknowledged messages that can be processed simultaneously
+ */
+async function createConsumerConnection(
+  name: string,
+  queue: string,
+  prefetchCount: number = 1
+): Promise<void> {
   try {
     console.log(`Creating consumer connection: ${name}`);
     const connection = await amqp.connect(RABBITMQ_URL, {
@@ -96,7 +129,9 @@ async function createConsumerConnection(name, queue, prefetchCount = 1) {
     await channel.consume(queue, async (message) => {
       if (message) {
         try {
-          const content = JSON.parse(message.content.toString());
+          const content: MessageContent = JSON.parse(
+            message.content.toString()
+          );
           console.log(
             `Consumer ${name} processing message: ${content.id || "unknown"}`
           );
@@ -133,7 +168,11 @@ async function createConsumerConnection(name, queue, prefetchCount = 1) {
   }
 }
 
-async function createIdleConnection(name) {
+/**
+ * Creates an idle connection for monitoring purposes
+ * @param name - Name identifier for the idle connection
+ */
+async function createIdleConnection(name: string): Promise<void> {
   try {
     console.log(`Creating idle connection: ${name}`);
     const connection = await amqp.connect(RABBITMQ_URL, {
@@ -149,10 +188,15 @@ async function createIdleConnection(name) {
 
     // Keep connection alive with periodic heartbeat checks
     const heartbeatInterval = setInterval(() => {
-      if (connection.connection && !connection.connection.stream.destroyed) {
-        // Connection is still alive
-        console.log(`Idle connection ${name} heartbeat`);
-      } else {
+      try {
+        if (connection && 'connection' in connection && connection.connection) {
+          // Connection is still alive
+          console.log(`Idle connection ${name} heartbeat`);
+        } else {
+          clearInterval(heartbeatInterval);
+        }
+      } catch (error) {
+        console.log(`Idle connection ${name} heartbeat check failed:`, error);
         clearInterval(heartbeatInterval);
       }
     }, 60000); // Check every minute
@@ -172,7 +216,11 @@ async function createIdleConnection(name) {
   }
 }
 
-async function main() {
+/**
+ * Main function that orchestrates the creation of all RabbitMQ connections
+ * Sets up producers, consumers, and idle connections for simulation
+ */
+async function main(): Promise<void> {
   console.log("Starting RabbitMQ connection simulation...");
 
   try {
@@ -281,15 +329,23 @@ process.on("SIGINT", async () => {
   try {
     // Close all channels
     for (const channel of channels) {
-      if (channel && !channel.connection.stream.destroyed) {
-        await channel.close();
+      try {
+        if (channel && typeof channel.close === 'function') {
+          await channel.close();
+        }
+      } catch (error) {
+        console.error('Error closing channel:', error);
       }
     }
 
     // Close all connections
     for (const connection of connections) {
-      if (connection && !connection.connection.stream.destroyed) {
-        await connection.close();
+      try {
+        if (connection && typeof connection.close === 'function') {
+          await connection.close();
+        }
+      } catch (error) {
+        console.error('Error closing connection:', error);
       }
     }
 
