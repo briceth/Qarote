@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import prisma from "../core/prisma";
 import RabbitMQClient from "../core/rabbitmq";
+import { authenticate } from "../core/auth";
 import {
   CreateServerSchema,
   UpdateServerSchema,
@@ -10,10 +11,20 @@ import {
 
 const serverController = new Hono();
 
-// Get all RabbitMQ servers
+// Apply authentication middleware to all routes
+serverController.use("*", authenticate);
+
+// Get all RabbitMQ servers (filtered by user's company)
 serverController.get("/", async (c) => {
   try {
+    const user = c.get("user");
+
+    // Only return servers that belong to the user's company
+    // If user has no company, they can only see servers with no company (personal servers)
     const servers = await prisma.rabbitMQServer.findMany({
+      where: {
+        companyId: user.companyId || null,
+      },
       select: {
         id: true,
         name: true,
@@ -23,6 +34,7 @@ serverController.get("/", async (c) => {
         vhost: true,
         createdAt: true,
         updatedAt: true,
+        companyId: true,
         // Don't include password in response
       },
     });
@@ -33,13 +45,18 @@ serverController.get("/", async (c) => {
   }
 });
 
-// Get a specific server by ID
+// Get a specific server by ID (only if it belongs to user's company)
 serverController.get("/:id", async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user");
 
   try {
     const server = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        // Ensure the server belongs to the user's company
+        companyId: user.companyId || null,
+      },
       select: {
         id: true,
         name: true,
@@ -49,12 +66,13 @@ serverController.get("/:id", async (c) => {
         vhost: true,
         createdAt: true,
         updatedAt: true,
+        companyId: true,
         // Don't include password in response
       },
     });
 
     if (!server) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     return c.json({ server });
@@ -64,12 +82,13 @@ serverController.get("/:id", async (c) => {
   }
 });
 
-// Create a new server
+// Create a new server (automatically assigned to user's company)
 serverController.post(
   "/",
   zValidator("json", CreateServerSchema),
   async (c) => {
     const data = c.req.valid("json");
+    const user = c.get("user");
 
     try {
       console.log("Creating server with data:", data);
@@ -86,7 +105,11 @@ serverController.post(
       await client.getOverview();
 
       const server = await prisma.rabbitMQServer.create({
-        data,
+        data: {
+          ...data,
+          // Automatically assign server to user's company
+          companyId: user.companyId,
+        },
       });
 
       return c.json(
@@ -98,6 +121,7 @@ serverController.post(
             port: server.port,
             username: server.username,
             vhost: server.vhost,
+            companyId: server.companyId,
             createdAt: server.createdAt,
             updatedAt: server.updatedAt,
           },
@@ -117,22 +141,26 @@ serverController.post(
   }
 );
 
-// Update a server
+// Update a server (only if it belongs to user's company)
 serverController.put(
   "/:id",
   zValidator("json", UpdateServerSchema),
   async (c) => {
     const id = c.req.param("id");
     const data = c.req.valid("json");
+    const user = c.get("user");
 
     try {
-      // Check if server exists
+      // Check if server exists and belongs to user's company
       const existingServer = await prisma.rabbitMQServer.findUnique({
-        where: { id },
+        where: {
+          id,
+          companyId: user.companyId || null,
+        },
       });
 
       if (!existingServer) {
-        return c.json({ error: "Server not found" }, 404);
+        return c.json({ error: "Server not found or access denied" }, 404);
       }
 
       // If credentials are being updated, test the connection
@@ -184,18 +212,22 @@ serverController.put(
   }
 );
 
-// Delete a server
+// Delete a server (only if it belongs to user's company)
 serverController.delete("/:id", async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user");
 
   try {
-    // Check if server exists
+    // Check if server exists and belongs to user's company
     const existingServer = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
     });
 
     if (!existingServer) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     await prisma.rabbitMQServer.delete({

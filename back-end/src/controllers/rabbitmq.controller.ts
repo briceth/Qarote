@@ -2,22 +2,30 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import prisma from "../core/prisma";
 import RabbitMQClient from "../core/rabbitmq";
+import { authenticate } from "../core/auth";
 import { RabbitMQCredentialsSchema } from "../schemas/rabbitmq";
 import type { EnhancedMetrics } from "../types/rabbitmq";
 
 const rabbitmqController = new Hono();
 
-// Get overview for a specific server
+// Apply authentication middleware to all routes
+rabbitmqController.use("*", authenticate);
+
+// Get overview for a specific server (only if it belongs to user's company)
 rabbitmqController.get("/servers/:id/overview", async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user");
 
   try {
     const server = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
     });
 
     if (!server) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     const client = new RabbitMQClient({
@@ -42,17 +50,21 @@ rabbitmqController.get("/servers/:id/overview", async (c) => {
   }
 });
 
-// Get all queues for a specific server
+// Get all queues for a specific server (only if it belongs to user's company)
 rabbitmqController.get("/servers/:id/queues", async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user");
 
   try {
     const server = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
     });
 
     if (!server) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     const client = new RabbitMQClient({
@@ -137,17 +149,21 @@ rabbitmqController.get("/servers/:id/queues", async (c) => {
   }
 });
 
-// Get all nodes for a specific server
+// Get all nodes for a specific server (only if it belongs to user's company)
 rabbitmqController.get("/servers/:id/nodes", async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user");
 
   try {
     const server = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
     });
 
     if (!server) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     const client = new RabbitMQClient({
@@ -172,18 +188,22 @@ rabbitmqController.get("/servers/:id/nodes", async (c) => {
   }
 });
 
-// Get a specific queue by name from a server
+// Get a specific queue by name from a server (only if it belongs to user's company)
 rabbitmqController.get("/servers/:id/queues/:queueName", async (c) => {
   const id = c.req.param("id");
   const queueName = c.req.param("queueName");
+  const user = c.get("user");
 
   try {
     const server = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
     });
 
     if (!server) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     const client = new RabbitMQClient({
@@ -278,17 +298,21 @@ rabbitmqController.post(
   }
 );
 
-// Get enhanced metrics including latency and disk usage for a specific server
+// Get enhanced metrics including latency and disk usage for a specific server (only if it belongs to user's company)
 rabbitmqController.get("/servers/:id/metrics", async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user");
 
   try {
     const server = await prisma.rabbitMQServer.findUnique({
-      where: { id },
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
     });
 
     if (!server) {
-      return c.json({ error: "Server not found" }, 404);
+      return c.json({ error: "Server not found or access denied" }, 404);
     }
 
     const client = new RabbitMQClient({

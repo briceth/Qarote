@@ -135,11 +135,8 @@ companyController.put(
     const data = c.req.valid("json");
     const user = c.get("user") as SafeUser;
 
-    // Only allow admins or company admins to update company details
-    if (
-      user.role !== UserRole.ADMIN &&
-      (user.companyId !== id || user.role !== UserRole.ADMIN)
-    ) {
+    // Only allow company users or admins to update company details
+    if (user.role !== UserRole.ADMIN && user.companyId !== id) {
       return c.json(
         { error: "Forbidden", message: "Cannot update this company" },
         403

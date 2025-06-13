@@ -219,8 +219,7 @@ userController.post(
     // Check if user has access to this company
     if (
       currentUser.role !== UserRole.ADMIN &&
-      (currentUser.companyId !== companyId ||
-        currentUser.role !== UserRole.ADMIN)
+      currentUser.companyId !== companyId
     ) {
       return c.json(
         { error: "Forbidden", message: "Cannot invite users to this company" },
@@ -325,10 +324,7 @@ userController.get("/invitations/company/:companyId", async (c) => {
   const user = c.get("user") as SafeUser;
 
   // Check if user has access to this company
-  if (
-    user.role !== UserRole.ADMIN &&
-    (user.companyId !== companyId || user.role !== UserRole.ADMIN)
-  ) {
+  if (user.role !== UserRole.ADMIN && user.companyId !== companyId) {
     return c.json(
       {
         error: "Forbidden",
