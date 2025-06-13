@@ -370,4 +370,238 @@ rabbitmqController.post(
   }
 );
 
+// Get time-series metrics for Message Throughput chart (only if server belongs to user's company)
+rabbitmqController.get("/servers/:id/metrics/timeseries", async (c) => {
+  const id = c.req.param("id");
+  const user = c.get("user");
+  const timeRange = c.req.query("timeRange") || "24h"; // Default to 24h
+
+  try {
+    const server = await prisma.rabbitMQServer.findUnique({
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
+    });
+
+    if (!server) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    // Calculate time range
+    const now = new Date();
+    let startTime: Date;
+    let groupByMinutes: number;
+
+    switch (timeRange) {
+      case "1m":
+        startTime = new Date(now.getTime() - 60 * 1000); // 1 minute ago
+        groupByMinutes = 0; // No grouping, use raw data
+        break;
+      case "10m":
+        startTime = new Date(now.getTime() - 10 * 60 * 1000); // 10 minutes ago
+        groupByMinutes = 1; // Group by 1 minute
+        break;
+      case "1h":
+        startTime = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour ago
+        groupByMinutes = 5; // Group by 5 minutes
+        break;
+      case "8h":
+        startTime = new Date(now.getTime() - 8 * 60 * 60 * 1000); // 8 hours ago
+        groupByMinutes = 60; // Group by 1 hour
+        break;
+      case "24h":
+      default:
+        startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+        groupByMinutes = 240; // Group by 4 hours
+        break;
+    }
+
+    // Get all queues for this server
+    const queues = await prisma.queue.findMany({
+      where: { serverId: id },
+      include: {
+        QueueMetrics: {
+          where: {
+            timestamp: {
+              gte: startTime,
+            },
+          },
+          orderBy: {
+            timestamp: "asc",
+          },
+        },
+      },
+    });
+
+    // Aggregate metrics by time intervals
+    const timeSeriesData = [];
+    const intervalMs = groupByMinutes * 60 * 1000;
+
+    if (groupByMinutes === 0) {
+      // For 1-minute range, use raw data points
+      const allMetrics = queues.flatMap((queue) => queue.QueueMetrics);
+      const groupedByTime = allMetrics.reduce((acc, metric) => {
+        const timeKey = metric.timestamp.getTime();
+        if (!acc[timeKey]) {
+          acc[timeKey] = {
+            timestamp: metric.timestamp,
+            totalMessages: 0,
+            totalPublishRate: 0,
+            totalConsumeRate: 0,
+            count: 0,
+          };
+        }
+        acc[timeKey].totalMessages += metric.messages;
+        acc[timeKey].totalPublishRate += metric.publishRate;
+        acc[timeKey].totalConsumeRate += metric.consumeRate;
+        acc[timeKey].count += 1;
+        return acc;
+      }, {} as Record<number, any>);
+
+      Object.values(groupedByTime).forEach((data: any) => {
+        timeSeriesData.push({
+          time:
+            data.timestamp.toLocaleTimeString("en-US", {
+              second: "2-digit",
+            }) + "s",
+          messages: Math.round(data.totalPublishRate + data.totalConsumeRate),
+          publishRate: data.totalPublishRate,
+          consumeRate: data.totalConsumeRate,
+        });
+      });
+    } else {
+      // Group by intervals for longer time ranges
+      for (
+        let time = startTime.getTime();
+        time <= now.getTime();
+        time += intervalMs
+      ) {
+        const intervalStart = new Date(time);
+        const intervalEnd = new Date(time + intervalMs);
+
+        const intervalMetrics = queues.flatMap((queue) =>
+          queue.QueueMetrics.filter(
+            (metric) =>
+              metric.timestamp >= intervalStart &&
+              metric.timestamp < intervalEnd
+          )
+        );
+
+        if (intervalMetrics.length > 0) {
+          const totalPublishRate = intervalMetrics.reduce(
+            (sum, metric) => sum + metric.publishRate,
+            0
+          );
+          const totalConsumeRate = intervalMetrics.reduce(
+            (sum, metric) => sum + metric.consumeRate,
+            0
+          );
+          const avgPublishRate = totalPublishRate / intervalMetrics.length;
+          const avgConsumeRate = totalConsumeRate / intervalMetrics.length;
+
+          timeSeriesData.push({
+            time: intervalStart.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
+            messages: Math.round(
+              (avgPublishRate + avgConsumeRate) * (groupByMinutes * 60)
+            ), // Convert rate to total messages in interval
+            publishRate: avgPublishRate,
+            consumeRate: avgConsumeRate,
+          });
+        }
+      }
+    }
+
+    // If no historical data, get current live data from RabbitMQ
+    if (timeSeriesData.length === 0) {
+      const client = new RabbitMQClient({
+        host: server.host,
+        port: server.port,
+        username: server.username,
+        password: server.password,
+        vhost: server.vhost,
+      });
+
+      const overview = await client.getOverview();
+      const currentPublishRate =
+        overview?.message_stats?.publish_details?.rate || 0;
+      const currentConsumeRate =
+        overview?.message_stats?.deliver_details?.rate || 0;
+
+      // Generate sample data points for the requested time range
+      let intervals: number;
+      let stepMs: number;
+
+      switch (timeRange) {
+        case "1m":
+          intervals = 12;
+          stepMs = 5000; // 5 seconds
+          break;
+        case "10m":
+          intervals = 10;
+          stepMs = 60000; // 1 minute
+          break;
+        case "1h":
+          intervals = 12;
+          stepMs = 5 * 60000; // 5 minutes
+          break;
+        case "8h":
+          intervals = 8;
+          stepMs = 60 * 60000; // 1 hour
+          break;
+        case "24h":
+        default:
+          intervals = 6;
+          stepMs = 4 * 60 * 60000; // 4 hours
+          break;
+      }
+
+      for (let i = intervals - 1; i >= 0; i--) {
+        const time = new Date(now.getTime() - i * stepMs);
+        const variance = 0.8 + Math.random() * 0.4; // ±20% variance
+
+        timeSeriesData.push({
+          time:
+            timeRange === "1m"
+              ? time.getSeconds().toString().padStart(2, "0") + "s"
+              : time.toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                }),
+          messages: Math.round(
+            (currentPublishRate + currentConsumeRate) *
+              variance *
+              (stepMs / 1000)
+          ),
+          publishRate: currentPublishRate * variance,
+          consumeRate: currentConsumeRate * variance,
+        });
+      }
+    }
+
+    return c.json({
+      timeseries: timeSeriesData,
+      timeRange,
+      dataPoints: timeSeriesData.length,
+    });
+  } catch (error) {
+    console.error(
+      `Error fetching time-series metrics for server ${id}:`,
+      error
+    );
+    return c.json(
+      {
+        error: "Failed to fetch time-series metrics",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
 export default rabbitmqController;

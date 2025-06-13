@@ -14,7 +14,7 @@ import {
   Zap,
   RefreshCw,
 } from "lucide-react";
-import { MetricsChart } from "@/components/MetricsChart";
+import { MetricsChart, TimeRange } from "@/components/MetricsChart";
 import { QueueCard } from "@/components/QueueCard";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { RecentAlerts } from "@/components/RecentAlerts";
@@ -27,6 +27,7 @@ import {
   useQueues,
   useNodes,
   useEnhancedMetrics,
+  useTimeSeriesMetrics,
 } from "@/hooks/useApi";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -53,6 +54,14 @@ const Index = () => {
     isLoading: enhancedMetricsLoading,
     refetch: refetchEnhancedMetrics,
   } = useEnhancedMetrics(selectedServerId || "");
+
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("24h");
+
+  const {
+    data: timeSeriesData,
+    isLoading: timeSeriesLoading,
+    refetch: refetchTimeSeries,
+  } = useTimeSeriesMetrics(selectedServerId || "", selectedTimeRange);
 
   const [chartData, setChartData] = useState([
     { time: "00:00", messages: 0 },
@@ -83,34 +92,34 @@ const Index = () => {
     diskUsage: enhancedMetrics?.diskUsage || 0,
   };
 
-  // Update chart data based on publish rate
+  // Update chart data from time series API
   useEffect(() => {
-    if (overview?.message_stats?.publish_details?.rate) {
-      const rate = overview.message_stats.publish_details.rate;
-      setChartData((prev) => {
-        const newData = [...prev];
-        newData.push({
-          time: new Date().toLocaleTimeString("en-US", {
-            hour12: false,
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          messages: Math.round(rate * 60), // Convert per-second to per-minute
-        });
-        return newData.slice(-6); // Keep only last 6 data points
-      });
+    if (timeSeriesData?.timeseries) {
+      setChartData(
+        timeSeriesData.timeseries.map((point) => ({
+          time: point.time,
+          messages: point.messages,
+        }))
+      );
     }
-  }, [overview?.message_stats?.publish_details?.rate]);
+  }, [timeSeriesData]);
 
   const handleRefresh = () => {
     if (selectedServerId) {
       refetchOverview();
       refetchQueues();
       refetchNodes();
+      refetchTimeSeries();
     }
   };
 
-  const isLoading = overviewLoading || queuesLoading || nodesLoading;
+  const handleTimeRangeChange = (timeRange: TimeRange) => {
+    setSelectedTimeRange(timeRange);
+    // The useTimeSeriesMetrics hook will automatically refetch when timeRange changes
+  };
+
+  const isLoading =
+    overviewLoading || queuesLoading || nodesLoading || timeSeriesLoading;
 
   if (!selectedServerId) {
     return (
@@ -348,11 +357,35 @@ const Index = () => {
                   Message Throughput
                 </CardTitle>
                 <p className="text-sm text-gray-500">
-                  Real-time message flow over the last 24 hours
+                  Real-time message flow over the{" "}
+                  {selectedTimeRange === "1m"
+                    ? "last minute"
+                    : selectedTimeRange === "10m"
+                    ? "last 10 minutes"
+                    : selectedTimeRange === "1h"
+                    ? "last hour"
+                    : selectedTimeRange === "8h"
+                    ? "last 8 hours"
+                    : "last 24 hours"}
                 </p>
               </CardHeader>
               <CardContent>
-                <MetricsChart data={chartData} />
+                {timeSeriesLoading ? (
+                  <div className="h-64 w-full flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
+                      <p className="text-sm text-gray-500">
+                        Loading metrics...
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <MetricsChart
+                    data={chartData}
+                    onTimeRangeChange={handleTimeRangeChange}
+                    selectedTimeRange={selectedTimeRange}
+                  />
+                )}
               </CardContent>
             </Card>
 

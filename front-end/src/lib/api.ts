@@ -476,6 +476,19 @@ export interface User {
   companyId?: string;
 }
 
+export interface TimeSeriesDataPoint {
+  time: string;
+  messages: number;
+  publishRate: number;
+  consumeRate: number;
+}
+
+export interface TimeSeriesResponse {
+  timeseries: TimeSeriesDataPoint[];
+  timeRange: string;
+  dataPoints: number;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -598,6 +611,15 @@ class ApiClient {
   ): Promise<{ queue: Queue }> {
     return this.request<{ queue: Queue }>(
       `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}`
+    );
+  }
+
+  async getTimeSeriesMetrics(
+    serverId: string,
+    timeRange: string = "24h"
+  ): Promise<TimeSeriesResponse> {
+    return this.request<TimeSeriesResponse>(
+      `/rabbitmq/servers/${serverId}/metrics/timeseries?timeRange=${timeRange}`
     );
   }
 

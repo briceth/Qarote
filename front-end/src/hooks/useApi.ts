@@ -121,3 +121,14 @@ export const useRecentAlerts = () => {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
+
+export const useTimeSeriesMetrics = (serverId: string, timeRange: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.overview(serverId), "timeseries", timeRange],
+    queryFn: () => apiClient.getTimeSeriesMetrics(serverId, timeRange),
+    enabled: !!serverId,
+    staleTime: 5000, // 5 seconds
+    refetchInterval:
+      timeRange === "1m" ? 5000 : timeRange === "10m" ? 30000 : 60000, // Faster refresh for shorter ranges
+  });
+};
