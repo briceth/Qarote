@@ -953,4 +953,172 @@ rabbitmqController.get("/servers/:id/channels", async (c) => {
   }
 });
 
+// Get all exchanges for a specific server (only if it belongs to user's company)
+rabbitmqController.get("/servers/:id/exchanges", async (c) => {
+  const id = c.req.param("id");
+  const user = c.get("user");
+
+  try {
+    const server = await prisma.rabbitMQServer.findUnique({
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
+    });
+
+    if (!server) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    const client = new RabbitMQClient({
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      password: server.password,
+      vhost: server.vhost,
+    });
+
+    const [exchanges, bindings] = await Promise.all([
+      client.getExchanges(),
+      client.getBindings(),
+    ]);
+
+    // Enrich exchanges with binding information
+    const enrichedExchanges = exchanges.map((exchange) => {
+      const exchangeBindings = bindings.filter(
+        (binding) => binding.source === exchange.name
+      );
+
+      return {
+        ...exchange,
+        bindingCount: exchangeBindings.length,
+        bindings: exchangeBindings,
+      };
+    });
+
+    // Calculate statistics
+    const totalBindings = bindings.length;
+    const exchangeTypes = {
+      direct: exchanges.filter((ex) => ex.type === "direct").length,
+      fanout: exchanges.filter((ex) => ex.type === "fanout").length,
+      topic: exchanges.filter((ex) => ex.type === "topic").length,
+      headers: exchanges.filter((ex) => ex.type === "headers").length,
+    };
+
+    return c.json({
+      success: true,
+      exchanges: enrichedExchanges,
+      bindings,
+      totalExchanges: exchanges.length,
+      totalBindings,
+      exchangeTypes,
+    });
+  } catch (error) {
+    console.error(`Error fetching exchanges for server ${id}:`, error);
+    return c.json(
+      {
+        error: "Failed to fetch exchanges",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
+// Get bindings for a specific server (only if it belongs to user's company)
+rabbitmqController.get("/servers/:id/bindings", async (c) => {
+  const id = c.req.param("id");
+  const user = c.get("user");
+
+  try {
+    const server = await prisma.rabbitMQServer.findUnique({
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
+    });
+
+    if (!server) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    const client = new RabbitMQClient({
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      password: server.password,
+      vhost: server.vhost,
+    });
+
+    const bindings = await client.getBindings();
+
+    return c.json({
+      success: true,
+      bindings,
+      totalBindings: bindings.length,
+    });
+  } catch (error) {
+    console.error(`Error fetching bindings for server ${id}:`, error);
+    return c.json(
+      {
+        error: "Failed to fetch bindings",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
+// Get consumers for a specific queue on a server (only if it belongs to user's company)
+rabbitmqController.get(
+  "/servers/:id/queues/:queueName/consumers",
+  async (c) => {
+    const id = c.req.param("id");
+    const queueName = c.req.param("queueName");
+    const user = c.get("user");
+
+    try {
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: {
+          id,
+          companyId: user.companyId || null,
+        },
+      });
+
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
+      const client = new RabbitMQClient({
+        host: server.host,
+        port: server.port,
+        username: server.username,
+        password: server.password,
+        vhost: server.vhost,
+      });
+
+      const consumers = await client.getQueueConsumers(queueName);
+
+      return c.json({
+        success: true,
+        consumers,
+        totalConsumers: consumers.length,
+        queueName,
+      });
+    } catch (error) {
+      console.error(
+        `Error fetching consumers for queue ${queueName} on server ${id}:`,
+        error
+      );
+      return c.json(
+        {
+          error: "Failed to fetch queue consumers",
+          message: error instanceof Error ? error.message : "Unknown error",
+        },
+        500
+      );
+    }
+  }
+);
+
 export default rabbitmqController;

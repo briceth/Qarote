@@ -3,16 +3,16 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Network, 
-  Users, 
-  Activity, 
-  RefreshCw, 
+import {
+  Network,
+  Users,
+  Activity,
+  RefreshCw,
   Server,
   ArrowUpDown,
   Zap,
   Eye,
-  Link
+  Link,
 } from "lucide-react";
 import { useConnections, useChannels } from "@/hooks/useApi";
 import { useServerContext } from "@/contexts/ServerContext";
@@ -33,8 +33,10 @@ import {
 
 const Connections = () => {
   const { selectedServerId } = useServerContext();
-  const [expandedConnections, setExpandedConnections] = useState<Set<string>>(new Set());
-  
+  const [expandedConnections, setExpandedConnections] = useState<Set<string>>(
+    new Set()
+  );
+
   const {
     data: connectionsData,
     isLoading: connectionsLoading,
@@ -150,7 +152,11 @@ const Connections = () => {
                 size="sm"
                 variant="outline"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${connectionsLoading || channelsLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 mr-2 ${
+                    connectionsLoading || channelsLoading ? "animate-spin" : ""
+                  }`}
+                />
                 Refresh
               </Button>
             </div>
@@ -159,12 +165,16 @@ const Connections = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Connections</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Total Connections
+                  </CardTitle>
                   <Network className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {connectionsLoading ? "..." : connectionsData?.totalConnections ?? 0}
+                    {connectionsLoading
+                      ? "..."
+                      : connectionsData?.totalConnections ?? 0}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Active client connections
@@ -174,7 +184,9 @@ const Connections = () => {
 
               <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Channels</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Total Channels
+                  </CardTitle>
                   <Zap className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -189,17 +201,23 @@ const Connections = () => {
 
               <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Avg Channels/Connection</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Avg Channels/Connection
+                  </CardTitle>
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {connectionsLoading || channelsLoading 
-                      ? "..." 
-                      : connectionsData?.totalConnections && connectionsData.totalConnections > 0
-                        ? Math.round((channelsData?.totalChannels ?? 0) / connectionsData.totalConnections * 10) / 10
-                        : 0
-                    }
+                    {connectionsLoading || channelsLoading
+                      ? "..."
+                      : connectionsData?.totalConnections &&
+                        connectionsData.totalConnections > 0
+                      ? Math.round(
+                          ((channelsData?.totalChannels ?? 0) /
+                            connectionsData.totalConnections) *
+                            10
+                        ) / 10
+                      : 0}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Channels per connection
@@ -239,7 +257,8 @@ const Connections = () => {
                       No Active Connections
                     </h3>
                     <p className="text-gray-600">
-                      There are currently no active connections to this RabbitMQ server.
+                      There are currently no active connections to this RabbitMQ
+                      server.
                     </p>
                   </div>
                 ) : (
@@ -248,16 +267,20 @@ const Connections = () => {
                       <Collapsible key={connection.name}>
                         <div className="border rounded-lg">
                           <CollapsibleTrigger asChild>
-                            <div 
+                            <div
                               className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer"
                               onClick={() => toggleConnection(connection.name)}
                             >
                               <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                   <Link className="h-4 w-4 text-blue-600" />
-                                  <span className="font-medium">{connection.name}</span>
+                                  <span className="font-medium">
+                                    {connection.name}
+                                  </span>
                                 </div>
-                                <Badge className={getStateColor(connection.state)}>
+                                <Badge
+                                  className={getStateColor(connection.state)}
+                                >
                                   {connection.state}
                                 </Badge>
                                 <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -271,16 +294,28 @@ const Connections = () => {
                               </div>
                               <div className="flex items-center gap-4 text-sm">
                                 <div className="text-center">
-                                  <div className="font-medium">{connection.channelCount}</div>
-                                  <div className="text-xs text-gray-500">Channels</div>
+                                  <div className="font-medium">
+                                    {connection.channelCount}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Channels
+                                  </div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="font-medium">{formatBytes(connection.recv_oct)}</div>
-                                  <div className="text-xs text-gray-500">Received</div>
+                                  <div className="font-medium">
+                                    {formatBytes(connection.recv_oct)}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Received
+                                  </div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="font-medium">{formatBytes(connection.send_oct)}</div>
-                                  <div className="text-xs text-gray-500">Sent</div>
+                                  <div className="font-medium">
+                                    {formatBytes(connection.send_oct)}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Sent
+                                  </div>
                                 </div>
                                 <ArrowUpDown className="h-4 w-4 text-gray-400" />
                               </div>
@@ -290,42 +325,138 @@ const Connections = () => {
                             <div className="border-t p-4">
                               <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                  <h4 className="font-medium mb-2">Connection Details</h4>
+                                  <h4 className="font-medium mb-2">
+                                    Connection Details
+                                  </h4>
                                   <div className="space-y-1 text-sm">
-                                    <div><span className="text-gray-500">Protocol:</span> {connection.protocol}</div>
-                                    <div><span className="text-gray-500">Virtual Host:</span> {connection.vhost}</div>
-                                    <div><span className="text-gray-500">Packets Received:</span> {connection.recv_cnt.toLocaleString()}</div>
-                                    <div><span className="text-gray-500">Packets Sent:</span> {connection.send_cnt.toLocaleString()}</div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Protocol:
+                                      </span>{" "}
+                                      {connection.protocol}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Virtual Host:
+                                      </span>{" "}
+                                      {connection.vhost}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Packets Received:
+                                      </span>{" "}
+                                      {connection.recv_cnt.toLocaleString()}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Packets Sent:
+                                      </span>{" "}
+                                      {connection.send_cnt.toLocaleString()}
+                                    </div>
                                   </div>
                                 </div>
                                 <div>
-                                  <h4 className="font-medium mb-2">Traffic Statistics</h4>
+                                  <h4 className="font-medium mb-2">
+                                    Traffic Statistics
+                                  </h4>
                                   <div className="space-y-1 text-sm">
-                                    <div><span className="text-gray-500">Bytes Received:</span> {formatBytes(connection.recv_oct)}</div>
-                                    <div><span className="text-gray-500">Bytes Sent:</span> {formatBytes(connection.send_oct)}</div>
-                                    <div><span className="text-gray-500">Active Channels:</span> {connection.channelCount}</div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Bytes Received:
+                                      </span>{" "}
+                                      {formatBytes(connection.recv_oct)}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Bytes Sent:
+                                      </span>{" "}
+                                      {formatBytes(connection.send_oct)}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">
+                                        Active Channels:
+                                      </span>{" "}
+                                      {connection.channelCount}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                              
+
                               {connection.channelDetails?.length > 0 && (
                                 <div>
-                                  <h4 className="font-medium mb-2">Channels ({connection.channelDetails.length})</h4>
-                                  <div className="space-y-2">
-                                    {connection.channelDetails.map((channel) => (
-                                      <div key={channel.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                          <Badge variant="outline">#{channel.number}</Badge>
-                                          <span className="font-medium">{channel.name}</span>
-                                          <Badge className={getStateColor(channel.state)}>
-                                            {channel.state}
-                                          </Badge>
+                                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                                    <Zap className="h-4 w-4" />
+                                    Active Channels (
+                                    {connection.channelDetails.length})
+                                  </h4>
+                                  <div className="grid gap-3">
+                                    {connection.channelDetails.map(
+                                      (channel) => (
+                                        <div
+                                          key={channel.name}
+                                          className="border rounded-lg p-3 bg-gradient-to-r from-gray-50 to-gray-100"
+                                        >
+                                          <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-3">
+                                              <Badge
+                                                variant="outline"
+                                                className="font-mono"
+                                              >
+                                                #{channel.number}
+                                              </Badge>
+                                              <span className="font-medium text-sm">
+                                                {channel.name}
+                                              </span>
+                                              <Badge
+                                                className={getStateColor(
+                                                  channel.state
+                                                )}
+                                              >
+                                                {channel.state}
+                                              </Badge>
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                              {
+                                                channel.connection_details
+                                                  ?.peer_host
+                                              }
+                                              :
+                                              {
+                                                channel.connection_details
+                                                  ?.peer_port
+                                              }
+                                            </div>
+                                          </div>
+
+                                          <div className="grid grid-cols-3 gap-4 text-xs">
+                                            <div>
+                                              <span className="text-gray-500">
+                                                User:
+                                              </span>
+                                              <div className="font-medium">
+                                                {channel.user}
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-500">
+                                                VHost:
+                                              </span>
+                                              <div className="font-medium">
+                                                {channel.vhost}
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-500">
+                                                Node:
+                                              </span>
+                                              <div className="font-medium">
+                                                {channel.node}
+                                              </div>
+                                            </div>
+                                          </div>
                                         </div>
-                                        <div className="text-sm text-gray-600">
-                                          {channel.connection_details?.peer_host}:{channel.connection_details?.peer_port}
-                                        </div>
-                                      </div>
-                                    ))}
+                                      )
+                                    )}
                                   </div>
                                 </div>
                               )}

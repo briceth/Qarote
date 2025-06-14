@@ -138,6 +138,36 @@ export const useChannels = (serverId: string) => {
   });
 };
 
+export const useExchanges = (serverId: string) => {
+  return useQuery({
+    queryKey: ["exchanges", serverId],
+    queryFn: () => apiClient.getExchanges(serverId),
+    enabled: !!serverId,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+export const useBindings = (serverId: string) => {
+  return useQuery({
+    queryKey: ["bindings", serverId],
+    queryFn: () => apiClient.getBindings(serverId),
+    enabled: !!serverId,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+export const useQueueConsumers = (serverId: string, queueName: string) => {
+  return useQuery({
+    queryKey: ["queueConsumers", serverId, queueName],
+    queryFn: () => apiClient.getQueueConsumers(serverId, queueName),
+    enabled: !!serverId && !!queueName,
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+};
+
 // Alerts hooks
 export const useAlerts = () => {
   return useQuery({

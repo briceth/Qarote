@@ -58,11 +58,6 @@ const menuItems = [
     icon: Activity,
   },
   {
-    title: "Channels",
-    url: "/channels",
-    icon: MessageSquare,
-  },
-  {
     title: "Alerts",
     url: "/alerts",
     icon: AlertTriangle,

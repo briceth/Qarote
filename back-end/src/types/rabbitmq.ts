@@ -199,6 +199,51 @@ export interface RabbitMQChannel {
   };
 }
 
+export interface RabbitMQExchange {
+  name: string;
+  vhost: string;
+  type: string;
+  durable: boolean;
+  auto_delete: boolean;
+  internal: boolean;
+  arguments: { [key: string]: unknown };
+  message_stats?: {
+    publish_in?: number;
+    publish_in_details?: RateDetail;
+    publish_out?: number;
+    publish_out_details?: RateDetail;
+  };
+}
+
+export interface RabbitMQBinding {
+  source: string;
+  vhost: string;
+  destination: string;
+  destination_type: string;
+  routing_key: string;
+  arguments: { [key: string]: unknown };
+  properties_key: string;
+}
+
+export interface RabbitMQConsumer {
+  consumer_tag: string;
+  channel_details: {
+    name: string;
+    number: number;
+    connection_name: string;
+    peer_host: string;
+    peer_port: number;
+  };
+  queue: {
+    name: string;
+    vhost: string;
+  };
+  ack_required: boolean;
+  exclusive: boolean;
+  prefetch_count: number;
+  arguments: { [key: string]: unknown };
+}
+
 export interface SampleRetentionPolicies {
   global: number[];
   basic: number[];

@@ -5,7 +5,10 @@ import type {
   RabbitMQChannel,
   RabbitMQOverview,
   RabbitMQQueue,
+  RabbitMQExchange,
+  RabbitMQBinding,
   EnhancedMetrics,
+  RabbitMQConsumer,
 } from "../types/rabbitmq";
 
 class RabbitMQClient {
@@ -82,11 +85,11 @@ class RabbitMQClient {
     return this.request("/channels");
   }
 
-  async getExchanges() {
+  async getExchanges(): Promise<RabbitMQExchange[]> {
     return this.request(`/exchanges/${this.vhost}`);
   }
 
-  async getBindings() {
+  async getBindings(): Promise<RabbitMQBinding[]> {
     return this.request(`/bindings/${this.vhost}`);
   }
 
@@ -365,6 +368,20 @@ class RabbitMQClient {
       console.error("Error calculating average CPU usage:", error);
       return 15; // Default fallback: 15% CPU usage
     }
+  }
+
+  async getConsumers(): Promise<RabbitMQConsumer[]> {
+    return this.request("/consumers");
+  }
+
+  async getQueueConsumers(queueName: string): Promise<RabbitMQConsumer[]> {
+    const encodedQueueName = encodeURIComponent(queueName);
+    const consumers = await this.getConsumers();
+    return consumers.filter(
+      (consumer) =>
+        consumer.queue?.name === queueName &&
+        consumer.queue?.vhost === decodeURIComponent(this.vhost)
+    );
   }
 }
 

@@ -432,6 +432,53 @@ export interface Channel {
   };
 }
 
+export interface Exchange {
+  name: string;
+  vhost: string;
+  type: string;
+  durable: boolean;
+  auto_delete: boolean;
+  internal: boolean;
+  arguments: { [key: string]: unknown };
+  message_stats?: {
+    publish_in?: number;
+    publish_in_details?: RateDetail;
+    publish_out?: number;
+    publish_out_details?: RateDetail;
+  };
+  bindingCount: number;
+  bindings: Binding[];
+}
+
+export interface Binding {
+  source: string;
+  vhost: string;
+  destination: string;
+  destination_type: string;
+  routing_key: string;
+  arguments: { [key: string]: unknown };
+  properties_key: string;
+}
+
+export interface Consumer {
+  consumer_tag: string;
+  channel_details: {
+    name: string;
+    number: number;
+    connection_name: string;
+    peer_host: string;
+    peer_port: number;
+  };
+  queue: {
+    name: string;
+    vhost: string;
+  };
+  ack_required: boolean;
+  exclusive: boolean;
+  prefetch_count: number;
+  arguments: { [key: string]: unknown };
+}
+
 export interface EnhancedMetrics {
   overview: Overview;
   nodes: Node[];
@@ -834,6 +881,67 @@ class ApiClient {
       channels: Channel[];
       totalChannels: number;
     }>(`/rabbitmq/servers/${serverId}/channels`);
+  }
+
+  async getExchanges(serverId: string): Promise<{
+    success: boolean;
+    exchanges: Exchange[];
+    bindings: Binding[];
+    totalExchanges: number;
+    totalBindings: number;
+    exchangeTypes: {
+      direct: number;
+      fanout: number;
+      topic: number;
+      headers: number;
+    };
+  }> {
+    return this.request<{
+      success: boolean;
+      exchanges: Exchange[];
+      bindings: Binding[];
+      totalExchanges: number;
+      totalBindings: number;
+      exchangeTypes: {
+        direct: number;
+        fanout: number;
+        topic: number;
+        headers: number;
+      };
+    }>(`/rabbitmq/servers/${serverId}/exchanges`);
+  }
+
+  async getBindings(serverId: string): Promise<{
+    success: boolean;
+    bindings: Binding[];
+    totalBindings: number;
+  }> {
+    return this.request<{
+      success: boolean;
+      bindings: Binding[];
+      totalBindings: number;
+    }>(`/rabbitmq/servers/${serverId}/bindings`);
+  }
+
+  async getQueueConsumers(
+    serverId: string,
+    queueName: string
+  ): Promise<{
+    success: boolean;
+    consumers: Consumer[];
+    totalConsumers: number;
+    queueName: string;
+  }> {
+    return this.request<{
+      success: boolean;
+      consumers: Consumer[];
+      totalConsumers: number;
+      queueName: string;
+    }>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+        queueName
+      )}/consumers`
+    );
   }
 
   async getTimeSeriesMetrics(
