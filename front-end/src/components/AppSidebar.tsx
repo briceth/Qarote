@@ -203,27 +203,6 @@ export function AppSidebar() {
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
-
-        {/* Server connection info */}
-        <div className="text-xs text-gray-500 text-center border-t border-gray-100 pt-3">
-          {selectedServer ? (
-            <div className="space-y-1">
-              <p className="font-medium text-gray-700">Connected to:</p>
-              <p className="truncate">{selectedServer.name}</p>
-              <p className="text-gray-400">
-                {selectedServer.host}:{selectedServer.port}
-              </p>
-              <Badge
-                variant="outline"
-                className="text-xs bg-green-50 text-green-700 border-green-200"
-              >
-                {selectedServer.vhost}
-              </Badge>
-            </div>
-          ) : (
-            <p>No server selected</p>
-          )}
-        </div>
       </SidebarFooter>
     </Sidebar>
   );
