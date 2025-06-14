@@ -13,7 +13,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
@@ -28,8 +28,13 @@
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
+    "@types/jest": "^29.5.14",
     "@types/node": "^24.0.0",
+    "@types/sinon": "^17.0.4",
+    "jest": "^30.0.0",
     "prisma": "^6.9.0",
+    "sinon": "^20.0.0",
+    "ts-jest": "^29.4.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
