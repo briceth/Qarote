@@ -7,6 +7,7 @@ import { Suspense, lazy } from "react";
 import { ServerProvider } from "@/contexts/ServerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PublicRoute from "@/components/PublicRoute";
 import { PageLoader } from "@/components/PageLoader";
 
 // Lazy load all pages
@@ -34,8 +35,22 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public authentication routes */}
-                <Route path="/auth/sign-in" element={<SignIn />} />
-                <Route path="/auth/sign-up" element={<SignUp />} />
+                <Route
+                  path="/auth/sign-in"
+                  element={
+                    <PublicRoute>
+                      <SignIn />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/auth/sign-up"
+                  element={
+                    <PublicRoute>
+                      <SignUp />
+                    </PublicRoute>
+                  }
+                />
 
                 {/* Protected routes */}
                 <Route
@@ -95,8 +110,15 @@ const App = () => (
                   }
                 />
 
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                {/* Protected 404 route - catches all other paths */}
+                <Route
+                  path="*"
+                  element={
+                    <ProtectedRoute>
+                      <NotFound />
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
             </Suspense>
           </BrowserRouter>
