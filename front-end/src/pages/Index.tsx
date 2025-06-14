@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   Zap,
   RefreshCw,
 } from "lucide-react";
-import { MetricsChart, TimeRange } from "@/components/MetricsChart";
+import { TimeRange } from "@/components/MetricsChart";
 import { QueueCard } from "@/components/QueueCard";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { RecentAlerts } from "@/components/RecentAlerts";
@@ -22,6 +22,13 @@ import { ResourceUsage } from "@/components/ResourceUsage";
 import { ConnectedNodes } from "@/components/ConnectedNodes";
 import { AddServerForm } from "@/components/AddServerForm";
 import { useServerContext } from "@/contexts/ServerContext";
+
+// Lazy load MetricsChart since it's a heavy charting component
+const MetricsChart = lazy(() =>
+  import("@/components/MetricsChart").then((module) => ({
+    default: module.MetricsChart,
+  }))
+);
 import {
   useOverview,
   useQueues,
@@ -380,13 +387,26 @@ const Index = () => {
                     </div>
                   </div>
                 ) : (
-                  <MetricsChart
-                    data={chartData}
-                    onTimeRangeChange={handleTimeRangeChange}
-                    selectedTimeRange={selectedTimeRange}
-                    onRefresh={refetchTimeSeries}
-                    isLoading={timeSeriesLoading}
-                  />
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center py-8">
+                        <div className="flex items-center gap-2">
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <span className="text-sm text-gray-500">
+                            Loading chart...
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <MetricsChart
+                      data={chartData}
+                      onTimeRangeChange={handleTimeRangeChange}
+                      selectedTimeRange={selectedTimeRange}
+                      onRefresh={refetchTimeSeries}
+                      isLoading={timeSeriesLoading}
+                    />
+                  </Suspense>
                 )}
               </CardContent>
             </Card>

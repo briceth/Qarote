@@ -9,14 +9,46 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger()].filter(
+    Boolean
+  ),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunk for React and related libraries
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          // UI components chunk
+          "vendor-ui": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+            "@radix-ui/react-slot",
+          ],
+          // Data fetching and state management
+          "vendor-data": ["@tanstack/react-query"],
+          // Charts and visualization
+          "vendor-charts": ["recharts"],
+          // Icons
+          "vendor-icons": ["lucide-react"],
+          // Form and validation
+          "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
+          // Date and time utilities
+          "vendor-utils": [
+            "date-fns",
+            "clsx",
+            "class-variance-authority",
+            "tailwind-merge",
+          ],
+        },
+      },
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
   },
 }));

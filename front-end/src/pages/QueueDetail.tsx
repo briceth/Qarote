@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import MessageBrowser from "@/components/MessageBrowser";
 import {
   ArrowLeft,
   MessageSquare,
@@ -25,6 +24,9 @@ import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useQueue, useQueueConsumers } from "@/hooks/useApi";
 import { Queue } from "@/lib/api";
+
+// Lazy load MessageBrowser since it's only shown when user wants to browse messages
+const MessageBrowser = lazy(() => import("@/components/MessageBrowser"));
 
 const QueueDetail = () => {
   const { queueName } = useParams<{ queueName: string }>();
@@ -594,10 +596,33 @@ const QueueDetail = () => {
 
                 {/* Message Browser */}
                 <div ref={messageBrowserRef}>
-                  <MessageBrowser
-                    queueName={queueName}
-                    serverId={selectedServerId}
-                  />
+                  <Suspense
+                    fallback={
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Eye className="h-5 w-5" />
+                            Message Browser
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center justify-center py-8">
+                            <div className="flex items-center gap-2">
+                              <RefreshCw className="h-4 w-4 animate-spin" />
+                              <span className="text-sm text-gray-500">
+                                Loading message browser...
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    }
+                  >
+                    <MessageBrowser
+                      queueName={queueName}
+                      serverId={selectedServerId}
+                    />
+                  </Suspense>
                 </div>
               </>
             ) : (
