@@ -1,3 +1,48 @@
+# Scripts
+
+This folder contains utility scripts for the RabbitMQ Dashboard project.
+
+## Scripts
+
+### populate-rabbitmq-data.ts
+
+Populates RabbitMQ with sample data for testing and demonstration purposes.
+
+**Usage:**
+
+```bash
+# From project root
+npm run populate:rabbitmq
+
+# Or run directly with tsx
+npx tsx scripts/populate-rabbitmq-data.ts
+```
+
+**Environment Variables:**
+
+- `RABBITMQ_HOST` - RabbitMQ host (default: localhost)
+- `RABBITMQ_PORT` - RabbitMQ port (default: 5672)
+- `RABBITMQ_USER` - RabbitMQ username (default: admin)
+- `RABBITMQ_PASS` - RabbitMQ password (default: admin123)
+- `RABBITMQ_MANAGEMENT_PORT` - Management UI port (default: 15672)
+
+**What it creates:**
+
+- Creates exchanges: notifications.direct, user.events, events.topic, analytics.fanout, system.alerts
+- Creates and binds queues for different message types
+- Publishes sample messages:
+  - 70 email notification messages
+  - 15 SMS notification messages
+  - 80 user event messages (registrations, logins)
+  - 48 order processing messages
+  - 30 payment processing messages
+  - 205 analytics events
+  - 26 system alert messages
+
+**Total:** ~474 sample messages across different exchanges and queues
+
+---
+
 # Alert Seeding Script
 
 This script creates sample alert rules and alerts for testing and demonstration purposes.

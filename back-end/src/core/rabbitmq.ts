@@ -122,6 +122,45 @@ class RabbitMQClient {
     }
   }
 
+  async getMessages(
+    queueName: string,
+    count: number = 10,
+    ackMode: string = "ack_requeue_true"
+  ): Promise<any[]> {
+    const encodedQueueName = encodeURIComponent(queueName);
+    const endpoint = `/queues/${this.vhost}/${encodedQueueName}/get`;
+
+    const payload = {
+      count,
+      ackmode: ackMode, // ack_requeue_true, ack_requeue_false, reject_requeue_true, reject_requeue_false
+      encoding: "auto",
+    };
+
+    try {
+      console.log(
+        `Browsing messages from queue: ${queueName} (count: ${count}, ackmode: ${ackMode})`
+      );
+
+      const result = await this.request(endpoint, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      console.log(
+        `Retrieved ${
+          Array.isArray(result) ? result.length : 0
+        } messages from queue: ${queueName}`
+      );
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      console.error(
+        `Error fetching messages from queue "${queueName}":`,
+        error
+      );
+      throw error;
+    }
+  }
+
   // Get comprehensive metrics for calculating latency and performance
   async getMetrics(): Promise<EnhancedMetrics> {
     try {

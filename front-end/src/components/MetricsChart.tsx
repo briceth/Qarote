@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, RefreshCw } from "lucide-react";
 
 export type TimeRange = "1m" | "10m" | "1h" | "8h" | "24h";
 
@@ -39,12 +40,16 @@ interface MetricsChartProps {
   }>;
   onTimeRangeChange?: (timeRange: TimeRange) => void;
   selectedTimeRange?: TimeRange;
+  onRefresh?: () => void;
+  isLoading?: boolean;
 }
 
 export const MetricsChart = ({
   data,
   onTimeRangeChange,
   selectedTimeRange = "24h",
+  onRefresh,
+  isLoading = false,
 }: MetricsChartProps) => {
   const [localTimeRange, setLocalTimeRange] =
     useState<TimeRange>(selectedTimeRange);
@@ -69,23 +74,50 @@ export const MetricsChart = ({
           <Clock className="w-4 h-4" />
           <span>Time Range:</span>
         </div>
-        <Select value={currentTimeRange} onValueChange={handleTimeRangeChange}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            {timeRangeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                <div className="flex flex-col">
-                  <span className="font-medium">{option.label}</span>
-                  <span className="text-xs text-gray-500">
-                    {option.description}
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select
+            value={currentTimeRange}
+            onValueChange={handleTimeRangeChange}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              {timeRangeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{option.label}</span>
+                    <span className="text-xs text-gray-500">
+                      {option.description}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="flex items-center gap-2"
+            >
+              {isLoading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+              Refresh
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Last Updated Indicator */}
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span>Message Throughput</span>
+        <span>Last updated: {new Date().toLocaleTimeString()}</span>
       </div>
 
       {/* Chart */}

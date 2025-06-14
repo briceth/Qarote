@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import MessageBrowser from "@/components/MessageBrowser";
 import {
   ArrowLeft,
   MessageSquare,
@@ -18,6 +19,7 @@ import {
   Settings,
   Trash2,
   Send,
+  Eye,
 } from "lucide-react";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { useServerContext } from "@/contexts/ServerContext";
@@ -28,6 +30,7 @@ const QueueDetail = () => {
   const { queueName } = useParams<{ queueName: string }>();
   const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
+  const messageBrowserRef = useRef<HTMLDivElement>(null);
 
   const {
     data: queueData,
@@ -36,6 +39,13 @@ const QueueDetail = () => {
   } = useQueue(selectedServerId || "", queueName || "");
 
   const queue = queueData?.queue;
+
+  const scrollToMessageBrowser = () => {
+    messageBrowserRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   if (!selectedServerId || !queueName) {
     return (
@@ -140,6 +150,14 @@ const QueueDetail = () => {
                 <Button variant="outline" className="flex items-center gap-2">
                   <Send className="w-4 h-4" />
                   Send Message
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={scrollToMessageBrowser}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  Browse Messages
                 </Button>
                 <PurgeQueueDialog
                   queueName={queueName}
@@ -439,6 +457,14 @@ const QueueDetail = () => {
                       </div>
                     </CardContent>
                   </Card>
+                </div>
+
+                {/* Message Browser */}
+                <div ref={messageBrowserRef}>
+                  <MessageBrowser
+                    queueName={queueName}
+                    serverId={selectedServerId}
+                  />
                 </div>
               </>
             ) : (

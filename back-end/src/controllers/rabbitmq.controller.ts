@@ -696,4 +696,155 @@ rabbitmqController.delete(
   }
 );
 
+// Browse messages in a queue from a server (only if it belongs to user's company)
+rabbitmqController.post("/servers/:id/queues/:queueName/browse", async (c) => {
+  const id = c.req.param("id");
+  const queueName = c.req.param("queueName");
+  const user = c.get("user");
+
+  try {
+    const body = await c.req.json();
+    const { count = 10, ackMode = "ack_requeue_true" } = body;
+
+    console.log(
+      `[${user.email}] Browsing messages for queue: ${queueName} (count: ${count})`
+    );
+
+    const server = await prisma.rabbitMQServer.findUnique({
+      where: {
+        id,
+        companyId: user.companyId || null,
+      },
+    });
+
+    if (!server) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    const client = new RabbitMQClient({
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      password: server.password,
+      vhost: server.vhost,
+    });
+
+    const messages = await client.getMessages(queueName, count, ackMode);
+
+    console.log(
+      `[${user.email}] Retrieved ${messages.length} messages for queue: ${queueName}`
+    );
+
+    return c.json({
+      messages,
+      count: messages.length,
+      queueName,
+    });
+  } catch (error) {
+    console.error(`Error browsing queue messages for ${queueName}:`, error);
+    return c.json(
+      {
+        error: "Failed to browse queue messages",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
+// Internal endpoint for seeding time-series data (for testing/development)
+rabbitmqController.post("/internal/seed-timeseries", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { hours = 1, messageCount = 600 } = body;
+
+    console.log(
+      `Creating time-series data for last ${hours} hours with ${messageCount} total messages`
+    );
+
+    // Get all queues from the database
+    const queues = await prisma.queue.findMany();
+
+    if (queues.length === 0) {
+      return c.json(
+        {
+          error: "No queues found in database. Please fetch queues first.",
+          created: 0,
+        },
+        400
+      );
+    }
+
+    const now = new Date();
+    const hoursAgo = new Date(now.getTime() - hours * 60 * 60 * 1000);
+
+    // Generate time-series data points (every 5 minutes)
+    const dataPoints = Math.ceil((hours * 60) / 5); // Number of 5-minute intervals
+    const messagesPerQueue = Math.floor(messageCount / queues.length);
+
+    let totalCreated = 0;
+
+    for (const queue of queues) {
+      console.log(`Creating metrics for queue: ${queue.name}`);
+
+      for (let i = 0; i < dataPoints; i++) {
+        const timestamp = new Date(hoursAgo.getTime() + i * 5 * 60 * 1000);
+
+        // Generate realistic-looking metrics with some randomness
+        const baseMessages = Math.floor(messagesPerQueue / dataPoints);
+        const randomVariation = Math.floor(Math.random() * baseMessages * 0.5);
+        const messages = Math.max(0, baseMessages + randomVariation);
+        const messagesReady = Math.floor(messages * 0.7);
+        const messagesUnack = messages - messagesReady;
+
+        // Generate publish/consume rates with some correlation to message counts
+        const publishRate = Math.random() * 10 + messages * 0.1;
+        const consumeRate = Math.random() * 8 + messages * 0.08;
+
+        try {
+          await prisma.queueMetric.create({
+            data: {
+              queueId: queue.id,
+              messages,
+              messagesReady,
+              messagesUnack,
+              publishRate,
+              consumeRate,
+              timestamp,
+            },
+          });
+          totalCreated++;
+        } catch (error) {
+          console.error(
+            `Failed to create metric for queue ${queue.name} at ${timestamp}:`,
+            error
+          );
+        }
+      }
+    }
+
+    console.log(`Created ${totalCreated} time-series data points`);
+
+    return c.json({
+      success: true,
+      created: totalCreated,
+      queues: queues.length,
+      dataPoints,
+      timeRange: {
+        from: hoursAgo.toISOString(),
+        to: now.toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Error creating time-series data:", error);
+    return c.json(
+      {
+        error: "Failed to create time-series data",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
 export default rabbitmqController;

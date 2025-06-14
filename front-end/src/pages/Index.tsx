@@ -55,7 +55,7 @@ const Index = () => {
     refetch: refetchEnhancedMetrics,
   } = useEnhancedMetrics(selectedServerId || "");
 
-  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("24h");
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("1m");
 
   const {
     data: timeSeriesData,
@@ -384,6 +384,8 @@ const Index = () => {
                     data={chartData}
                     onTimeRangeChange={handleTimeRangeChange}
                     selectedTimeRange={selectedTimeRange}
+                    onRefresh={refetchTimeSeries}
+                    isLoading={timeSeriesLoading}
                   />
                 )}
               </CardContent>

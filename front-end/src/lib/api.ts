@@ -622,6 +622,36 @@ export interface UpdateAlertRuleInput {
   serverId?: string;
 }
 
+export interface RabbitMQMessage {
+  payload: string;
+  payload_bytes: number;
+  payload_encoding: string;
+  properties: {
+    delivery_mode?: number;
+    headers?: Record<string, unknown>;
+    correlation_id?: string;
+    reply_to?: string;
+    expiration?: string;
+    message_id?: string;
+    timestamp?: number;
+    type?: string;
+    user_id?: string;
+    app_id?: string;
+    content_type?: string;
+    content_encoding?: string;
+  };
+  routing_key: string;
+  redelivered: boolean;
+  exchange: string;
+  message_count: number;
+}
+
+export interface BrowseMessagesResponse {
+  messages: RabbitMQMessage[];
+  count: number;
+  queueName: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -757,6 +787,23 @@ class ApiClient {
       )}/messages`,
       {
         method: "DELETE",
+      }
+    );
+  }
+
+  async browseQueueMessages(
+    serverId: string,
+    queueName: string,
+    count: number = 10,
+    ackMode: string = "ack_requeue_true"
+  ): Promise<BrowseMessagesResponse> {
+    return this.request<BrowseMessagesResponse>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+        queueName
+      )}/browse`,
+      {
+        method: "POST",
+        body: JSON.stringify({ count, ackMode }),
       }
     );
   }

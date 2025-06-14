@@ -103,6 +103,20 @@ export const useEnhancedMetrics = (serverId: string) => {
   });
 };
 
+export const useBrowseMessages = (
+  serverId: string,
+  queueName: string,
+  count: number = 10
+) => {
+  return useQuery({
+    queryKey: ["browseMessages", serverId, queueName, count],
+    queryFn: () => apiClient.browseQueueMessages(serverId, queueName, count),
+    enabled: !!serverId && !!queueName,
+    refetchOnWindowFocus: false,
+    staleTime: 30000, // 30 seconds
+  });
+};
+
 // Alerts hooks
 export const useAlerts = () => {
   return useQuery({
@@ -127,8 +141,8 @@ export const useTimeSeriesMetrics = (serverId: string, timeRange: string) => {
     queryKey: [...queryKeys.overview(serverId), "timeseries", timeRange],
     queryFn: () => apiClient.getTimeSeriesMetrics(serverId, timeRange),
     enabled: !!serverId,
-    staleTime: 5000, // 5 seconds
+    staleTime: 1000, // 1 second
     refetchInterval:
-      timeRange === "1m" ? 5000 : timeRange === "10m" ? 30000 : 60000, // Faster refresh for shorter ranges
+      timeRange === "1m" ? 2000 : timeRange === "10m" ? 5000 : 10000, // More frequent refresh for all ranges
   });
 };
