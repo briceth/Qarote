@@ -53,7 +53,10 @@ export const ConnectionStatus = () => {
         Connected to {overview.cluster_name || server.name}
       </Badge>
       <Badge variant="outline" className="text-xs">
-        v{overview.rabbitmq_version}
+        RabbitMQ v{overview.rabbitmq_version}
+      </Badge>
+      <Badge variant="outline" className="text-xs">
+        Erlang {overview.erlang_version}
       </Badge>
     </div>
   );
