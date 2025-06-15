@@ -167,7 +167,7 @@ rabbitmqController.get("/servers/:id/queues", async (c) => {
       }
     } else {
       // Store queue data temporarily in cache for current session
-      await TemporaryStorage.setUserData(user.id, "queues", queues, id, 30); // 30 minutes TTL
+      await TemporaryStorage.setUserData(user.id, "queues", queues, 30); // 30 minutes TTL
 
       await PrivacyManager.logPrivacyAction(
         user.id,

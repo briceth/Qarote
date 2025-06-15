@@ -5,6 +5,6 @@ export const corsMiddleware = cors({
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"],
   exposeHeaders: ["Content-Length"],
-  maxAge: 600,
+  maxAge: 600, // 10 minutes
   credentials: true,
 });
