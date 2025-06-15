@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { AddQueueForm } from "@/components/AddQueueForm";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
+import { PrivacyNotice, DataStorageWarning } from "@/components/PrivacyNotice";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useQueues } from "@/hooks/useApi";
 import { Queue } from "@/lib/api";
@@ -165,6 +166,14 @@ const Queues = () => {
                 />
               </div>
             </div>
+
+            {/* Privacy Notice */}
+            <DataStorageWarning
+              isActive={false} // You would check actual user settings here
+              dataTypes={[]} // TODO: Fetch actual data types
+              retentionDays={0}
+              onManageSettings={() => navigate("/privacy-settings")}
+            />
 
             {/* Search and Stats */}
             <div className="flex flex-col lg:flex-row gap-6">

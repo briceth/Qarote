@@ -28,12 +28,14 @@ import {
   LogOut,
   User,
   AlertTriangle,
+  Shield,
 } from "lucide-react";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLogout } from "@/hooks/useAuth";
 import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerForm";
+import { PrivacyNotice } from "@/components/PrivacyNotice";
 import { useLocation, Link } from "react-router-dom";
 
 const menuItems = [
@@ -61,6 +63,11 @@ const menuItems = [
     title: "Alerts",
     url: "/alerts",
     icon: AlertTriangle,
+  },
+  {
+    title: "Privacy Settings",
+    url: "/privacy-settings",
+    icon: Shield,
   },
 ];
 
@@ -182,6 +189,11 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-gray-100 p-4 space-y-4">
+        {/* Privacy Status */}
+        <div className="px-2">
+          <PrivacyNotice variant="compact" showBadge={true} />
+        </div>
+
         {/* User section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">

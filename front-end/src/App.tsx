@@ -9,6 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PublicRoute from "@/components/PublicRoute";
 import { PageLoader } from "@/components/PageLoader";
+import { ConsentBanner } from "@/components/PrivacyNotice";
+import { Layout } from "@/components/Layout";
 
 // Lazy load all pages
 const Index = lazy(() => import("./pages/Index"));
@@ -18,6 +20,7 @@ const Connections = lazy(() => import("./pages/Connections"));
 const Exchanges = lazy(() => import("./pages/Exchanges"));
 const Channels = lazy(() => import("./pages/Channels"));
 const Alerts = lazy(() => import("./pages/Alerts"));
+const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -29,6 +32,7 @@ const App = () => (
     <AuthProvider>
       <ServerProvider>
         <TooltipProvider>
+          <ConsentBanner />
           <Toaster />
           <Sonner />
           <BrowserRouter
@@ -62,7 +66,9 @@ const App = () => (
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Index />
+                      <Layout>
+                        <Index />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -70,7 +76,9 @@ const App = () => (
                   path="/queues"
                   element={
                     <ProtectedRoute>
-                      <Queues />
+                      <Layout>
+                        <Queues />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -78,7 +86,9 @@ const App = () => (
                   path="/queues/:queueName"
                   element={
                     <ProtectedRoute>
-                      <QueueDetail />
+                      <Layout>
+                        <QueueDetail />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -86,7 +96,9 @@ const App = () => (
                   path="/connections"
                   element={
                     <ProtectedRoute>
-                      <Connections />
+                      <Layout>
+                        <Connections />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -94,7 +106,9 @@ const App = () => (
                   path="/exchanges"
                   element={
                     <ProtectedRoute>
-                      <Exchanges />
+                      <Layout>
+                        <Exchanges />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -102,7 +116,9 @@ const App = () => (
                   path="/channels"
                   element={
                     <ProtectedRoute>
-                      <Channels />
+                      <Layout>
+                        <Channels />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -110,7 +126,19 @@ const App = () => (
                   path="/alerts"
                   element={
                     <ProtectedRoute>
-                      <Alerts />
+                      <Layout>
+                        <Alerts />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/privacy-settings"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PrivacySettings />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
@@ -120,7 +148,9 @@ const App = () => (
                   path="*"
                   element={
                     <ProtectedRoute>
-                      <NotFound />
+                      <Layout>
+                        <NotFound />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />

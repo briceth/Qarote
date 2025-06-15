@@ -15,6 +15,7 @@ import companyController from "./controllers/company.controller";
 
 import { corsMiddleware } from "./middlewares/cors";
 import { alertService } from "./services/alert.service";
+import { TemporaryStorage } from "./core/privacy";
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,10 @@ async function startServer() {
 
     // Start the alert monitoring service
     // alertService.start();
+
+    // Initialize periodic cache cleanup (every hour)
+    const cleanupInterval = TemporaryStorage.startPeriodicCleanup(60);
+    console.log("Cache cleanup service started (runs every 60 minutes)");
 
     // Start the server
     serve(

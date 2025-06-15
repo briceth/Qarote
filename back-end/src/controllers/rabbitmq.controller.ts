@@ -1,15 +1,14 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import prisma from "../core/prisma";
 import RabbitMQClient from "../core/rabbitmq";
 import { authenticate } from "../core/auth";
+import { PrivacyManager, DataType, TemporaryStorage } from "../core/privacy";
 import {
   RabbitMQCredentialsSchema,
   PublishMessageSchema,
   CreateQueueSchema,
 } from "../schemas/rabbitmq";
-import type { EnhancedMetrics } from "../types/rabbitmq";
 
 const rabbitmqController = new Hono();
 
@@ -82,66 +81,99 @@ rabbitmqController.get("/servers/:id/queues", async (c) => {
 
     const queues = await client.getQueues();
 
-    // Store queue data in the database
-    for (const queue of queues) {
-      const queueData = {
-        name: queue.name,
-        vhost: queue.vhost,
-        messages: queue.messages,
-        messagesReady: queue.messages_ready,
-        messagesUnack: queue.messages_unacknowledged,
-        lastFetched: new Date(),
-        serverId: id,
-      };
+    // Check if user has consented to store queue data
+    const shouldStoreQueueData = await PrivacyManager.shouldStoreData(
+      user.id,
+      DataType.METRICS
+    );
 
-      // Try to find existing queue record
-      const existingQueue = await prisma.queue.findFirst({
-        where: {
-          name: queue.name,
-          vhost: queue.vhost,
-          serverId: id,
-        },
+    if (shouldStoreQueueData) {
+      // Store queue data in the database only if user has consented
+      await PrivacyManager.logPrivacyAction(user.id, "store_queue_metrics", {
+        serverId: id,
+        queueCount: queues.length,
       });
 
-      if (existingQueue) {
-        // Update existing queue
-        await prisma.queue.update({
-          where: { id: existingQueue.id },
-          data: queueData,
-        });
+      for (const queue of queues) {
+        const queueData = {
+          name: queue.name,
+          vhost: queue.vhost,
+          messages: queue.messages,
+          messagesReady: queue.messages_ready,
+          messagesUnack: queue.messages_unacknowledged,
+          lastFetched: new Date(),
+          serverId: id,
+        };
 
-        // Add metrics record
-        await prisma.queueMetric.create({
-          data: {
-            queueId: existingQueue.id,
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
-            publishRate: queue.message_stats?.publish_details?.rate || 0,
-            consumeRate: queue.message_stats?.deliver_details?.rate || 0,
+        // Try to find existing queue record
+        const existingQueue = await prisma.queue.findFirst({
+          where: {
+            name: queue.name,
+            vhost: queue.vhost,
+            serverId: id,
           },
         });
-      } else {
-        // Create new queue
-        const newQueue = await prisma.queue.create({
-          data: queueData,
-        });
 
-        // Add metrics record
-        await prisma.queueMetric.create({
-          data: {
-            queueId: newQueue.id,
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
-            publishRate: queue.message_stats?.publish_details?.rate || 0,
-            consumeRate: queue.message_stats?.deliver_details?.rate || 0,
-          },
-        });
+        if (existingQueue) {
+          // Update existing queue
+          await prisma.queue.update({
+            where: { id: existingQueue.id },
+            data: queueData,
+          });
+
+          // Add metrics record
+          await prisma.queueMetric.create({
+            data: {
+              queueId: existingQueue.id,
+              messages: queue.messages,
+              messagesReady: queue.messages_ready,
+              messagesUnack: queue.messages_unacknowledged,
+              publishRate: queue.message_stats?.publish_details?.rate || 0,
+              consumeRate: queue.message_stats?.deliver_details?.rate || 0,
+            },
+          });
+        } else {
+          // Create new queue
+          const newQueue = await prisma.queue.create({
+            data: queueData,
+          });
+
+          // Add metrics record
+          await prisma.queueMetric.create({
+            data: {
+              queueId: newQueue.id,
+              messages: queue.messages,
+              messagesReady: queue.messages_ready,
+              messagesUnack: queue.messages_unacknowledged,
+              publishRate: queue.message_stats?.publish_details?.rate || 0,
+              consumeRate: queue.message_stats?.deliver_details?.rate || 0,
+            },
+          });
+        }
       }
+    } else {
+      // Store queue data temporarily in cache for current session
+      await TemporaryStorage.setUserData(user.id, "queues", queues, id, 30); // 30 minutes TTL
+
+      await PrivacyManager.logPrivacyAction(
+        user.id,
+        "access_queues_memory_only",
+        { serverId: id, queueCount: queues.length }
+      );
     }
 
-    return c.json({ queues });
+    // Get privacy settings to include plan information
+    const privacySettings = await PrivacyManager.getPrivacySettings(user.id);
+
+    // Always return the live queue data regardless of storage preference
+    return c.json({
+      queues,
+      privacyMode: shouldStoreQueueData ? "stored" : "memory_only",
+      planType: privacySettings.planType,
+      disclaimer: shouldStoreQueueData
+        ? undefined
+        : "Data is accessed in real-time and not stored persistently",
+    });
   } catch (error) {
     console.error(`Error fetching queues for server ${id}:`, error);
     return c.json(
@@ -1354,5 +1386,62 @@ rabbitmqController.post(
     }
   }
 );
+
+// Get cache statistics (admin only)
+rabbitmqController.get("/cache/stats", authenticate, async (c) => {
+  try {
+    const user = c.get("user");
+
+    // Only allow admin users to access cache stats
+    if (user.role !== "ADMIN") {
+      return c.json({ error: "Access denied" }, 403);
+    }
+
+    const stats = await TemporaryStorage.getStats();
+
+    return c.json({
+      cache: stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error getting cache stats:", error);
+    return c.json(
+      {
+        error: "Failed to get cache statistics",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
+// Clean up expired cache entries (admin only)
+rabbitmqController.post("/cache/cleanup", authenticate, async (c) => {
+  try {
+    const user = c.get("user");
+
+    // Only allow admin users to cleanup cache
+    if (user.role !== "ADMIN") {
+      return c.json({ error: "Access denied" }, 403);
+    }
+
+    const result = await TemporaryStorage.cleanup();
+
+    return c.json({
+      message: "Cache cleanup completed",
+      deletedCount: result.deletedCount,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error cleaning up cache:", error);
+    return c.json(
+      {
+        error: "Failed to cleanup cache",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
 
 export default rabbitmqController;

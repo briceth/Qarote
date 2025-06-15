@@ -201,3 +201,14 @@ model AlertRule {
   // Generated alerts
   alerts      Alert[]
 }
+
+model TempCache {
+  key       String   @id @db.VarChar(255)
+  value     Json
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([expiresAt], name: "temp_cache_expires_at_idx")
+  @@index([createdAt], name: "temp_cache_created_at_idx")
+  @@map("temp_cache")
+}
