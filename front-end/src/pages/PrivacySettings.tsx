@@ -30,20 +30,6 @@ import {
 export default function PrivacySettings() {
   const navigate = useNavigate();
 
-  const handleSettingsChange = (settings: {
-    storeMetrics: boolean;
-    storeAlerts: boolean;
-    storeLogs: boolean;
-    retentionPeriod: number;
-    encryptData: boolean;
-    autoDelete: boolean;
-    consentGiven: boolean;
-  }) => {
-    console.log("Privacy settings changed:", settings);
-    // Here you would typically save the settings to your backend
-    // await updatePrivacySettings(settings);
-  };
-
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -92,7 +78,7 @@ export default function PrivacySettings() {
           <PrivacyNotice variant="detailed" />
 
           {/* Data Retention Settings */}
-          <DataRetentionSettings onSettingsChange={handleSettingsChange} />
+          <DataRetentionSettings />
 
           {/* Information Cards */}
           <div className="grid md:grid-cols-2 gap-6">

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 import prisma from "../core/prisma";
 import {
   authenticate,
@@ -264,5 +265,262 @@ companyController.get("/:id/stats", checkCompanyAccess, async (c) => {
     return c.json({ error: "Failed to fetch company statistics" }, 500);
   }
 });
+
+// Get company privacy settings
+companyController.get("/:id/privacy", checkCompanyAccess, async (c) => {
+  try {
+    const id = c.req.param("id");
+
+    const company = await prisma.company.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        planType: true,
+        storageMode: true,
+        retentionDays: true,
+        encryptData: true,
+        autoDelete: true,
+        consentGiven: true,
+        consentDate: true,
+      },
+    });
+
+    if (!company) {
+      return c.json({ error: "Company not found" }, 404);
+    }
+
+    return c.json({ privacy: company });
+  } catch (error) {
+    console.error(
+      `Error fetching privacy settings for company ${c.req.param("id")}:`,
+      error
+    );
+    return c.json({ error: "Failed to fetch privacy settings" }, 500);
+  }
+});
+
+// Update company privacy settings (admin only)
+companyController.put(
+  "/:id/privacy",
+  authorize([UserRole.ADMIN]),
+  zValidator(
+    "json",
+    z.object({
+      storageMode: z.enum(["MEMORY_ONLY", "TEMPORARY", "HISTORICAL"]),
+      retentionDays: z.number().min(0).max(365),
+      encryptData: z.boolean(),
+      autoDelete: z.boolean(),
+      consentGiven: z.boolean(),
+    })
+  ),
+  async (c) => {
+    try {
+      const id = c.req.param("id");
+      const data = c.req.valid("json");
+      const user = c.get("user") as SafeUser;
+
+      // Verify company exists and user has access
+      const company = await prisma.company.findUnique({
+        where: { id },
+        select: { id: true, planType: true },
+      });
+
+      if (!company) {
+        return c.json({ error: "Company not found" }, 404);
+      }
+
+      // Validate storage mode against plan type
+      if (
+        data.storageMode === "HISTORICAL" &&
+        company.planType !== "PREMIUM" &&
+        company.planType !== "ENTERPRISE"
+      ) {
+        return c.json(
+          {
+            error:
+              "Historical storage mode requires Premium or Enterprise plan",
+          },
+          400
+        );
+      }
+
+      // Update privacy settings
+      const updatedCompany = await prisma.company.update({
+        where: { id },
+        data: {
+          ...data,
+          consentDate: data.consentGiven ? new Date() : null,
+          updatedAt: new Date(),
+        },
+        select: {
+          id: true,
+          planType: true,
+          storageMode: true,
+          retentionDays: true,
+          encryptData: true,
+          autoDelete: true,
+          consentGiven: true,
+          consentDate: true,
+        },
+      });
+
+      return c.json({ privacy: updatedCompany });
+    } catch (error) {
+      console.error(
+        `Error updating privacy settings for company ${c.req.param("id")}:`,
+        error
+      );
+      return c.json({ error: "Failed to update privacy settings" }, 500);
+    }
+  }
+);
+
+// Export all company data (admin only)
+companyController.get("/:id/export", authorize([UserRole.ADMIN]), async (c) => {
+  try {
+    const id = c.req.param("id");
+
+    // Get all company data
+    const company = await prisma.company.findUnique({
+      where: { id },
+      include: {
+        users: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            createdAt: true,
+            lastLogin: true,
+          },
+        },
+        servers: {
+          include: {
+            Queues: {
+              include: {
+                QueueMetrics: true,
+              },
+            },
+          },
+        },
+        alerts: true,
+        alertRules: true,
+      },
+    });
+
+    if (!company) {
+      return c.json({ error: "Company not found" }, 404);
+    }
+
+    // Prepare export data
+    const exportData = {
+      company: {
+        id: company.id,
+        name: company.name,
+        planType: company.planType,
+        createdAt: company.createdAt,
+      },
+      users: company.users,
+      servers: company.servers,
+      alerts: company.alerts,
+      alertRules: company.alertRules,
+      exportedAt: new Date().toISOString(),
+      exportedBy: c.get("user").id,
+    };
+
+    // Set headers for file download
+    c.header("Content-Type", "application/json");
+    c.header(
+      "Content-Disposition",
+      `attachment; filename="company-${company.name}-export-${
+        new Date().toISOString().split("T")[0]
+      }.json"`
+    );
+
+    return c.json(exportData);
+  } catch (error) {
+    console.error(
+      `Error exporting data for company ${c.req.param("id")}:`,
+      error
+    );
+    return c.json({ error: "Failed to export company data" }, 500);
+  }
+});
+
+// Delete all company data (admin only)
+companyController.delete(
+  "/:id/data",
+  authorize([UserRole.ADMIN]),
+  async (c) => {
+    try {
+      const id = c.req.param("id");
+
+      // Use a transaction to delete all related data
+      await prisma.$transaction(async (tx) => {
+        // Delete queue metrics first (due to foreign key constraints)
+        await tx.queueMetric.deleteMany({
+          where: {
+            queue: {
+              server: {
+                companyId: id,
+              },
+            },
+          },
+        });
+
+        // Delete queues
+        await tx.queue.deleteMany({
+          where: {
+            server: {
+              companyId: id,
+            },
+          },
+        });
+
+        // Delete alerts
+        await tx.alert.deleteMany({
+          where: { companyId: id },
+        });
+
+        // Delete alert rules
+        await tx.alertRule.deleteMany({
+          where: { companyId: id },
+        });
+
+        // Delete servers
+        await tx.rabbitMQServer.deleteMany({
+          where: { companyId: id },
+        });
+
+        // Clean up temporary cache for all users in the company
+        const companyUsers = await tx.user.findMany({
+          where: { companyId: id },
+          select: { id: true },
+        });
+
+        // Delete cache entries for all company users
+        for (const user of companyUsers) {
+          await tx.$executeRaw`
+            DELETE FROM temp_cache 
+            WHERE key LIKE ${`%${user.id}%`}
+          `;
+        }
+      });
+
+      return c.json({
+        message: "All company data has been permanently deleted",
+        deletedAt: new Date().toISOString(),
+        deletedBy: c.get("user").id,
+      });
+    } catch (error) {
+      console.error(
+        `Error deleting data for company ${c.req.param("id")}:`,
+        error
+      );
+      return c.json({ error: "Failed to delete company data" }, 500);
+    }
+  }
+);
 
 export default companyController;

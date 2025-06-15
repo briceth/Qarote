@@ -74,9 +74,14 @@ export class PrivacyManager {
           company: {
             select: {
               planType: true,
+              storageMode: true,
+              retentionDays: true,
+              encryptData: true,
+              autoDelete: true,
+              consentGiven: true,
+              consentDate: true,
             },
           },
-          // Add privacy fields to user model later
         },
       });
 
@@ -84,17 +89,42 @@ export class PrivacyManager {
         throw new Error("User not found");
       }
 
-      const planType = user.company?.planType || "FREE";
+      const company = user.company;
+      if (!company) {
+        // User without company gets strictest default settings
+        return {
+          userId,
+          planType: "FREE",
+          storageMode: StorageMode.MEMORY_ONLY,
+          retentionDays: 0,
+          encryptData: true,
+          autoDelete: true,
+          consentGiven: false,
+        };
+      }
 
-      // Default privacy-first settings
+      // Map string to enum
+      let storageMode: StorageMode;
+      switch (company.storageMode) {
+        case "TEMPORARY":
+          storageMode = StorageMode.TEMPORARY;
+          break;
+        case "HISTORICAL":
+          storageMode = StorageMode.HISTORICAL;
+          break;
+        default:
+          storageMode = StorageMode.MEMORY_ONLY;
+      }
+
       return {
         userId,
-        planType,
-        storageMode: StorageMode.MEMORY_ONLY,
-        retentionDays: 0,
-        encryptData: true,
-        autoDelete: true,
-        consentGiven: false,
+        planType: company.planType,
+        storageMode,
+        retentionDays: company.retentionDays,
+        encryptData: company.encryptData,
+        autoDelete: company.autoDelete,
+        consentGiven: company.consentGiven,
+        consentDate: company.consentDate || undefined,
       };
     } catch (error) {
       console.error("Error getting privacy settings:", error);

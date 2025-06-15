@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Query keys
 export const queryKeys = {
@@ -16,19 +17,24 @@ export const queryKeys = {
 
 // Server hooks
 export const useServers = () => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.servers,
     queryFn: () => apiClient.getServers(),
+    enabled: isAuthenticated, // Only run when authenticated
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
   });
 };
 
 export const useServer = (id: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.server(id),
     queryFn: () => apiClient.getServer(id),
-    enabled: !!id,
+    enabled: !!id && isAuthenticated, // Only run when authenticated and id exists
     staleTime: 60000, // 1 minute
   });
 };
@@ -54,50 +60,60 @@ export const useTestConnection = () => {
 
 // RabbitMQ data hooks
 export const useOverview = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.overview(serverId),
     queryFn: () => apiClient.getOverview(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 };
 
 export const useQueues = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.queues(serverId),
     queryFn: () => apiClient.getQueues(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 };
 
 export const useNodes = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.nodes(serverId),
     queryFn: () => apiClient.getNodes(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 10000, // 10 seconds
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 
 export const useQueue = (serverId: string, queueName: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.queue(serverId, queueName),
     queryFn: () => apiClient.getQueue(serverId, queueName),
-    enabled: !!serverId && !!queueName,
+    enabled: !!serverId && !!queueName && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 };
 
 export const useEnhancedMetrics = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: [...queryKeys.overview(serverId), "enhanced"],
     queryFn: () => apiClient.getEnhancedMetrics(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 15000, // Refetch every 15 seconds
   });
@@ -108,10 +124,12 @@ export const useBrowseMessages = (
   queueName: string,
   count: number = 10
 ) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["browseMessages", serverId, queueName, count],
     queryFn: () => apiClient.browseQueueMessages(serverId, queueName, count),
-    enabled: !!serverId && !!queueName,
+    enabled: !!serverId && !!queueName && isAuthenticated,
     refetchOnWindowFocus: false,
     staleTime: 30000, // 30 seconds
   });
@@ -119,50 +137,60 @@ export const useBrowseMessages = (
 
 // Connections and Channels hooks
 export const useConnections = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["connections", serverId],
     queryFn: () => apiClient.getConnections(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 15000, // Refetch every 15 seconds
   });
 };
 
 export const useChannels = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["channels", serverId],
     queryFn: () => apiClient.getChannels(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 15000, // Refetch every 15 seconds
   });
 };
 
 export const useExchanges = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["exchanges", serverId],
     queryFn: () => apiClient.getExchanges(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 10000, // 10 seconds
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 
 export const useBindings = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["bindings", serverId],
     queryFn: () => apiClient.getBindings(serverId),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 10000, // 10 seconds
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 
 export const useQueueConsumers = (serverId: string, queueName: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["queueConsumers", serverId, queueName],
     queryFn: () => apiClient.getQueueConsumers(serverId, queueName),
-    enabled: !!serverId && !!queueName,
+    enabled: !!serverId && !!queueName && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 10000, // Refetch every 10 seconds
   });
@@ -170,28 +198,36 @@ export const useQueueConsumers = (serverId: string, queueName: string) => {
 
 // Alerts hooks
 export const useAlerts = () => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.alerts,
     queryFn: () => apiClient.getAlerts(),
+    enabled: isAuthenticated,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
   });
 };
 
 export const useRecentAlerts = () => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.recentAlerts,
     queryFn: () => apiClient.getRecentAlerts(),
+    enabled: isAuthenticated,
     staleTime: 10000, // 10 seconds
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 
 export const useTimeSeriesMetrics = (serverId: string, timeRange: string) => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: [...queryKeys.overview(serverId), "timeseries", timeRange],
     queryFn: () => apiClient.getTimeSeriesMetrics(serverId, timeRange),
-    enabled: !!serverId,
+    enabled: !!serverId && isAuthenticated,
     staleTime: 1000, // 1 second
     refetchInterval:
       timeRange === "1m" ? 2000 : timeRange === "10m" ? 5000 : 10000, // More frequent refresh for all ranges

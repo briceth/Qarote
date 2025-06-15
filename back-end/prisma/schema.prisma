@@ -60,6 +60,15 @@ model Company {
   contactEmail String?
   logoUrl      String?
   planType     String         @default("FREE") // FREE, PREMIUM, ENTERPRISE
+  
+  // Privacy and data storage settings
+  storageMode     String      @default("MEMORY_ONLY") // MEMORY_ONLY, TEMPORARY, HISTORICAL
+  retentionDays   Int         @default(0)
+  encryptData     Boolean     @default(true)
+  autoDelete      Boolean     @default(true)
+  consentGiven    Boolean     @default(false)
+  consentDate     DateTime?
+  
   users        User[]
   servers      RabbitMQServer[]
   alertRules   AlertRule[]

@@ -1178,6 +1178,83 @@ class ApiClient {
       }
     );
   }
+
+  // Company Privacy Settings
+  async getCompanyPrivacySettings(companyId: string): Promise<{
+    privacy: {
+      id: string;
+      planType: string;
+      storageMode: string;
+      retentionDays: number;
+      encryptData: boolean;
+      autoDelete: boolean;
+      consentGiven: boolean;
+      consentDate?: string;
+    };
+  }> {
+    return this.request(`/companies/${companyId}/privacy`);
+  }
+
+  async updateCompanyPrivacySettings(
+    companyId: string,
+    settings: {
+      storageMode: "MEMORY_ONLY" | "TEMPORARY" | "HISTORICAL";
+      retentionDays: number;
+      encryptData: boolean;
+      autoDelete: boolean;
+      consentGiven: boolean;
+    }
+  ): Promise<{
+    privacy: {
+      id: string;
+      planType: string;
+      storageMode: string;
+      retentionDays: number;
+      encryptData: boolean;
+      autoDelete: boolean;
+      consentGiven: boolean;
+      consentDate?: string;
+    };
+  }> {
+    return this.request(`/companies/${companyId}/privacy`, {
+      method: "PUT",
+      body: JSON.stringify(settings),
+    });
+  }
+
+  async exportCompanyData(companyId: string): Promise<Blob> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/companies/${companyId}/export`,
+      {
+        method: "GET",
+        headers,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to export company data");
+    }
+
+    return response.blob();
+  }
+
+  async deleteCompanyData(companyId: string): Promise<{
+    message: string;
+    deletedAt: string;
+    deletedBy: string;
+  }> {
+    return this.request(`/companies/${companyId}/data`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
