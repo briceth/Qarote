@@ -197,3 +197,10 @@ export const useTimeSeriesMetrics = (serverId: string, timeRange: string) => {
       timeRange === "1m" ? 2000 : timeRange === "10m" ? 5000 : 10000, // More frequent refresh for all ranges
   });
 };
+
+export const usePublishMessage = () => {
+  return useMutation({
+    mutationFn: (params: Parameters<typeof apiClient.publishMessage>[0]) =>
+      apiClient.publishMessage(params),
+  });
+};

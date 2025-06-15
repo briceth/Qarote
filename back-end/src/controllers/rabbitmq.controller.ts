@@ -3,7 +3,10 @@ import { zValidator } from "@hono/zod-validator";
 import prisma from "../core/prisma";
 import RabbitMQClient from "../core/rabbitmq";
 import { authenticate } from "../core/auth";
-import { RabbitMQCredentialsSchema } from "../schemas/rabbitmq";
+import {
+  RabbitMQCredentialsSchema,
+  PublishMessageSchema,
+} from "../schemas/rabbitmq";
 import type { EnhancedMetrics } from "../types/rabbitmq";
 
 const rabbitmqController = new Hono();
@@ -1113,6 +1116,66 @@ rabbitmqController.get(
       return c.json(
         {
           error: "Failed to fetch queue consumers",
+          message: error instanceof Error ? error.message : "Unknown error",
+        },
+        500
+      );
+    }
+  }
+);
+
+// Publish message to exchange
+rabbitmqController.post(
+  "/servers/:id/publish",
+  zValidator("json", PublishMessageSchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const user = c.get("user");
+    const { exchange, routingKey, payload, properties } = c.req.valid("json");
+
+    try {
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: {
+          id,
+          companyId: user.companyId || null,
+        },
+      });
+
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
+      const client = new RabbitMQClient({
+        host: server.host,
+        port: server.port,
+        username: server.username,
+        password: server.password,
+        vhost: server.vhost,
+      });
+
+      const result = await client.publishMessage(
+        exchange,
+        routingKey,
+        payload,
+        properties
+      );
+
+      return c.json({
+        success: true,
+        message: "Message published successfully",
+        routed: result.routed,
+        exchange,
+        routingKey,
+        payloadSize: payload.length,
+      });
+    } catch (error) {
+      console.error(
+        `Error publishing message to exchange ${exchange} on server ${id}:`,
+        error
+      );
+      return c.json(
+        {
+          error: "Failed to publish message",
           message: error instanceof Error ? error.message : "Unknown error",
         },
         500

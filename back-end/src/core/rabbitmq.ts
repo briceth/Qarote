@@ -383,6 +383,31 @@ class RabbitMQClient {
         consumer.queue?.vhost === decodeURIComponent(this.vhost)
     );
   }
+
+  async publishMessage(
+    exchange: string,
+    routingKey: string,
+    payload: string,
+    properties: { [key: string]: any } = {}
+  ): Promise<{ routed: boolean }> {
+    const encodedExchange = encodeURIComponent(exchange);
+    const endpoint = `/exchanges/${this.vhost}/${encodedExchange}/publish`;
+
+    const publishData = {
+      properties: {
+        delivery_mode: 2, // Persistent message
+        ...properties,
+      },
+      routing_key: routingKey,
+      payload: payload,
+      payload_encoding: "string",
+    };
+
+    return this.request(endpoint, {
+      method: "POST",
+      body: JSON.stringify(publishData),
+    });
+  }
 }
 
 export default RabbitMQClient;

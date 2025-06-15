@@ -21,6 +21,7 @@ import {
   Eye,
 } from "lucide-react";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
+import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useQueue, useQueueConsumers } from "@/hooks/useApi";
 import { Queue } from "@/lib/api";
@@ -155,10 +156,19 @@ const QueueDetail = () => {
                   )}
                   Refresh
                 </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Send className="w-4 h-4" />
-                  Send Message
-                </Button>
+                <SendMessageDialog
+                  serverId={selectedServerId}
+                  defaultRoutingKey={queueName}
+                  trigger={
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Send className="w-4 h-4" />
+                      Send Message
+                    </Button>
+                  }
+                />
                 <Button
                   variant="outline"
                   onClick={scrollToMessageBrowser}

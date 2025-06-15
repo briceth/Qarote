@@ -701,6 +701,37 @@ export interface BrowseMessagesResponse {
   queueName: string;
 }
 
+export interface PublishMessageRequest {
+  serverId: string;
+  exchange: string;
+  routingKey: string;
+  payload: string;
+  properties: {
+    delivery_mode?: number;
+    priority?: number;
+    expiration?: string;
+    user_id?: string;
+    app_id?: string;
+    content_type?: string;
+    content_encoding?: string;
+    correlation_id?: string;
+    reply_to?: string;
+    message_id?: string;
+    timestamp?: number;
+    type?: string;
+    headers?: Record<string, unknown>;
+  };
+}
+
+export interface PublishMessageResponse {
+  success: boolean;
+  message: string;
+  routed: boolean;
+  exchange: string;
+  routingKey: string;
+  payloadSize: number;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -1088,6 +1119,19 @@ class ApiClient {
 
   async getAlertStats(): Promise<AlertStats> {
     return this.request<AlertStats>("/alerts/stats/summary");
+  }
+
+  async publishMessage(
+    params: PublishMessageRequest
+  ): Promise<PublishMessageResponse> {
+    const { serverId, ...publishData } = params;
+    return this.request<PublishMessageResponse>(
+      `/rabbitmq/servers/${serverId}/publish`,
+      {
+        method: "POST",
+        body: JSON.stringify(publishData),
+      }
+    );
   }
 }
 

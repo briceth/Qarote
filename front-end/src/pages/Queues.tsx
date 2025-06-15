@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { SendMessageDialog } from "@/components/SendMessageDialog";
 import {
   Table,
   TableBody,
@@ -140,13 +141,18 @@ const Queues = () => {
                     </Button>
                   }
                 />
-                <Button variant="outline" className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Send Message
-                  <Badge className="ml-2 bg-purple-100 text-purple-700">
-                    PRO
-                  </Badge>
-                </Button>
+                <SendMessageDialog
+                  serverId={selectedServerId}
+                  trigger={
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Send Message
+                    </Button>
+                  }
+                />
                 <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   Add Queue
