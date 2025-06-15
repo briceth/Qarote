@@ -32,13 +32,39 @@ serverController.get("/", async (c) => {
         port: true,
         username: true,
         vhost: true,
+        sslEnabled: true,
+        sslVerifyPeer: true,
+        sslCaCertPath: true,
+        sslClientCertPath: true,
+        sslClientKeyPath: true,
         createdAt: true,
         updatedAt: true,
         companyId: true,
         // Don't include password in response
       },
     });
-    return c.json({ servers });
+
+    // Transform the response to include sslConfig as a nested object
+    const transformedServers = servers.map((server) => ({
+      id: server.id,
+      name: server.name,
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath,
+        clientCertPath: server.sslClientCertPath,
+        clientKeyPath: server.sslClientKeyPath,
+      },
+      createdAt: server.createdAt,
+      updatedAt: server.updatedAt,
+      companyId: server.companyId,
+    }));
+
+    return c.json({ servers: transformedServers });
   } catch (error) {
     console.error("Error fetching servers:", error);
     return c.json({ error: "Failed to fetch servers" }, 500);
@@ -64,6 +90,11 @@ serverController.get("/:id", async (c) => {
         port: true,
         username: true,
         vhost: true,
+        sslEnabled: true,
+        sslVerifyPeer: true,
+        sslCaCertPath: true,
+        sslClientCertPath: true,
+        sslClientKeyPath: true,
         createdAt: true,
         updatedAt: true,
         companyId: true,
@@ -75,7 +106,27 @@ serverController.get("/:id", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    return c.json({ server });
+    // Transform the response to include sslConfig as a nested object
+    const transformedServer = {
+      id: server.id,
+      name: server.name,
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath,
+        clientCertPath: server.sslClientCertPath,
+        clientKeyPath: server.sslClientKeyPath,
+      },
+      createdAt: server.createdAt,
+      updatedAt: server.updatedAt,
+      companyId: server.companyId,
+    };
+
+    return c.json({ server: transformedServer });
   } catch (error) {
     console.error(`Error fetching server ${id}:`, error);
     return c.json({ error: "Failed to fetch server" }, 500);
@@ -99,6 +150,7 @@ serverController.post(
         username: data.username,
         password: data.password,
         vhost: data.vhost,
+        sslConfig: data.sslConfig,
       });
 
       // Attempt to get the overview to validate connection
@@ -106,7 +158,17 @@ serverController.post(
 
       const server = await prisma.rabbitMQServer.create({
         data: {
-          ...data,
+          name: data.name,
+          host: data.host,
+          port: data.port,
+          username: data.username,
+          password: data.password,
+          vhost: data.vhost,
+          sslEnabled: data.sslConfig?.enabled || false,
+          sslVerifyPeer: data.sslConfig?.verifyPeer || true,
+          sslCaCertPath: data.sslConfig?.caCertPath,
+          sslClientCertPath: data.sslConfig?.clientCertPath,
+          sslClientKeyPath: data.sslConfig?.clientKeyPath,
           // Automatically assign server to user's company
           companyId: user.companyId,
         },
@@ -121,6 +183,13 @@ serverController.post(
             port: server.port,
             username: server.username,
             vhost: server.vhost,
+            sslConfig: {
+              enabled: server.sslEnabled,
+              verifyPeer: server.sslVerifyPeer,
+              caCertPath: server.sslCaCertPath,
+              clientCertPath: server.sslClientCertPath,
+              clientKeyPath: server.sslClientKeyPath,
+            },
             companyId: server.companyId,
             createdAt: server.createdAt,
             updatedAt: server.updatedAt,

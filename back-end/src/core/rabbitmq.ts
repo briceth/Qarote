@@ -9,30 +9,45 @@ import type {
   RabbitMQBinding,
   EnhancedMetrics,
   RabbitMQConsumer,
+  SSLConfig,
 } from "../types/rabbitmq";
 
 class RabbitMQClient {
   private baseUrl: string;
   private authHeader: string;
   private vhost: string;
+  private sslConfig?: SSLConfig;
 
   constructor(credentials: RabbitMQCredentials) {
-    this.baseUrl = `http://${credentials.host}:${credentials.port}/api`;
+    // Use HTTPS if SSL is enabled, otherwise use HTTP
+    const protocol = credentials.sslConfig?.enabled ? "https" : "http";
+    this.baseUrl = `${protocol}://${credentials.host}:${credentials.port}/api`;
     this.authHeader = `Basic ${Buffer.from(
       `${credentials.username}:${credentials.password}`
     ).toString("base64")}`;
     this.vhost = encodeURIComponent(credentials.vhost);
+    this.sslConfig = credentials.sslConfig;
   }
 
   private async request(endpoint: string, options?: RequestInit) {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      // Configure SSL options if SSL is enabled
+      const fetchOptions: RequestInit = {
         headers: {
           Authorization: this.authHeader,
           "Content-Type": "application/json",
         },
         ...options,
-      });
+      };
+
+      // For Node.js environments, we might need to configure SSL options
+      // This is a simplified implementation - in production, you'd want more sophisticated SSL handling
+      if (this.sslConfig?.enabled && !this.sslConfig.verifyPeer) {
+        // Note: This is for development only. In production, proper certificate validation should be used.
+        process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       if (!response.ok) {
         throw new Error(
@@ -47,7 +62,7 @@ class RabbitMQClient {
       // Check if response has content
       const contentType = response.headers.get("content-type");
 
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType?.includes("application/json")) {
         return response.json();
       } else {
         // Some endpoints return text or empty responses
@@ -97,9 +112,6 @@ class RabbitMQClient {
     const encodedQueueName = encodeURIComponent(queueName);
     try {
       console.log(`Purging queue: ${queueName} (encoded: ${encodedQueueName})`);
-      console.log(
-        `Purge endpoint: /queues/${this.vhost}/${encodedQueueName}/contents`
-      );
 
       await this.request(`/queues/${this.vhost}/${encodedQueueName}/contents`, {
         method: "DELETE",

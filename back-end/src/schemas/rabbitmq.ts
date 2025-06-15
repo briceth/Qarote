@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+// Schema for SSL configuration
+export const SSLConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  verifyPeer: z.boolean().default(true),
+  caCertPath: z.string().optional(),
+  clientCertPath: z.string().optional(),
+  clientKeyPath: z.string().optional(),
+});
+
 // Schema for RabbitMQ server credentials
 export const RabbitMQCredentialsSchema = z.object({
   host: z.string().min(1, "Host is required"),
@@ -7,6 +16,7 @@ export const RabbitMQCredentialsSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
   vhost: z.string().default("/"),
+  sslConfig: SSLConfigSchema.optional(),
 });
 
 // Schema for creating a new RabbitMQ server
@@ -17,6 +27,7 @@ export const CreateServerSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
   vhost: z.string().default("/"),
+  sslConfig: SSLConfigSchema.optional(),
 });
 
 // Schema for updating a RabbitMQ server

@@ -351,12 +351,21 @@ export interface RabbitMQOverview {
   contexts: ContextInfo[];
 }
 
+export interface SSLConfig {
+  enabled: boolean;
+  verifyPeer: boolean;
+  caCertPath?: string;
+  clientCertPath?: string;
+  clientKeyPath?: string;
+}
+
 export interface RabbitMQCredentials {
   host: string;
   port: number;
   username: string;
   password: string;
   vhost: string;
+  sslConfig?: SSLConfig;
 }
 
 export interface QueueArguments {

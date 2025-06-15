@@ -38,6 +38,13 @@ rabbitmqController.get("/servers/:id/overview", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const overview = await client.getOverview();
@@ -77,6 +84,13 @@ rabbitmqController.get("/servers/:id/queues", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const queues = await client.getQueues();
@@ -209,6 +223,13 @@ rabbitmqController.get("/servers/:id/nodes", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const nodes = await client.getNodes();
@@ -249,6 +270,13 @@ rabbitmqController.get("/servers/:id/queues/:queueName", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const queue = await client.getQueue(queueName);
@@ -358,6 +386,13 @@ rabbitmqController.get("/servers/:id/metrics", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const metrics = await client.getMetrics();
@@ -561,6 +596,13 @@ rabbitmqController.get("/servers/:id/metrics/timeseries", async (c) => {
         username: server.username,
         password: server.password,
         vhost: server.vhost,
+        sslConfig: {
+          enabled: server.sslEnabled,
+          verifyPeer: server.sslVerifyPeer,
+          caCertPath: server.sslCaCertPath || undefined,
+          clientCertPath: server.sslClientCertPath || undefined,
+          clientKeyPath: server.sslClientKeyPath || undefined,
+        },
       });
 
       const overview = await client.getOverview();
@@ -674,6 +716,13 @@ rabbitmqController.delete(
         username: server.username,
         password: server.password,
         vhost: server.vhost,
+        sslConfig: {
+          enabled: server.sslEnabled,
+          verifyPeer: server.sslVerifyPeer,
+          caCertPath: server.sslCaCertPath || undefined,
+          clientCertPath: server.sslClientCertPath || undefined,
+          clientKeyPath: server.sslClientKeyPath || undefined,
+        },
       });
 
       console.log(
@@ -765,6 +814,13 @@ rabbitmqController.post("/servers/:id/queues/:queueName/browse", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const messages = await client.getMessages(queueName, count, ackMode);
@@ -783,101 +839,6 @@ rabbitmqController.post("/servers/:id/queues/:queueName/browse", async (c) => {
     return c.json(
       {
         error: "Failed to browse queue messages",
-        message: error instanceof Error ? error.message : "Unknown error",
-      },
-      500
-    );
-  }
-});
-
-// Internal endpoint for seeding time-series data (for testing/development)
-rabbitmqController.post("/internal/seed-timeseries", async (c) => {
-  try {
-    const body = await c.req.json();
-    const { hours = 1, messageCount = 600 } = body;
-
-    console.log(
-      `Creating time-series data for last ${hours} hours with ${messageCount} total messages`
-    );
-
-    // Get all queues from the database
-    const queues = await prisma.queue.findMany();
-
-    if (queues.length === 0) {
-      return c.json(
-        {
-          error: "No queues found in database. Please fetch queues first.",
-          created: 0,
-        },
-        400
-      );
-    }
-
-    const now = new Date();
-    const hoursAgo = new Date(now.getTime() - hours * 60 * 60 * 1000);
-
-    // Generate time-series data points (every 5 minutes)
-    const dataPoints = Math.ceil((hours * 60) / 5); // Number of 5-minute intervals
-    const messagesPerQueue = Math.floor(messageCount / queues.length);
-
-    let totalCreated = 0;
-
-    for (const queue of queues) {
-      console.log(`Creating metrics for queue: ${queue.name}`);
-
-      for (let i = 0; i < dataPoints; i++) {
-        const timestamp = new Date(hoursAgo.getTime() + i * 5 * 60 * 1000);
-
-        // Generate realistic-looking metrics with some randomness
-        const baseMessages = Math.floor(messagesPerQueue / dataPoints);
-        const randomVariation = Math.floor(Math.random() * baseMessages * 0.5);
-        const messages = Math.max(0, baseMessages + randomVariation);
-        const messagesReady = Math.floor(messages * 0.7);
-        const messagesUnack = messages - messagesReady;
-
-        // Generate publish/consume rates with some correlation to message counts
-        const publishRate = Math.random() * 10 + messages * 0.1;
-        const consumeRate = Math.random() * 8 + messages * 0.08;
-
-        try {
-          await prisma.queueMetric.create({
-            data: {
-              queueId: queue.id,
-              messages,
-              messagesReady,
-              messagesUnack,
-              publishRate,
-              consumeRate,
-              timestamp,
-            },
-          });
-          totalCreated++;
-        } catch (error) {
-          console.error(
-            `Failed to create metric for queue ${queue.name} at ${timestamp}:`,
-            error
-          );
-        }
-      }
-    }
-
-    console.log(`Created ${totalCreated} time-series data points`);
-
-    return c.json({
-      success: true,
-      created: totalCreated,
-      queues: queues.length,
-      dataPoints,
-      timeRange: {
-        from: hoursAgo.toISOString(),
-        to: now.toISOString(),
-      },
-    });
-  } catch (error) {
-    console.error("Error creating time-series data:", error);
-    return c.json(
-      {
-        error: "Failed to create time-series data",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       500
@@ -908,6 +869,13 @@ rabbitmqController.get("/servers/:id/connections", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const [connections, channels] = await Promise.all([
@@ -969,6 +937,13 @@ rabbitmqController.get("/servers/:id/channels", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const channels = await client.getChannels();
@@ -1013,6 +988,13 @@ rabbitmqController.get("/servers/:id/exchanges", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const [exchanges, bindings] = await Promise.all([
@@ -1085,6 +1067,13 @@ rabbitmqController.get("/servers/:id/bindings", async (c) => {
       username: server.username,
       password: server.password,
       vhost: server.vhost,
+      sslConfig: {
+        enabled: server.sslEnabled,
+        verifyPeer: server.sslVerifyPeer,
+        caCertPath: server.sslCaCertPath || undefined,
+        clientCertPath: server.sslClientCertPath || undefined,
+        clientKeyPath: server.sslClientKeyPath || undefined,
+      },
     });
 
     const bindings = await client.getBindings();
@@ -1132,6 +1121,13 @@ rabbitmqController.get(
         username: server.username,
         password: server.password,
         vhost: server.vhost,
+        sslConfig: {
+          enabled: server.sslEnabled,
+          verifyPeer: server.sslVerifyPeer,
+          caCertPath: server.sslCaCertPath || undefined,
+          clientCertPath: server.sslClientCertPath || undefined,
+          clientKeyPath: server.sslClientKeyPath || undefined,
+        },
       });
 
       const consumers = await client.getQueueConsumers(queueName);
@@ -1185,6 +1181,13 @@ rabbitmqController.post(
         username: server.username,
         password: server.password,
         vhost: server.vhost,
+        sslConfig: {
+          enabled: server.sslEnabled,
+          verifyPeer: server.sslVerifyPeer,
+          caCertPath: server.sslCaCertPath || undefined,
+          clientCertPath: server.sslClientCertPath || undefined,
+          clientKeyPath: server.sslClientKeyPath || undefined,
+        },
       });
 
       const result = await client.publishMessage(

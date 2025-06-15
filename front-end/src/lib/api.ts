@@ -7,6 +7,14 @@ export interface ApiResponse<T> {
   [key: string]: unknown;
 }
 
+export interface SSLConfig {
+  enabled: boolean;
+  verifyPeer: boolean;
+  caCertPath?: string;
+  clientCertPath?: string;
+  clientKeyPath?: string;
+}
+
 export interface Server {
   id: string;
   name: string;
@@ -14,6 +22,7 @@ export interface Server {
   port: number;
   username: string;
   vhost: string;
+  sslConfig?: SSLConfig;
   createdAt: string;
   updatedAt: string;
 }
@@ -838,6 +847,7 @@ class ApiClient {
     username: string;
     password: string;
     vhost: string;
+    sslConfig?: SSLConfig;
   }): Promise<{
     success: boolean;
     message: string;

@@ -115,19 +115,24 @@ model Invitation {
 }
 
 model RabbitMQServer {
-  id         String      @id @default(uuid())
-  name       String
-  host       String
-  port       Int
-  username   String
-  password   String
-  vhost      String      @default("/")
-  companyId  String?
-  company    Company?    @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  Queues     Queue[]
-  alertRules AlertRule[]
+  id                  String      @id @default(uuid())
+  name                String
+  host                String
+  port                Int
+  username            String
+  password            String
+  vhost               String      @default("/")
+  sslEnabled          Boolean     @default(false)
+  sslVerifyPeer       Boolean     @default(true)
+  sslCaCertPath       String?
+  sslClientCertPath   String?
+  sslClientKeyPath    String?
+  companyId           String?
+  company             Company?    @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  Queues              Queue[]
+  alertRules          AlertRule[]
 }
 
 model Queue {
