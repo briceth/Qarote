@@ -31,6 +31,7 @@ import {
   Shield,
   Search,
   FileText,
+  GitBranch,
 } from "lucide-react";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +67,12 @@ const menuItems = [
     title: "Exchanges",
     url: "/exchanges",
     icon: Activity,
+  },
+  {
+    title: "Routing",
+    url: "/routing",
+    icon: GitBranch,
+    isSoon: true,
   },
   {
     title: "Logs",
