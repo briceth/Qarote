@@ -16,6 +16,7 @@ import { Layout } from "@/components/Layout";
 const Index = lazy(() => import("./pages/Index"));
 const Queues = lazy(() => import("./pages/Queues"));
 const QueueDetail = lazy(() => import("./pages/QueueDetail"));
+const Messages = lazy(() => import("./pages/Messages"));
 const Connections = lazy(() => import("./pages/Connections"));
 const Exchanges = lazy(() => import("./pages/Exchanges"));
 const Channels = lazy(() => import("./pages/Channels"));
@@ -89,6 +90,14 @@ const App = () => (
                       <Layout>
                         <QueueDetail />
                       </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/messages"
+                  element={
+                    <ProtectedRoute>
+                      <Messages />
                     </ProtectedRoute>
                   }
                 />
