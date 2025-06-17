@@ -3,7 +3,7 @@
  * Handles company privacy settings and data management
  */
 
-import { BaseApiClient } from "./base-client";
+import { BaseApiClient } from "./baseClient";
 
 export interface CompanyPrivacySettings {
   id: string;

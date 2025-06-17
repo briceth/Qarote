@@ -3,7 +3,7 @@
  * Handles alert management operations
  */
 
-import { BaseApiClient } from "./base-client";
+import { BaseApiClient } from "./baseClient";
 import {
   Alert,
   AlertRule,
@@ -13,7 +13,7 @@ import {
   AlertStats,
   CreateAlertRuleInput,
   UpdateAlertRuleInput,
-} from "./alert-types";
+} from "./alertTypes";
 
 export class AlertApiClient extends BaseApiClient {
   // Legacy alerts

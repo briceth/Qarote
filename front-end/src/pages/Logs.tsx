@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scrollArea";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -15,7 +15,7 @@ import {
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import ComingSoonPage from "@/components/ComingSoonPage";
-import { isLogsEnabled } from "@/lib/logs-feature-flag";
+import { isLogsEnabled } from "@/lib/logsFeatureFlag";
 import {
   FileText,
   Search,

@@ -18,8 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+} from "@/components/ui/alertDialog";
+import { useToast } from "@/hooks/useToast";
 import { apiClient } from "@/lib/api";
 import { CompanyPrivacySettings } from "./types";
 

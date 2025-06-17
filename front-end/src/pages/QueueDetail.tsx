@@ -36,7 +36,9 @@ import { useQueue, useQueueConsumers } from "@/hooks/useApi";
 import { Queue } from "@/lib/api";
 
 // Lazy load MessageBrowser since it's only shown when user wants to browse messages
-const MessageBrowser = lazy(() => import("@/components/MessageBrowser"));
+const MessageBrowser = lazy(
+  () => import("@/components/MessageBrowser/Browser")
+);
 
 const QueueDetail = () => {
   const { queueName } = useParams<{ queueName: string }>();

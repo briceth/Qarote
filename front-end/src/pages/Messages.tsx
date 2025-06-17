@@ -7,7 +7,7 @@ import {
   MessageList,
   formatPayload,
   getPayloadType,
-} from "@/components/message-browser";
+} from "@/components/MessageBrowser";
 import { useMessageBrowser } from "@/hooks/useMessageBrowser";
 
 const MessageBrowser = () => {

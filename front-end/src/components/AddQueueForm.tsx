@@ -33,7 +33,7 @@ import {
   List,
 } from "lucide-react";
 import { useCreateQueue, useExchanges } from "@/hooks/useApi";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 
 interface AddQueueFormProps {
   trigger?: React.ReactNode;

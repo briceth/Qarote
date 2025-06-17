@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Construction, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentEnvironment } from "@/lib/alerts-feature-flag";
+import { getCurrentEnvironment } from "@/lib/alertsFeatureFlag";
 
 interface ComingSoonPageProps {
   title?: string;

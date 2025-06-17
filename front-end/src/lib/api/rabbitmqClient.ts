@@ -3,7 +3,7 @@
  * Handles RabbitMQ-specific operations like queues, exchanges, connections
  */
 
-import { BaseApiClient } from "./base-client";
+import { BaseApiClient } from "./baseClient";
 import { Queue } from "./types";
 import {
   Overview,
@@ -12,15 +12,15 @@ import {
   Connection,
   Channel,
   TimeSeriesResponse,
-} from "./rabbitmq-types";
-import { Exchange, Binding, Consumer } from "./exchange-types";
+} from "./rabbitmqTypes";
+import { Exchange, Binding, Consumer } from "./exchangeTypes";
 import {
   BrowseMessagesResponse,
   PublishMessageRequest,
   PublishMessageResponse,
   CreateQueueRequest,
   CreateQueueResponse,
-} from "./message-types";
+} from "./messageTypes";
 
 export class RabbitMQApiClient extends BaseApiClient {
   // Overview and Metrics

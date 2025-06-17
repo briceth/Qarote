@@ -3,13 +3,13 @@
  * Combines all API clients into a single interface
  */
 
-import { ServerApiClient } from "./server-client";
-import { RabbitMQApiClient } from "./rabbitmq-client";
-import { AuthApiClient } from "./auth-client";
-import { AlertApiClient } from "./alert-client";
-import { CompanyApiClient } from "./company-client";
-import { LogsApiClient } from "./logs-client";
-import type { LogQuery, CreateLogRequest, LogExportRequest } from "./log-types";
+import { ServerApiClient } from "./serverClient";
+import { RabbitMQApiClient } from "./rabbitmqClient";
+import { AuthApiClient } from "./authClient";
+import { AlertApiClient } from "./alertClient";
+import { CompanyApiClient } from "./companyClient";
+import { LogsApiClient } from "./logsClient";
+import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 
 class ApiClient {
   private serverClient: ServerApiClient;

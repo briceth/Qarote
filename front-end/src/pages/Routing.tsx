@@ -7,8 +7,8 @@ import React from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import ComingSoonPage from "@/components/ComingSoonPage";
-import { RoutingVisualization } from "@/components/routing-visualization";
-import { isRoutingEnabled } from "@/lib/routing-feature-flag";
+import { RoutingVisualization } from "@/components/routingVisualization";
+import { isRoutingEnabled } from "@/lib/routingFeatureFlag";
 
 const RoutingPage: React.FC = () => {
   // Check if routing feature is enabled

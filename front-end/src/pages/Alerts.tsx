@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 import {
   Card,
   CardContent,
@@ -37,8 +38,7 @@ import {
   AlertStatus,
   AlertSeverity,
 } from "@/lib/api";
-import { formatDistanceToNow } from "date-fns";
-import { isAlertsEnabled } from "@/lib/alerts-feature-flag";
+import { isAlertsEnabled } from "@/lib/alertsFeatureFlag";
 
 const AlertDashboard: React.FC = () => {
   const navigate = useNavigate();

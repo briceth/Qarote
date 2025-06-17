@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useQueues } from "@/hooks/useApi";
 import { RabbitMQMessage } from "@/lib/api";
-import { searchMessages } from "@/components/message-browser/messageUtils";
+import { searchMessages } from "@/components/MessageBrowser/Utils";
 
 // Extended message type with queue name
 interface ExtendedMessage extends RabbitMQMessage {

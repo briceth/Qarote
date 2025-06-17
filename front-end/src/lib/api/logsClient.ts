@@ -4,7 +4,7 @@
  * NOTE: This is prepared for future backend implementation
  */
 
-import { BaseApiClient } from "./base-client";
+import { BaseApiClient } from "./baseClient";
 import {
   ActivityLog,
   LogQuery,
@@ -12,7 +12,7 @@ import {
   LogStats,
   CreateLogRequest,
   LogExportRequest,
-} from "./log-types";
+} from "./logTypes";
 
 export class LogsApiClient extends BaseApiClient {
   // Get activity logs with filtering and pagination

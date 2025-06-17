@@ -3,8 +3,8 @@
  * Handles user authentication and profile management
  */
 
-import { BaseApiClient } from "./base-client";
-import { LoginRequest, RegisterRequest, User } from "./auth-types";
+import { BaseApiClient } from "./baseClient";
+import { LoginRequest, RegisterRequest, User } from "./authTypes";
 
 export class AuthApiClient extends BaseApiClient {
   async login(

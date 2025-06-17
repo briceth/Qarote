@@ -3,7 +3,7 @@
  * Handles server management operations
  */
 
-import { BaseApiClient } from "./base-client";
+import { BaseApiClient } from "./baseClient";
 import { Server, SSLConfig } from "./types";
 
 export class ServerApiClient extends BaseApiClient {

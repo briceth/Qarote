@@ -36,7 +36,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { usePublishMessage, useExchanges, useQueues } from "@/hooks/useApi";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 
 interface SendMessageDialogProps {
   trigger?: React.ReactNode;

@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scrollArea";
 import { MessageSquare } from "lucide-react";
-import { MessageCard } from "./MessageCard";
+import { MessageCard } from "./Card";
 
 interface ExtendedMessage {
   queueName?: string;
