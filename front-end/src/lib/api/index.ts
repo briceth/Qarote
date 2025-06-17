@@ -20,6 +20,6 @@ export { ServerApiClient } from "./serverClient";
 export { RabbitMQApiClient } from "./rabbitmqClient";
 export { AuthApiClient } from "./authClient";
 export { AlertApiClient } from "./alertClient";
-export { CompanyApiClient } from "./companyClient";
+export { WorkspaceApiClient } from "./workspaceClient";
 export { LogsApiClient } from "./logsClient";
 export { BaseApiClient } from "./baseClient";

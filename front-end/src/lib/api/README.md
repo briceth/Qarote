@@ -39,7 +39,7 @@ BaseApiClient (abstract)
 ├── RabbitMQApiClient
 ├── AuthApiClient
 ├── AlertApiClient
-└── CompanyApiClient
+└── WorkspaceApiClient
 ```
 
 ## 🚀 Usage

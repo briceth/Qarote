@@ -28,4 +28,4 @@ export type {
 } from "./types";
 
 // Default export for backward compatibility
-export { RabbitMQClient as default } from "./client";
+export { RabbitMQClient as default } from "./Client";

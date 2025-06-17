@@ -7,7 +7,7 @@ import { ServerApiClient } from "./serverClient";
 import { RabbitMQApiClient } from "./rabbitmqClient";
 import { AuthApiClient } from "./authClient";
 import { AlertApiClient } from "./alertClient";
-import { CompanyApiClient } from "./companyClient";
+import { WorkspaceApiClient } from "./workspaceClient";
 import { LogsApiClient } from "./logsClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 
@@ -16,7 +16,7 @@ class ApiClient {
   private rabbitmqClient: RabbitMQApiClient;
   private authClient: AuthApiClient;
   private alertClient: AlertApiClient;
-  private companyClient: CompanyApiClient;
+  private workspaceClient: WorkspaceApiClient;
   private logsClient: LogsApiClient;
 
   constructor(baseUrl?: string) {
@@ -24,7 +24,7 @@ class ApiClient {
     this.rabbitmqClient = new RabbitMQApiClient(baseUrl);
     this.authClient = new AuthApiClient(baseUrl);
     this.alertClient = new AlertApiClient(baseUrl);
-    this.companyClient = new CompanyApiClient(baseUrl);
+    this.workspaceClient = new WorkspaceApiClient(baseUrl);
     this.logsClient = new LogsApiClient(baseUrl);
   }
 
@@ -218,23 +218,28 @@ class ApiClient {
   }
 
   // Company methods
-  async getCompanyPrivacySettings(companyId: string) {
-    return this.companyClient.getCompanyPrivacySettings(companyId);
+  async getWorspacePrivacySettings(companyId: string) {
+    return this.workspaceClient.getWorkspacePrivacySettings(companyId);
   }
 
-  async updateCompanyPrivacySettings(
+  async updateWorkspacePrivacySettings(
     companyId: string,
-    settings: Parameters<CompanyApiClient["updateCompanyPrivacySettings"]>[1]
+    settings: Parameters<
+      WorkspaceApiClient["updateWorkspacePrivacySettings"]
+    >[1]
   ) {
-    return this.companyClient.updateCompanyPrivacySettings(companyId, settings);
+    return this.workspaceClient.updateWorkspacePrivacySettings(
+      companyId,
+      settings
+    );
   }
 
-  async exportCompanyData(companyId: string) {
-    return this.companyClient.exportCompanyData(companyId);
+  async exportWorkspaceData(companyId: string) {
+    return this.workspaceClient.exportWorkspaceData(companyId);
   }
 
-  async deleteCompanyData(companyId: string) {
-    return this.companyClient.deleteCompanyData(companyId);
+  async deleteWorkspaceData(companyId: string) {
+    return this.workspaceClient.deleteWorkspaceData(companyId);
   }
 
   // Logs methods

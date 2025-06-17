@@ -26,13 +26,13 @@ import { CompanyPrivacySettings } from "./types";
 interface DataActionsProps {
   settings: CompanyPrivacySettings;
   isAdmin: boolean;
-  companyId: string;
+  workspaceId: string;
 }
 
 export function DataActions({
   settings,
   isAdmin,
-  companyId,
+  workspaceId,
 }: DataActionsProps) {
   const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
@@ -50,13 +50,13 @@ export function DataActions({
 
     setExporting(true);
     try {
-      const blob = await apiClient.exportCompanyData(companyId);
+      const blob = await apiClient.exportWorkspaceData(workspaceId);
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `company-data-export-${
+      link.download = `workspace-data-export-${
         new Date().toISOString().split("T")[0]
       }.json`;
       document.body.appendChild(link);
@@ -66,13 +66,13 @@ export function DataActions({
 
       toast({
         title: "Export Successful",
-        description: "Company data has been exported and downloaded",
+        description: "Workspace data has been exported and downloaded",
       });
     } catch (error) {
       console.error("Export failed:", error);
       toast({
         title: "Export Failed",
-        description: "Failed to export company data",
+        description: "Failed to export workspace data",
         variant: "destructive",
       });
     } finally {
@@ -84,7 +84,7 @@ export function DataActions({
     if (!isAdmin) {
       toast({
         title: "Permission Denied",
-        description: "Only administrators can delete company data",
+        description: "Only administrators can delete workspace data",
         variant: "destructive",
       });
       return;
@@ -92,16 +92,16 @@ export function DataActions({
 
     setDeleting(true);
     try {
-      await apiClient.deleteCompanyData(companyId);
+      await apiClient.deleteWorkspaceData(workspaceId);
       toast({
         title: "Data Deleted",
-        description: "All company data has been permanently deleted",
+        description: "All workspace data has been permanently deleted",
       });
     } catch (error) {
       console.error("Delete failed:", error);
       toast({
         title: "Delete Failed",
-        description: "Failed to delete company data",
+        description: "Failed to delete workspace data",
         variant: "destructive",
       });
     } finally {
@@ -119,7 +119,7 @@ export function DataActions({
           Data Management
         </CardTitle>
         <CardDescription>
-          Export or delete your company's stored data.
+          Export or delete your workspace's stored data.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -158,11 +158,11 @@ export function DataActions({
               <AlertDialogHeader>
                 <AlertDialogTitle className="flex items-center gap-2 text-red-600">
                   <AlertTriangle className="w-5 h-5" />
-                  Delete All Company Data
+                  Delete All Workspace Data
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete all
-                  stored data for your company, including:
+                  stored data for your workspace, including:
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>Historical metrics and performance data</li>
                     <li>Alert history and notifications</li>
@@ -171,7 +171,7 @@ export function DataActions({
                   </ul>
                   <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-red-800">
                     <strong>Warning:</strong> This action is irreversible and
-                    will affect all users in your company.
+                    will affect all users in your workspace.
                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -190,7 +190,7 @@ export function DataActions({
 
         {!isAdmin && (
           <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-            🔒 Only administrators can export or delete company data.
+            🔒 Only administrators can export or delete workspace data.
           </div>
         )}
       </CardContent>

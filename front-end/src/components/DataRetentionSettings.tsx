@@ -28,19 +28,21 @@ export function DataRetentionSettings({
   const [saving, setSaving] = useState(false);
 
   const isAdmin = user?.role === "ADMIN";
-  const companyId = user?.companyId;
+  const workspaceId = user?.workspaceId;
 
-  // Load company privacy settings on mount
+  // Load workspace privacy settings on mount
   useEffect(() => {
     const loadSettings = async () => {
       // Don't make API calls if auth is still loading or user is not authenticated
-      if (authLoading || !isAuthenticated || !companyId) {
+      if (authLoading || !isAuthenticated || !workspaceId) {
         setLoading(false);
         return;
       }
 
       try {
-        const response = await apiClient.getCompanyPrivacySettings(companyId);
+        const response = await apiClient.getWorspacePrivacySettings(
+          workspaceId
+        );
         setSettings(response.privacy as CompanyPrivacySettings);
       } catch (error) {
         console.error("Failed to load privacy settings:", error);
@@ -55,10 +57,10 @@ export function DataRetentionSettings({
     };
 
     loadSettings();
-  }, [companyId, toast, authLoading, isAuthenticated]);
+  }, [workspaceId, toast, authLoading, isAuthenticated]);
 
   const handleSettingsChange = async (newSettings: CompanyPrivacySettings) => {
-    if (!isAuthenticated || !isAdmin || !companyId) {
+    if (!isAuthenticated || !isAdmin || !workspaceId) {
       toast({
         title: "Permission Denied",
         description: "Only administrators can modify privacy settings",
@@ -72,13 +74,16 @@ export function DataRetentionSettings({
     try {
       setSaving(true);
       // Note: encryptData is read-only for users, but we still send the current value to the API
-      const response = await apiClient.updateCompanyPrivacySettings(companyId, {
-        storageMode: newSettings.storageMode,
-        retentionDays: newSettings.retentionDays,
-        encryptData: newSettings.encryptData,
-        autoDelete: newSettings.autoDelete,
-        consentGiven: newSettings.consentGiven,
-      });
+      const response = await apiClient.updateWorkspacePrivacySettings(
+        workspaceId,
+        {
+          storageMode: newSettings.storageMode,
+          retentionDays: newSettings.retentionDays,
+          encryptData: newSettings.encryptData,
+          autoDelete: newSettings.autoDelete,
+          consentGiven: newSettings.consentGiven,
+        }
+      );
 
       setSettings(response.privacy as CompanyPrivacySettings);
       onSettingsChange?.(response.privacy as CompanyPrivacySettings);
@@ -155,11 +160,11 @@ export function DataRetentionSettings({
 
       <PrivacyStatus settings={settings} />
 
-      {isAdmin && companyId && (
+      {isAdmin && workspaceId && (
         <DataActions
           settings={settings}
           isAdmin={isAdmin}
-          companyId={companyId}
+          workspaceId={workspaceId}
         />
       )}
 
