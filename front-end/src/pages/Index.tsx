@@ -22,7 +22,10 @@ import { ResourceUsage } from "@/components/ResourceUsage";
 import { ConnectedNodes } from "@/components/ConnectedNodes";
 import { AddServerForm } from "@/components/AddServerForm";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
+import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 import { useServerContext } from "@/contexts/ServerContext";
+import { canUserAddServer, WorkspacePlan } from "@/lib/plans/planUtils";
+import { Lock } from "lucide-react";
 
 // Lazy load MetricsChart since it's a heavy charting component
 const MetricsChart = lazy(() =>
@@ -42,6 +45,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 const Index = () => {
   const navigate = useNavigate();
   const { selectedServerId, hasServers } = useServerContext();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Plan checking
+  const workspacePlan = WorkspacePlan.FREE; // TODO: Get from workspace context
+  const canAddServer = canUserAddServer(workspacePlan);
+
+  const handleAddServerClick = () => {
+    if (!canAddServer) {
+      setShowUpgradeModal(true);
+    }
+    // If canAddServer is true, AddServerForm will handle it
+  };
+
   const {
     data: overviewData,
     isLoading: overviewLoading,
@@ -208,7 +224,23 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex gap-3">
-                <AddServerForm />
+                {canAddServer ? (
+                  <AddServerForm />
+                ) : (
+                  <Button
+                    onClick={handleAddServerClick}
+                    disabled={true}
+                    variant="outline"
+                    className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+                    title="Upgrade to add servers"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Add Server
+                    <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
+                      Pro
+                    </span>
+                  </Button>
+                )}
                 <Button
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                   onClick={handleRefresh}
@@ -485,6 +517,14 @@ const Index = () => {
           </div>
         </main>
       </div>
+      {showUpgradeModal && (
+        <PlanUpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          currentPlan={workspacePlan}
+          feature="server management"
+        />
+      )}
     </SidebarProvider>
   );
 };

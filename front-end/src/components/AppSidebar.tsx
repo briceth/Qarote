@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -42,7 +43,10 @@ import { useLogout } from "@/hooks/useAuth";
 import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerForm";
 import { PrivacyNotice } from "@/components/PrivacyNotice";
+import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 import { useLocation, Link } from "react-router-dom";
+import { canUserAddServer, WorkspacePlan } from "@/lib/plans/planUtils";
+import { Lock } from "lucide-react";
 
 const menuItems = [
   {
@@ -116,6 +120,18 @@ export function AppSidebar() {
     (server) => server.id === selectedServerId
   );
 
+  // Plan checking
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const workspacePlan = WorkspacePlan.FREE; // TODO: Get from workspace context
+  const canAddServer = canUserAddServer(workspacePlan);
+
+  const handleAddServerClick = () => {
+    if (!canAddServer) {
+      setShowUpgradeModal(true);
+    }
+    // If canAddServer is true, AddServerForm will handle it
+  };
+
   return (
     <Sidebar className="border-r-0 bg-white/90 backdrop-blur-sm">
       <SidebarHeader className="border-b border-gray-100 p-6">
@@ -135,13 +151,25 @@ export function AppSidebar() {
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Server
             </span>
-            <AddServerForm
-              trigger={
-                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              }
-            />
+            {canAddServer ? (
+              <AddServerForm
+                trigger={
+                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                }
+              />
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 opacity-50 cursor-not-allowed"
+                onClick={handleAddServerClick}
+                title="Upgrade to add servers"
+              >
+                <Lock className="h-3 w-3" />
+              </Button>
+            )}
           </div>
 
           {servers.length > 0 ? (
@@ -300,6 +328,16 @@ export function AppSidebar() {
           </Button>
         </div>
       </SidebarFooter>
+
+      {/* Plan Upgrade Modal */}
+      {!canAddServer && (
+        <PlanUpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          currentPlan={workspacePlan}
+          feature="server management"
+        />
+      )}
     </Sidebar>
   );
 }

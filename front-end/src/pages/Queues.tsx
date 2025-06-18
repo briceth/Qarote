@@ -12,8 +12,16 @@ import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { PrivacyNotice, DataStorageWarning } from "@/components/PrivacyNotice";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQueues } from "@/hooks/useApi";
 import { Queue } from "@/lib/api";
+import {
+  canUserAddQueue,
+  canUserSendMessages,
+  getPlanDisplayName,
+  WorkspacePlan,
+} from "@/lib/plans/planUtils";
+import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 import {
   Table,
   TableBody,
@@ -30,12 +38,15 @@ import {
   Users,
   Database,
   RefreshCw,
+  Crown,
+  Lock,
 } from "lucide-react";
-import { AddServerForm } from "@/components/AddServerForm";
 
 const Queues = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     selectedServerId,
     hasServers,
@@ -46,6 +57,29 @@ const Queues = () => {
     isLoading,
     refetch,
   } = useQueues(selectedServerId || "");
+
+  // Get user's workspace plan - for now we'll default to FREE
+  // TODO: Create workspace context to properly fetch workspace data
+  const workspacePlan = WorkspacePlan.FREE; // This should come from workspace context
+  const canAddQueue = canUserAddQueue(workspacePlan);
+  const canSendMessages = canUserSendMessages(workspacePlan);
+
+  const handleAddQueueClick = () => {
+    if (canAddQueue) {
+      // Original add queue logic - AddQueueForm will handle this
+      return;
+    } else {
+      // Show upgrade modal for Free plan users
+      setShowUpgradeModal(true);
+    }
+  };
+
+  const handleSendMessageClick = () => {
+    if (!canSendMessages) {
+      setShowUpgradeModal(true);
+    }
+    // If canSendMessages is true, the SendMessageDialog will handle it
+  };
 
   const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
 
@@ -128,7 +162,6 @@ const Queues = () => {
                     </p>
                   </div>
                 </div>
-                <AddServerForm />
               </div>
             </div>
           </main>
@@ -157,40 +190,122 @@ const Queues = () => {
                 </div>
               </div>
               <div className="flex gap-3">
-                <AddServerForm
-                  trigger={
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Server
-                    </Button>
-                  }
-                />
-                <SendMessageDialog
-                  serverId={selectedServerId}
-                  trigger={
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      Send Message
-                    </Button>
-                  }
-                />
-                <AddQueueForm
-                  serverId={selectedServerId}
-                  trigger={
-                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2">
-                      <Plus className="w-4 h-4" />
-                      Add Queue
-                    </Button>
-                  }
-                />
+                {/* Send Message Button with plan restrictions */}
+                {canSendMessages ? (
+                  <SendMessageDialog
+                    serverId={selectedServerId}
+                    trigger={
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Send Message
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <Button
+                    onClick={handleSendMessageClick}
+                    disabled={true}
+                    variant="outline"
+                    className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+                    title="Upgrade to send messages"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Send Message
+                    <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
+                      Pro
+                    </span>
+                  </Button>
+                )}
+
+                {/* Plan badge */}
+                <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+                  <Crown className="w-4 h-4 text-yellow-500" />
+                  <span className="font-medium">
+                    {getPlanDisplayName(workspacePlan)}
+                  </span>
+                </div>
+
+                {/* Add Queue Button with plan restrictions */}
+                {canAddQueue ? (
+                  <AddQueueForm
+                    serverId={selectedServerId}
+                    trigger={
+                      <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Queue
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <Button
+                    onClick={handleAddQueueClick}
+                    disabled={true}
+                    className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+                    title="Upgrade to add queues"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Add Queue
+                    <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
+                      Pro
+                    </span>
+                  </Button>
+                )}
               </div>
             </div>
+
+            {/* Free plan restriction notices */}
+            {(!canAddQueue || !canSendMessages) && (
+              <div className="mb-6 space-y-4">
+                {!canAddQueue && (
+                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Crown className="w-5 h-5 text-orange-500" />
+                      <div>
+                        <p className="font-medium text-orange-900">
+                          Queue creation is not available on the Free plan
+                        </p>
+                        <p className="text-sm text-orange-700 mt-1">
+                          Upgrade to Freelance, Startup, or Business plan to
+                          create and manage custom queues.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowUpgradeModal(true)}
+                        className="ml-auto px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                      >
+                        Upgrade Now
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!canSendMessages && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="font-medium text-red-900">
+                          Message sending is not available on the Free plan
+                        </p>
+                        <p className="text-sm text-red-700 mt-1">
+                          Upgrade to send messages to queues. Freelance:
+                          100/month, Startup: 1,000/month, Business: unlimited.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowUpgradeModal(true)}
+                        className="ml-auto px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                      >
+                        Upgrade Now
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Privacy Notice */}
             <DataStorageWarning
@@ -368,6 +483,14 @@ const Queues = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Plan Upgrade Modal */}
+            <PlanUpgradeModal
+              isOpen={showUpgradeModal}
+              onClose={() => setShowUpgradeModal(false)}
+              currentPlan={workspacePlan}
+              feature="queue creation"
+            />
           </div>
         </main>
       </div>

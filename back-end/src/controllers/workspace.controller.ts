@@ -278,7 +278,7 @@ workspaceController.get("/:id/privacy", checkWorkspaceAccess, async (c) => {
       where: { id },
       select: {
         id: true,
-        planType: true,
+        plan: true,
         storageMode: true,
         retentionDays: true,
         encryptData: true,
@@ -325,7 +325,7 @@ workspaceController.put(
       // Verify workspace exists and user has access
       const workspace = await prisma.workspace.findUnique({
         where: { id },
-        select: { id: true, planType: true },
+        select: { id: true, plan: true },
       });
 
       if (!workspace) {
@@ -335,13 +335,12 @@ workspaceController.put(
       // Validate storage mode against plan type
       if (
         data.storageMode === "HISTORICAL" &&
-        workspace.planType !== "PREMIUM" &&
-        workspace.planType !== "ENTERPRISE"
+        workspace.plan !== "STARTUP" &&
+        workspace.plan !== "BUSINESS"
       ) {
         return c.json(
           {
-            error:
-              "Historical storage mode requires Premium or Enterprise plan",
+            error: "Historical storage mode requires Startup or Business plan",
           },
           400
         );
@@ -357,7 +356,7 @@ workspaceController.put(
         },
         select: {
           id: true,
-          planType: true,
+          plan: true,
           storageMode: true,
           retentionDays: true,
           encryptData: true,
@@ -424,7 +423,7 @@ workspaceController.get(
         workspace: {
           id: workspace.id,
           name: workspace.name,
-          planType: workspace.planType,
+          planType: workspace.plan,
           createdAt: workspace.createdAt,
         },
         users: workspace.users,

@@ -45,7 +45,7 @@ export interface Workspace {
   name: string;
   contactEmail?: string;
   logoUrl?: string;
-  planType: string;
+  plan: "FREE" | "FREELANCE" | "STARTUP" | "BUSINESS";
   storageMode: string;
   retentionDays: number;
   encryptData: boolean;

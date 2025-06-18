@@ -191,7 +191,7 @@ authController.get("/me", authenticate, async (c) => {
             name: true,
             contactEmail: true,
             logoUrl: true,
-            planType: true,
+            plan: true,
           },
         },
       },

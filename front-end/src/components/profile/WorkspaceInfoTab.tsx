@@ -51,8 +51,8 @@ export const WorkspaceInfoTab = ({
             <Building2 className="h-6 w-6" />
             <span>Workspace Information</span>
           </div>
-          <Badge className={getPlanColor(workspace.planType)}>
-            {workspace.planType}
+          <Badge className={getPlanColor(workspace.plan)}>
+            {workspace.plan}
           </Badge>
         </CardTitle>
       </CardHeader>

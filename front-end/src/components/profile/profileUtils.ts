@@ -11,7 +11,7 @@ export interface WorkspaceFormState {
   name: string;
   contactEmail: string;
   logoUrl: string;
-  planType: "FREE" | "PREMIUM" | "ENTERPRISE";
+  plan: "FREE" | "FREELANCE" | "STARTUP" | "BUSINESS";
 }
 
 // Legacy type alias for backwards compatibility

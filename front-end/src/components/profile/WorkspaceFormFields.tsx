@@ -18,7 +18,7 @@ interface WorkspaceFormFieldsProps {
     name: string;
     contactEmail?: string;
     logoUrl?: string;
-    planType: string;
+    plan: string;
   };
 }
 
@@ -95,14 +95,14 @@ export const WorkspaceFormFields = ({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="planType">Plan Type</Label>
+          <Label htmlFor="plan">Plan Type</Label>
           {editingWorkspace && isAdmin ? (
             <Select
-              value={workspaceForm.planType}
+              value={workspaceForm.plan}
               onValueChange={(value) =>
                 setWorkspaceForm({
                   ...workspaceForm,
-                  planType: value as "FREE" | "PREMIUM" | "ENTERPRISE",
+                  plan: value as "FREE" | "FREELANCE" | "STARTUP" | "BUSINESS",
                 })
               }
             >
@@ -111,13 +111,14 @@ export const WorkspaceFormFields = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="FREE">Free</SelectItem>
-                <SelectItem value="PREMIUM">Premium</SelectItem>
-                <SelectItem value="ENTERPRISE">Enterprise</SelectItem>
+                <SelectItem value="FREELANCE">Freelance</SelectItem>
+                <SelectItem value="STARTUP">Startup</SelectItem>
+                <SelectItem value="BUSINESS">Business</SelectItem>
               </SelectContent>
             </Select>
           ) : (
             <p className="text-sm p-2 border rounded-md bg-muted">
-              {workspace.planType}
+              {workspace.plan}
             </p>
           )}
         </div>

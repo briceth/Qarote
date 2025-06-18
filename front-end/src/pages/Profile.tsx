@@ -50,7 +50,7 @@ const Profile = () => {
     name: "",
     contactEmail: "",
     logoUrl: "",
-    planType: "FREE",
+    plan: "FREE",
   });
 
   // Invite form state
@@ -77,7 +77,7 @@ const Profile = () => {
         name: workspace.name || "",
         contactEmail: workspace.contactEmail || "",
         logoUrl: workspace.logoUrl || "",
-        planType: workspace.planType as "FREE" | "PREMIUM" | "ENTERPRISE",
+        plan: workspace.plan as "FREE" | "PREMIUM" | "ENTERPRISE",
       });
     }
   }, [profile, workspace]);

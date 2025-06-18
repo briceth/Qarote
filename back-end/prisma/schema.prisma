@@ -22,6 +22,13 @@ enum InvitationStatus {
   EXPIRED
 }
 
+enum WorkspacePlan {
+  FREE
+  FREELANCE
+  STARTUP
+  BUSINESS
+}
+
 enum AlertType {
   QUEUE_DEPTH
   MESSAGE_RATE
@@ -88,7 +95,7 @@ model Workspace {
   name         String
   contactEmail String?
   logoUrl      String?
-  planType     String         @default("FREE") // FREE, PREMIUM, ENTERPRISE
+  plan         WorkspacePlan  @default(FREE)
   
   // Privacy and data storage settings
   storageMode     String      @default("MEMORY_ONLY") // MEMORY_ONLY, TEMPORARY, HISTORICAL
