@@ -33,9 +33,11 @@ import {
   FileText,
   GitBranch,
   HelpCircle,
+  Settings,
 } from "lucide-react";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { isSuperAdmin } from "@/lib/auth/superAdmin";
 import { useLogout } from "@/hooks/useAuth";
 import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerForm";
@@ -237,6 +239,34 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+
+              {/* Super Admin Dashboard - Only visible to creator */}
+              {isSuperAdmin(user) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    className={`w-full justify-start transition-all duration-200 ${
+                      location.pathname === "/admin"
+                        ? "bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span className="font-medium">Super Admin</span>
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto text-xs bg-red-100 text-red-800 border-red-200"
+                      >
+                        Creator
+                      </Badge>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

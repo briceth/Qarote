@@ -9,8 +9,10 @@ import { AuthApiClient } from "./authClient";
 import { AlertApiClient } from "./alertClient";
 import { WorkspaceApiClient } from "./workspaceClient";
 import { LogsApiClient } from "./logsClient";
+import { FeedbackApiClient } from "./feedbackClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
-import { FeedbackRequest } from "@/types/feedback";
+import type { FeedbackRequest } from "@/types/feedback";
+import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
 
 class ApiClient {
   private serverClient: ServerApiClient;
@@ -19,6 +21,7 @@ class ApiClient {
   private alertClient: AlertApiClient;
   private workspaceClient: WorkspaceApiClient;
   private logsClient: LogsApiClient;
+  private feedbackClient: FeedbackApiClient;
 
   constructor(baseUrl?: string) {
     this.serverClient = new ServerApiClient(baseUrl);
@@ -27,6 +30,7 @@ class ApiClient {
     this.alertClient = new AlertApiClient(baseUrl);
     this.workspaceClient = new WorkspaceApiClient(baseUrl);
     this.logsClient = new LogsApiClient(baseUrl);
+    this.feedbackClient = new FeedbackApiClient(baseUrl);
   }
 
   // Server methods
@@ -282,34 +286,27 @@ class ApiClient {
 
   // Feedback methods
   async submitFeedback(feedbackData: FeedbackRequest) {
-    // For now, we'll use a simple fetch until we create a proper feedback client
-    const token = localStorage.getItem("auth_token");
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+    return this.feedbackClient.submitFeedback(feedbackData);
+  }
 
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+  async getFeedback(filters?: FeedbackFilters) {
+    return this.feedbackClient.getFeedback(filters);
+  }
 
-    const response = await fetch(`http://localhost:3000/api/feedback`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(feedbackData),
-    });
+  async getFeedbackById(id: string) {
+    return this.feedbackClient.getFeedbackById(id);
+  }
 
-    if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || errorMessage;
-      } catch (parseError) {
-        // If we can't parse the error response, use the generic error
-      }
-      throw new Error(errorMessage);
-    }
+  async updateFeedback(id: string, data: UpdateFeedbackRequest) {
+    return this.feedbackClient.updateFeedback(id, data);
+  }
 
-    return await response.json();
+  async deleteFeedback(id: string) {
+    return this.feedbackClient.deleteFeedback(id);
+  }
+
+  async getFeedbackStats(workspaceId?: string) {
+    return this.feedbackClient.getFeedbackStats(workspaceId);
   }
 }
 

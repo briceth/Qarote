@@ -26,6 +26,7 @@ const Alerts = lazy(() => import("./pages/Alerts"));
 const Profile = lazy(() => import("./pages/Profile"));
 const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
 const HelpSupport = lazy(() => import("./pages/HelpSupport"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -188,6 +189,14 @@ const App = () => (
                       <Layout>
                         <HelpSupport />
                       </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
                     </ProtectedRoute>
                   }
                 />
