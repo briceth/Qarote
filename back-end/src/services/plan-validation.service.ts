@@ -18,7 +18,7 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
   [WorkspacePlan.FREE]: {
     canAddQueue: false,
     canSendMessages: false,
-    canAddServer: false,
+    canAddServer: true,
     canExportData: false,
     maxQueues: 0,
     maxServers: 1,

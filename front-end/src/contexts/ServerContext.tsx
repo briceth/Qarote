@@ -6,6 +6,7 @@ interface ServerContextType {
   setSelectedServerId: (id: string | null) => void;
   hasServers: boolean;
   isLoading: boolean;
+  serverCount: number;
 }
 
 const ServerContext = createContext<ServerContextType | undefined>(undefined);
@@ -52,6 +53,7 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
     setSelectedServerId,
     hasServers,
     isLoading,
+    serverCount: servers.length,
   };
 
   return (

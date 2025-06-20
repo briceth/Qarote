@@ -1,4 +1,18 @@
 import { z } from "zod";
+import isValidHostname from "is-valid-hostname";
+
+const HostSchema = z
+  .string({
+    required_error: "Host is required",
+    invalid_type_error: "Host must be a string",
+  })
+  .min(1, "Host is required")
+  .max(253, "Host must be 253 characters or less")
+  .trim()
+  .refine((host) => isValidHostname(host), {
+    message:
+      "Host must be a valid hostname, IP address, or domain name (e.g., localhost, 192.168.1.1, example.com)",
+  });
 
 // Schema for SSL configuration
 export const SSLConfigSchema = z.object({
@@ -11,7 +25,7 @@ export const SSLConfigSchema = z.object({
 
 // Schema for RabbitMQ server credentials
 export const RabbitMQCredentialsSchema = z.object({
-  host: z.string().min(1, "Host is required"),
+  host: HostSchema,
   port: z.number().int().positive().default(15672),
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
@@ -22,7 +36,7 @@ export const RabbitMQCredentialsSchema = z.object({
 // Schema for creating a new RabbitMQ server
 export const CreateServerSchema = z.object({
   name: z.string().min(1, "Server name is required"),
-  host: z.string().min(1, "Host is required"),
+  host: HostSchema,
   port: z.number().int().positive().default(15672),
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),

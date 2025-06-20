@@ -45,7 +45,8 @@ import { AddServerForm } from "@/components/AddServerForm";
 import { PrivacyNotice } from "@/components/PrivacyNotice";
 import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 import { useLocation, Link } from "react-router-dom";
-import { canUserAddServer, WorkspacePlan } from "@/lib/plans/planUtils";
+import { canUserAddServerWithCount } from "@/lib/plans/planUtils";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Lock } from "lucide-react";
 
 const menuItems = [
@@ -111,7 +112,9 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { selectedServerId, setSelectedServerId } = useServerContext();
+  const { selectedServerId, setSelectedServerId, serverCount } =
+    useServerContext();
+  const { workspacePlan, isLoading: workspaceLoading } = useWorkspace();
   const { user } = useAuth();
   const logoutMutation = useLogout();
   const { data: serversData } = useServers();
@@ -122,8 +125,10 @@ export function AppSidebar() {
 
   // Plan checking
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const workspacePlan = WorkspacePlan.FREE; // TODO: Get from workspace context
-  const canAddServer = canUserAddServer(workspacePlan);
+  // If workspace is still loading, default to not allowing server addition
+  const canAddServer = workspaceLoading
+    ? false
+    : canUserAddServerWithCount(workspacePlan, serverCount);
 
   const handleAddServerClick = () => {
     if (!canAddServer) {

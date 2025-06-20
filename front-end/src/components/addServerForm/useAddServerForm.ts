@@ -100,8 +100,6 @@ export const useAddServerForm = () => {
         sslConfig: formData.sslConfig,
       });
 
-      console.log("Connection test result:", result);
-
       if (result.success) {
         setConnectionStatus({
           status: "success",

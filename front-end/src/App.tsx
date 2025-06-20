@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { ServerProvider } from "@/contexts/ServerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PublicRoute from "@/components/PublicRoute";
 import { PageLoader } from "@/components/PageLoader";
@@ -36,187 +37,189 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ServerProvider>
-        <TooltipProvider>
-          <ConsentBanner />
-          <Toaster />
-          <Sonner />
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public authentication routes */}
-                <Route
-                  path="/auth/sign-in"
-                  element={
-                    <PublicRoute>
-                      <SignIn />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/auth/sign-up"
-                  element={
-                    <PublicRoute>
-                      <SignUp />
-                    </PublicRoute>
-                  }
-                />
+      <WorkspaceProvider>
+        <ServerProvider>
+          <TooltipProvider>
+            <ConsentBanner />
+            <Toaster />
+            <Sonner />
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public authentication routes */}
+                  <Route
+                    path="/auth/sign-in"
+                    element={
+                      <PublicRoute>
+                        <SignIn />
+                      </PublicRoute>
+                    }
+                  />
+                  <Route
+                    path="/auth/sign-up"
+                    element={
+                      <PublicRoute>
+                        <SignUp />
+                      </PublicRoute>
+                    }
+                  />
 
-                {/* Protected routes */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Index />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/queues"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Queues />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/queues/:queueName"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <QueueDetail />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/messages"
-                  element={
-                    <ProtectedRoute>
-                      <Messages />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/connections"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Connections />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/exchanges"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Exchanges />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/routing"
-                  element={
-                    <ProtectedRoute>
-                      <Routing />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/channels"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Channels />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/logs"
-                  element={
-                    <ProtectedRoute>
-                      <Logs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/alerts"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Alerts />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Profile />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/privacy-settings"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <PrivacySettings />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/help"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <HelpSupport />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Protected routes */}
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Index />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/queues"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Queues />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/queues/:queueName"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <QueueDetail />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/messages"
+                    element={
+                      <ProtectedRoute>
+                        <Messages />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/connections"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Connections />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/exchanges"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Exchanges />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/routing"
+                    element={
+                      <ProtectedRoute>
+                        <Routing />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/channels"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Channels />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/logs"
+                    element={
+                      <ProtectedRoute>
+                        <Logs />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/alerts"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Alerts />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Profile />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/privacy-settings"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <PrivacySettings />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/help"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <HelpSupport />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Protected 404 route - catches all other paths */}
-                <Route
-                  path="*"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <NotFound />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ServerProvider>
+                  {/* Protected 404 route - catches all other paths */}
+                  <Route
+                    path="*"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <NotFound />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ServerProvider>
+      </WorkspaceProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

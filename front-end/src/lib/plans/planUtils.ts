@@ -24,7 +24,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
   [WorkspacePlan.FREE]: {
     canAddQueue: false,
     canSendMessages: false,
-    canAddServer: false,
+    canAddServer: true,
     canExportData: false,
     canAccessRouting: false,
     maxQueues: 0,
@@ -42,7 +42,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     canExportData: true,
     canAccessRouting: true,
     maxQueues: 10,
-    maxServers: 3,
+    maxServers: 2,
     maxUsers: 1,
     maxMessagesPerMonth: 100,
     hasAdvancedMetrics: true,
@@ -56,7 +56,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     canExportData: true,
     canAccessRouting: true,
     maxQueues: 50,
-    maxServers: 10,
+    maxServers: 5,
     maxUsers: 5,
     maxMessagesPerMonth: 1000,
     hasAdvancedMetrics: true,
@@ -70,7 +70,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     canExportData: true,
     canAccessRouting: true,
     maxQueues: 200,
-    maxServers: 50,
+    maxServers: undefined, // unlimited
     maxUsers: 25,
     maxMessagesPerMonth: undefined, // unlimited
     hasAdvancedMetrics: true,
@@ -93,6 +93,24 @@ export function canUserSendMessages(plan: WorkspacePlan): boolean {
 
 export function canUserAddServer(plan: WorkspacePlan): boolean {
   return getPlanFeatures(plan).canAddServer;
+}
+
+export function canUserAddServerWithCount(
+  plan: WorkspacePlan,
+  currentServerCount: number
+): boolean {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canAddServer) {
+    return false;
+  }
+
+  // If maxServers is undefined, it's unlimited
+  if (features.maxServers === undefined) {
+    return true;
+  }
+
+  return currentServerCount < features.maxServers;
 }
 
 export function canUserExportData(plan: WorkspacePlan): boolean {
@@ -119,6 +137,10 @@ export function getServerLimitText(plan: WorkspacePlan): string {
     return "Unlimited servers";
   }
   return `Up to ${features.maxServers} servers`;
+}
+
+export function getServerLimitForPlan(plan: WorkspacePlan): number | undefined {
+  return getPlanFeatures(plan).maxServers;
 }
 
 export function getPlanDisplayName(plan: WorkspacePlan): string {

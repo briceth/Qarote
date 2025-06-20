@@ -24,7 +24,8 @@ import { AddServerForm } from "@/components/AddServerForm";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 import { useServerContext } from "@/contexts/ServerContext";
-import { canUserAddServer, WorkspacePlan } from "@/lib/plans/planUtils";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { canUserAddServerWithCount } from "@/lib/plans/planUtils";
 import { Lock } from "lucide-react";
 
 // Lazy load MetricsChart since it's a heavy charting component
@@ -44,12 +45,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { selectedServerId, hasServers } = useServerContext();
+  const { selectedServerId, hasServers, serverCount } = useServerContext();
+  const { workspacePlan, isLoading: workspaceLoading } = useWorkspace();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // Plan checking
-  const workspacePlan = WorkspacePlan.FREE; // TODO: Get from workspace context
-  const canAddServer = canUserAddServer(workspacePlan);
+  // Plan checking - use real workspace plan and current server count
+  // If workspace is still loading, default to not allowing server addition
+  const canAddServer = workspaceLoading
+    ? false
+    : canUserAddServerWithCount(workspacePlan, serverCount);
 
   const handleAddServerClick = () => {
     if (!canAddServer) {

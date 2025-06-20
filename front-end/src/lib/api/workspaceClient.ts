@@ -5,6 +5,17 @@
 
 import { BaseApiClient } from "./baseClient";
 
+export interface Workspace {
+  id: string;
+  name: string;
+  contactEmail: string;
+  logoUrl?: string;
+  plan: string; // e.g., "FREE", "PRO", "ENTERPRISE"
+  createdAt: string;
+  updatedAt: string;
+  privacySettings: WorkspacePrivacySettings;
+}
+
 export interface WorkspacePrivacySettings {
   id: string;
   planType: string;
@@ -25,6 +36,12 @@ export interface UpdatePrivacySettingsRequest {
 }
 
 export class WorkspaceApiClient extends BaseApiClient {
+  async getCurrentWorkspace(): Promise<{
+    workspace: Workspace;
+  }> {
+    return this.request("/workspaces/current");
+  }
+
   async getWorkspacePrivacySettings(WorkspaceId: string): Promise<{
     privacy: WorkspacePrivacySettings;
   }> {

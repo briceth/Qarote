@@ -223,6 +223,10 @@ class ApiClient {
   }
 
   // Company methods
+  async getCurrentWorkspace() {
+    return this.workspaceClient.getCurrentWorkspace();
+  }
+
   async getWorspacePrivacySettings(companyId: string) {
     return this.workspaceClient.getWorkspacePrivacySettings(companyId);
   }

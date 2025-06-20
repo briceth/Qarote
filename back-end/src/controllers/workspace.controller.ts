@@ -41,9 +41,9 @@ workspaceController.get("/", authorize([UserRole.ADMIN]), async (c) => {
   }
 });
 
-// Get user's workspace
-workspaceController.get("/me", async (c) => {
-  const user = c.get("user") as SafeUser;
+// Get user's current workspace
+workspaceController.get("/current", async (c) => {
+  const user = c.get("user");
 
   if (!user.workspaceId) {
     return c.json({ error: "You are not associated with any workspace" }, 404);
@@ -76,7 +76,7 @@ workspaceController.get("/me", async (c) => {
 // Get a specific workspace by ID
 workspaceController.get("/:id", async (c) => {
   const id = c.req.param("id");
-  const user = c.get("user") as SafeUser;
+  const user = c.get("user");
 
   // Only allow admins or users from the workspace to access workspace details
   if (user.role !== UserRole.ADMIN && user.workspaceId !== id) {
@@ -138,7 +138,7 @@ workspaceController.put(
   async (c) => {
     const id = c.req.param("id");
     const data = c.req.valid("json");
-    const user = c.get("user") as SafeUser;
+    const user = c.get("user");
 
     // Only allow workspace users or admins to update workspace details
     if (user.role !== UserRole.ADMIN && user.workspaceId !== id) {
@@ -321,7 +321,7 @@ workspaceController.put(
     try {
       const id = c.req.param("id");
       const data = c.req.valid("json");
-      const user = c.get("user") as SafeUser;
+      const user = c.get("user");
 
       // Verify workspace exists and user has access
       const workspace = await prisma.workspace.findUnique({
@@ -399,10 +399,13 @@ workspaceController.get(
       // Validate plan allows data export
       try {
         validateDataExport(workspace.plan);
-      } catch (planError: any) {
+      } catch (planError) {
         return c.json(
           {
-            error: planError.message,
+            error:
+              planError instanceof Error
+                ? planError.message
+                : "Plan restriction",
             code: "PLAN_RESTRICTION",
             feature: "Data export",
             currentPlan: workspace.plan,
