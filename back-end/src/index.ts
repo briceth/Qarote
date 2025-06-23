@@ -66,8 +66,8 @@ async function startServer() {
     // alertService.start();
 
     // Initialize periodic cache cleanup (every hour)
-    const cleanupInterval = TemporaryStorage.startPeriodicCleanup(60);
-    console.log("Cache cleanup service started (runs every 60 minutes)");
+    // const cleanupInterval = TemporaryStorage.startPeriodicCleanup(60);
+    // console.log("Cache cleanup service started (runs every 60 minutes)");
 
     // Start the server
     serve(

@@ -35,7 +35,7 @@ services:
       - "15672:15672" # Management UI port
     volumes:
       - rabbitmq_node1_data:/var/lib/rabbitmq
-      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./docker/rabbitmq/cluster-definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./docker/rabbitmq/cluster-init.sh:/usr/local/bin/cluster-init.sh:ro
     networks:
@@ -63,7 +63,7 @@ services:
       - "15673:15672" # Management UI port
     volumes:
       - rabbitmq_node2_data:/var/lib/rabbitmq
-      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./docker/rabbitmq/cluster-definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./docker/rabbitmq/cluster-init.sh:/usr/local/bin/cluster-init.sh:ro
     networks:
@@ -93,7 +93,7 @@ services:
       - "15674:15672" # Management UI port
     volumes:
       - rabbitmq_node3_data:/var/lib/rabbitmq
-      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./docker/rabbitmq/cluster-definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./docker/rabbitmq/cluster-init.sh:/usr/local/bin/cluster-init.sh:ro
     networks:
@@ -131,6 +131,29 @@ services:
       timeout: 10s
       retries: 3
 
+  rabbitmq-local:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbit_dashboard_rabbitmq_local
+    hostname: rabbitmq-local
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5676:5672" # AMQP port
+      - "15676:15672" # Management UI port
+    volumes:
+      - rabbitmq_local_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/local-definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - rabbit_dashboard_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 volumes:
   postgres_data:
     driver: local
@@ -139,6 +162,8 @@ volumes:
   rabbitmq_node2_data:
     driver: local
   rabbitmq_node3_data:
+    driver: local
+  rabbitmq_local_data:
     driver: local
 
 networks:

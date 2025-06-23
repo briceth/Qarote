@@ -1,9 +1,5 @@
 import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 import {
   MessageSquare,
   Clock,
@@ -13,7 +9,12 @@ import {
   HardDrive,
   Zap,
   RefreshCw,
+  Lock,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { TimeRange } from "@/components/MetricsChart";
 import { QueueCard } from "@/components/QueueCard";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -23,17 +24,13 @@ import { ConnectedNodes } from "@/components/ConnectedNodes";
 import { AddServerForm } from "@/components/AddServerForm";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { canUserAddServerWithCount } from "@/lib/plans/planUtils";
-import { Lock } from "lucide-react";
-
-// Lazy load MetricsChart since it's a heavy charting component
-const MetricsChart = lazy(() =>
-  import("@/components/MetricsChart").then((module) => ({
-    default: module.MetricsChart,
-  }))
-);
+import {
+  canUserAddServerWithCount,
+  WorkspacePlan,
+} from "@/lib/plans/planUtils";
 import {
   useOverview,
   useQueues,
@@ -41,7 +38,13 @@ import {
   useEnhancedMetrics,
   useTimeSeriesMetrics,
 } from "@/hooks/useApi";
-import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load MetricsChart since it's a heavy charting component
+const MetricsChart = lazy(() =>
+  import("@/components/MetricsChart").then((module) => ({
+    default: module.MetricsChart,
+  }))
+);
 
 const Index = () => {
   const navigate = useNavigate();
@@ -55,6 +58,43 @@ const Index = () => {
     ? false
     : canUserAddServerWithCount(workspacePlan, serverCount);
 
+  const getServerButtonConfig = () => {
+    if (workspaceLoading || canAddServer) return null;
+
+    switch (workspacePlan) {
+      case "FREE":
+        return {
+          text: "Add Server",
+          badge: "Pro",
+          badgeColor: "bg-orange-500",
+          title: "Upgrade to add servers",
+        };
+      case "FREELANCE":
+        return {
+          text: "Add Server",
+          badge: `${serverCount}/2`,
+          badgeColor: "bg-blue-500",
+          title:
+            "You've reached your server limit (2). Upgrade to add more servers.",
+        };
+      case "STARTUP":
+        return {
+          text: "Add Server",
+          badge: `${serverCount}/5`,
+          badgeColor: "bg-purple-500",
+          title:
+            "You've reached your server limit (5). Upgrade to add more servers.",
+        };
+      default:
+        return {
+          text: "Add Server",
+          badge: "Pro",
+          badgeColor: "bg-orange-500",
+          title: "Upgrade to add servers",
+        };
+    }
+  };
+
   const handleAddServerClick = () => {
     if (!canAddServer) {
       setShowUpgradeModal(true);
@@ -62,34 +102,18 @@ const Index = () => {
     // If canAddServer is true, AddServerForm will handle it
   };
 
-  const {
-    data: overviewData,
-    isLoading: overviewLoading,
-    refetch: refetchOverview,
-  } = useOverview(selectedServerId || "");
-  const {
-    data: queuesData,
-    isLoading: queuesLoading,
-    refetch: refetchQueues,
-  } = useQueues(selectedServerId || "");
-  const {
-    data: nodesData,
-    isLoading: nodesLoading,
-    refetch: refetchNodes,
-  } = useNodes(selectedServerId || "");
-  const {
-    data: enhancedMetricsData,
-    isLoading: enhancedMetricsLoading,
-    refetch: refetchEnhancedMetrics,
-  } = useEnhancedMetrics(selectedServerId || "");
+  const { data: overviewData, isLoading: overviewLoading } =
+    useOverview(selectedServerId);
+  const { data: queuesData, isLoading: queuesLoading } =
+    useQueues(selectedServerId);
+  const { data: nodesData, isLoading: nodesLoading } =
+    useNodes(selectedServerId);
+  const { data: enhancedMetricsData } = useEnhancedMetrics(selectedServerId);
 
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("1m");
 
-  const {
-    data: timeSeriesData,
-    isLoading: timeSeriesLoading,
-    refetch: refetchTimeSeries,
-  } = useTimeSeriesMetrics(selectedServerId || "", selectedTimeRange);
+  const { data: timeSeriesData, isLoading: timeSeriesLoading } =
+    useTimeSeriesMetrics(selectedServerId || "", selectedTimeRange);
 
   const [chartData, setChartData] = useState([
     { time: "00:00", messages: 0 },
@@ -131,15 +155,6 @@ const Index = () => {
       );
     }
   }, [timeSeriesData]);
-
-  const handleRefresh = () => {
-    if (selectedServerId) {
-      refetchOverview();
-      refetchQueues();
-      refetchNodes();
-      refetchTimeSeries();
-    }
-  };
 
   const handleTimeRangeChange = (timeRange: TimeRange) => {
     setSelectedTimeRange(timeRange);
@@ -231,19 +246,28 @@ const Index = () => {
                 {canAddServer ? (
                   <AddServerForm />
                 ) : (
-                  <Button
-                    onClick={handleAddServerClick}
-                    disabled={true}
-                    variant="outline"
-                    className="flex items-center gap-2 opacity-60 cursor-not-allowed"
-                    title="Upgrade to add servers"
-                  >
-                    <Lock className="w-4 h-4" />
-                    Add Server
-                    <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
-                      Pro
-                    </span>
-                  </Button>
+                  (() => {
+                    const buttonConfig = getServerButtonConfig();
+                    if (!buttonConfig) return null;
+
+                    return (
+                      <Button
+                        onClick={handleAddServerClick}
+                        disabled={true}
+                        variant="outline"
+                        className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+                        title={buttonConfig.title}
+                      >
+                        <Lock className="w-4 h-4" />
+                        {buttonConfig.text}
+                        <span
+                          className={`ml-1 px-2 py-0.5 ${buttonConfig.badgeColor} text-white text-xs rounded-full font-bold`}
+                        >
+                          {buttonConfig.badge}
+                        </span>
+                      </Button>
+                    );
+                  })()
                 )}
               </div>
             </div>
