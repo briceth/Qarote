@@ -72,6 +72,11 @@ const menuItems = [
     icon: Clock,
   },
   {
+    title: "Nodes",
+    url: "/nodes",
+    icon: Server,
+  },
+  {
     title: "Exchanges",
     url: "/exchanges",
     icon: Activity,

@@ -21,6 +21,7 @@ const Messages = lazy(() => import("./pages/Messages"));
 const Connections = lazy(() => import("./pages/Connections"));
 const Exchanges = lazy(() => import("./pages/Exchanges"));
 const Channels = lazy(() => import("./pages/Channels"));
+const Nodes = lazy(() => import("./pages/Nodes"));
 const Routing = lazy(() => import("./pages/Routing"));
 const Logs = lazy(() => import("./pages/Logs"));
 const Alerts = lazy(() => import("./pages/Alerts"));
@@ -114,6 +115,16 @@ const App = () => (
                       <ProtectedRoute>
                         <Layout>
                           <Connections />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/nodes"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Nodes />
                         </Layout>
                       </ProtectedRoute>
                     }

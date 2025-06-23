@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Server, Wifi, HardDrive, Cpu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Server, Wifi, HardDrive, Cpu, ExternalLink } from "lucide-react";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useNodes } from "@/hooks/useApi";
 import { Node } from "@/lib/api";
+import { Link } from "react-router-dom";
 
 export const ConnectedNodes = () => {
   const { selectedServerId } = useServerContext();
@@ -60,13 +62,25 @@ export const ConnectedNodes = () => {
   return (
     <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Server className="h-5 w-5" />
-          Connected Nodes ({nodes.length})
-        </CardTitle>
-        <p className="text-sm text-gray-500">
-          RabbitMQ cluster node status and metrics
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Server className="h-5 w-5" />
+              Connected Nodes ({nodes.length})
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              RabbitMQ cluster node status and metrics
+            </p>
+          </div>
+          {nodes.length > 0 && (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/nodes" className="flex items-center gap-2">
+                View Details
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
