@@ -33,7 +33,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
     useNodes(selectedServerId);
   const { data: enhancedMetricsData } = useEnhancedMetrics(selectedServerId);
   const { data: timeSeriesData, isLoading: timeSeriesLoading } =
-    useTimeSeriesMetrics(selectedServerId || "", selectedTimeRange);
+    useTimeSeriesMetrics(selectedServerId, selectedTimeRange);
 
   // Processed data
   const overview = overviewData?.overview;

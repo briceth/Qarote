@@ -110,13 +110,16 @@ export const ConnectedNodes = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mt-3">
+                  <div className="grid grid-cols-2 gap-2 mt-3">
                     <div className="text-center p-2 bg-blue-50 rounded">
                       <HardDrive className="h-4 w-4 text-blue-600 mx-auto mb-1" />
                       <div className="text-xs font-medium">
-                        {formatBytes(node.mem_used)}
+                        {formatBytes(node.mem_used)} /{" "}
+                        {formatBytes(node.mem_limit)}
                       </div>
-                      <div className="text-xs text-gray-500">Memory</div>
+                      <div className="text-xs text-gray-500">
+                        RabbitMQ Memory
+                      </div>
                     </div>
 
                     <div className="text-center p-2 bg-green-50 rounded">
@@ -133,6 +136,14 @@ export const ConnectedNodes = () => {
                         {formatBytes(node.disk_free)}
                       </div>
                       <div className="text-xs text-gray-500">Disk Free</div>
+                    </div>
+
+                    <div className="text-center p-2 bg-orange-50 rounded">
+                      <HardDrive className="h-4 w-4 text-orange-600 mx-auto mb-1" />
+                      <div className="text-xs font-medium">
+                        {formatBytes(node.mem_limit * 2.5)}
+                      </div>
+                      <div className="text-xs text-gray-500">Est. System</div>
                     </div>
                   </div>
                 </div>

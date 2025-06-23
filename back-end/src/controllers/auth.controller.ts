@@ -46,6 +46,7 @@ authController.post(
         let workspaceId = null;
 
         // Create workspace if workspaceName is provided
+        // TODO: workspaceName should be required
         if (workspaceName) {
           const workspace = await tx.workspace.create({
             data: {

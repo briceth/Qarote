@@ -290,71 +290,22 @@ rabbitmqController.get("/servers/:id/metrics", authenticate, async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    // Get latest queue metrics for this server
-    const queueMetrics = await prisma.queueMetric.findMany({
-      where: {
-        queue: {
-          serverId: id,
-        },
-      },
-      include: {
-        queue: {
-          select: {
-            name: true,
-            vhost: true,
-          },
-        },
-      },
-      orderBy: {
-        timestamp: "desc",
-      },
-      take: 100, // Get latest 100 metrics
+    // Create RabbitMQ client to fetch enhanced metrics
+    const client = new RabbitMQClient({
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      password: server.password,
+      vhost: server.vhost,
     });
 
-    // Aggregate metrics by queue
-    const aggregatedMetrics = queueMetrics.reduce(
-      (acc, metric) => {
-        const queueKey = `${metric.queue.vhost}/${metric.queue.name}`;
-        if (!acc[queueKey]) {
-          acc[queueKey] = {
-            queueName: metric.queue.name,
-            vhost: metric.queue.vhost,
-            latestMetric: metric,
-            metrics: [],
-          };
-        }
-        acc[queueKey].metrics.push({
-          timestamp: metric.timestamp,
-          messages: metric.messages,
-          messagesReady: metric.messagesReady,
-          messagesUnack: metric.messagesUnack,
-          publishRate: metric.publishRate,
-          consumeRate: metric.consumeRate,
-        });
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          queueName: string;
-          vhost: string;
-          latestMetric: (typeof queueMetrics)[0];
-          metrics: Array<{
-            timestamp: Date;
-            messages: number;
-            messagesReady: number;
-            messagesUnack: number;
-            publishRate: number;
-            consumeRate: number;
-          }>;
-        }
-      >
-    );
+    // Get enhanced metrics (system-level metrics including CPU, memory, disk usage)
+    const enhancedMetrics = await client.getMetrics();
 
     return c.json({
       serverId: id,
       serverName: server.name,
-      metrics: Object.values(aggregatedMetrics),
+      metrics: enhancedMetrics,
     });
   } catch (error) {
     console.error(`Error fetching metrics for server ${id}:`, error);

@@ -7,6 +7,7 @@ import {
   Zap,
   MessageSquare,
   Network,
+  Info,
 } from "lucide-react";
 
 interface ResourceUsageProps {
@@ -48,14 +49,18 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
       icon: Cpu,
       color: "text-yellow-600",
       type: "percentage" as const,
+      tooltip:
+        "Estimated CPU usage across all RabbitMQ nodes in the cluster, calculated from memory pressure and connection load",
     },
     {
-      name: "Memory",
+      name: "System Memory",
       value: metrics.totalMemory,
       unit: "GB",
       icon: HardDrive,
       color: "text-blue-600",
       type: "memory" as const,
+      tooltip:
+        "Total estimated system memory across all nodes in the cluster (calculated as RabbitMQ memory limit × 2.5 per node)",
     },
     {
       name: "Disk Usage",
@@ -64,6 +69,8 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
       icon: Database,
       color: "text-purple-600",
       type: "percentage" as const,
+      tooltip:
+        "Disk space usage percentage across all nodes, calculated from available disk space and limits",
     },
     {
       name: "Connections",
@@ -73,6 +80,8 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
       color: "text-green-600",
       type: "count" as const,
       max: 100,
+      tooltip:
+        "Total number of active client connections to the RabbitMQ cluster",
     },
     {
       name: "Channels",
@@ -82,6 +91,8 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
       color: "text-orange-600",
       type: "count" as const,
       max: 200,
+      tooltip:
+        "Total number of AMQP channels across all connections in the cluster",
     },
     {
       name: "Consumers",
@@ -91,6 +102,8 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
       color: "text-cyan-600",
       type: "count" as const,
       max: 50,
+      tooltip:
+        "Total number of active message consumers across all queues in the cluster",
     },
     {
       name: "Avg Latency",
@@ -99,6 +112,8 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
       icon: Network,
       color: "text-indigo-600",
       type: "latency" as const,
+      tooltip:
+        "Estimated average message processing latency based on publish/delivery rates and system load",
     },
   ];
 
@@ -109,25 +124,37 @@ export const ResourceUsage = ({ metrics, overview }: ResourceUsageProps) => {
           <Cpu className="w-5 h-5 text-yellow-600" />
           Resource Usage
         </CardTitle>
-        <p className="text-sm text-gray-500">Cluster resource consumption</p>
+        <p className="text-sm text-gray-500">
+          Cluster-wide resource metrics and system usage
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {resources.map((resource) => (
-          <div key={resource.name} className="space-y-2">
+          <div key={resource.name} className="space-y-2 group relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <resource.icon className={`w-4 h-4 ${resource.color}`} />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-700 cursor-help">
                   {resource.name}
                 </span>
+                <Info className="w-3 h-3 text-gray-400 cursor-help opacity-60 group-hover:opacity-100 transition-opacity duration-200" />
               </div>
               <span className="text-sm font-bold text-gray-900">
                 {resource.type === "count"
                   ? resource.value
+                  : resource.type === "memory"
+                  ? resource.value?.toFixed(2)
                   : resource.value?.toFixed(1)}
                 {resource.unit}
               </span>
             </div>
+
+            {/* Tooltip */}
+            <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+              {resource.tooltip}
+            </div>
+
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${

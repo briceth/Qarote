@@ -144,6 +144,7 @@ export function getServerLimitForPlan(plan: WorkspacePlan): number | undefined {
 }
 
 export function getPlanDisplayName(plan: WorkspacePlan): string {
+  console.log("getPlanDisplayName called with plan:", plan);
   switch (plan) {
     case WorkspacePlan.FREE:
       return "Free";
