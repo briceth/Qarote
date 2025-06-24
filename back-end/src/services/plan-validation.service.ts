@@ -27,11 +27,11 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
   [WorkspacePlan.FREE]: {
+    canAddServer: true,
     canAddQueue: false,
     canSendMessages: false,
-    canAddServer: true,
     canExportData: false,
-    maxQueues: 0,
+    maxQueues: 1,
     maxServers: 1,
     maxUsers: 1,
     maxInvitations: 0,
@@ -55,7 +55,7 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canAddServer: true,
     canExportData: true,
     maxQueues: 10,
-    maxServers: 3,
+    maxServers: 2,
     maxUsers: 2,
     maxInvitations: 1,
     maxMessagesPerMonth: 100,

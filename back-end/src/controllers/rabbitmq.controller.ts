@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import prisma from "../core/prisma";
+import prisma, { Server } from "../core/prisma";
 import { RabbitMQClient } from "../core/rabbitmq/Client";
 import { CreateQueueSchema } from "../schemas/rabbitmq";
 import { authenticate } from "../core/auth";
+import { EncryptionService } from "../services/encryption.service";
 import {
   validateQueueCreation,
   validateMessageSending,
@@ -29,6 +30,24 @@ rabbitmqController.use("*", authenticate);
 // Apply plan validation middleware to all routes
 rabbitmqController.use("*", planValidationMiddleware());
 
+// Helper function to decrypt server credentials for RabbitMQ client
+function getDecryptedCredentials(server: Server) {
+  return {
+    host: server.host,
+    port: server.port,
+    username: EncryptionService.decrypt(server.username),
+    password: EncryptionService.decrypt(server.password),
+    vhost: server.vhost,
+    sslConfig: {
+      enabled: server.sslEnabled || false,
+      verifyPeer: server.sslVerifyPeer || true,
+      caCertPath: server.sslCaCertPath || undefined,
+      clientCertPath: server.sslClientCertPath || undefined,
+      clientKeyPath: server.sslClientKeyPath || undefined,
+    },
+  };
+}
+
 // Get overview for a specific server
 rabbitmqController.get("/servers/:id/overview", async (c) => {
   const id = c.req.param("id");
@@ -47,13 +66,7 @@ rabbitmqController.get("/servers/:id/overview", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const overview = await client.getOverview();
     return c.json({ overview });
@@ -87,13 +100,7 @@ rabbitmqController.get("/servers/:id/queues", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const queues = await client.getQueues();
 
@@ -187,13 +194,7 @@ rabbitmqController.get("/servers/:id/nodes", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const nodes = await client.getNodes();
     return c.json({ nodes });
@@ -228,13 +229,7 @@ rabbitmqController.get("/servers/:id/queues/:queueName", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const queue = await client.getQueue(queueName);
     return c.json({ queue });
@@ -271,13 +266,7 @@ rabbitmqController.get(
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = new RabbitMQClient({
-        host: server.host,
-        port: server.port,
-        username: server.username,
-        password: server.password,
-        vhost: server.vhost,
-      });
+      const client = new RabbitMQClient(getDecryptedCredentials(server));
 
       const consumers = await client.getQueueConsumers(queueName);
       return c.json({
@@ -321,13 +310,7 @@ rabbitmqController.get("/servers/:id/metrics", async (c) => {
     }
 
     // Create RabbitMQ client to fetch enhanced metrics
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     // Get enhanced metrics (system-level metrics including CPU, memory, disk usage)
     const enhancedMetrics = await client.getMetrics();
@@ -479,13 +462,7 @@ rabbitmqController.get("/servers/:id/exchanges", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const exchanges = await client.getExchanges();
     return c.json({ exchanges });
@@ -519,13 +496,7 @@ rabbitmqController.get("/servers/:id/connections", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const connections = await client.getConnections();
     return c.json({ connections });
@@ -559,13 +530,7 @@ rabbitmqController.get("/servers/:id/channels", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const channels = await client.getChannels();
     return c.json({ channels });
@@ -625,13 +590,9 @@ rabbitmqController.post(
         return c.json({ error: "Server not found" }, 404);
       }
 
-      const client = new RabbitMQClient({
-        host: rabbitMQServer.host,
-        port: rabbitMQServer.port,
-        username: rabbitMQServer.username,
-        password: rabbitMQServer.password,
-        vhost: rabbitMQServer.vhost,
-      });
+      const client = new RabbitMQClient(
+        getDecryptedCredentials(rabbitMQServer)
+      );
 
       const result = await client.createQueue(queueData.name, {
         durable: queueData.durable,
@@ -714,13 +675,9 @@ rabbitmqController.post(
         return c.json({ error: "Server not found" }, 404);
       }
 
-      const client = new RabbitMQClient({
-        host: rabbitMQServer.host,
-        port: rabbitMQServer.port,
-        username: rabbitMQServer.username,
-        password: rabbitMQServer.password,
-        vhost: rabbitMQServer.vhost,
-      });
+      const client = new RabbitMQClient(
+        getDecryptedCredentials(rabbitMQServer)
+      );
 
       // For now, we'll just return success. In a real implementation,
       // you would use the RabbitMQ client to send the message
@@ -767,13 +724,7 @@ rabbitmqController.delete(
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = new RabbitMQClient({
-        host: server.host,
-        port: server.port,
-        username: server.username,
-        password: server.password,
-        vhost: server.vhost,
-      });
+      const client = new RabbitMQClient(getDecryptedCredentials(server));
 
       await client.purgeQueue(queueName);
 
@@ -834,13 +785,7 @@ rabbitmqController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
     // Validate basic memory metrics access (available to all plans)
     validateBasicMemoryMetricsAccess(server.workspace.plan);
 
-    const client = new RabbitMQClient({
-      host: server.host,
-      port: server.port,
-      username: server.username,
-      password: server.password,
-      vhost: server.vhost,
-    });
+    const client = new RabbitMQClient(getDecryptedCredentials(server));
 
     const nodes = await client.getNodes();
     const node = nodes.find((n) => n.name === nodeName);

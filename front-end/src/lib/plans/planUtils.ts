@@ -28,12 +28,12 @@ export interface PlanFeatures {
 
 export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
   [WorkspacePlan.FREE]: {
+    canAddServer: true,
     canAddQueue: false,
     canSendMessages: false,
-    canAddServer: true,
     canExportData: false,
     canAccessRouting: false,
-    maxQueues: 0,
+    maxQueues: 1,
     maxServers: 1,
     maxUsers: 1,
     maxMessagesPerMonth: 0,
@@ -52,7 +52,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     canSendMessages: true,
     canAddServer: true,
     canExportData: true,
-    canAccessRouting: true,
+    canAccessRouting: false,
     maxQueues: 10,
     maxServers: 2,
     maxUsers: 2,

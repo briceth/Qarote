@@ -227,8 +227,3 @@ export const checkCompanyAccess = async (
 
   await next();
 };
-
-// Generate a random token
-export const generateRandomToken = (length = 32): string => {
-  return randomBytes(length).toString("hex");
-};

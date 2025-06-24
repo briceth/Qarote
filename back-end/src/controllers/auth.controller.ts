@@ -6,7 +6,6 @@ import {
   comparePassword,
   generateToken,
   authenticate,
-  generateRandomToken,
   SafeUser,
 } from "../core/auth";
 import {
@@ -19,6 +18,7 @@ import {
 } from "../schemas/auth";
 import { InvitationStatus, UserRole } from "@prisma/client";
 import { sendWelcomeEmail } from "../services/email/email.service";
+import { EncryptionService } from "@/services/encryption.service";
 
 const authController = new Hono();
 
@@ -257,7 +257,7 @@ authController.post(
       }
 
       // Generate a reset token and set expiration (24 hours from now)
-      const resetToken = generateRandomToken();
+      const resetToken = EncryptionService.generateEncryptionKey();
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 

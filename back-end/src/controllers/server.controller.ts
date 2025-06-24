@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import prisma from "../core/prisma";
 import RabbitMQClient from "../core/rabbitmq";
 import { authenticate } from "../core/auth";
+import { EncryptionService } from "../services/encryption.service";
 import {
   CreateServerSchema,
   UpdateServerSchema,
@@ -26,6 +27,24 @@ serverController.use("*", authenticate);
 
 // Apply plan validation middleware to all routes
 serverController.use("*", planValidationMiddleware());
+
+// Helper function to decrypt server credentials for RabbitMQ client
+function getDecryptedCredentials(server: any) {
+  return {
+    host: server.host,
+    port: server.port,
+    username: EncryptionService.decrypt(server.username),
+    password: EncryptionService.decrypt(server.password),
+    vhost: server.vhost,
+    sslConfig: {
+      enabled: server.sslEnabled,
+      verifyPeer: server.sslVerifyPeer,
+      caCertPath: server.sslCaCertPath,
+      clientCertPath: server.sslClientCertPath,
+      clientKeyPath: server.sslClientKeyPath,
+    },
+  };
+}
 
 // Get all RabbitMQ servers (filtered by user's workspace)
 serverController.get("/", async (c) => {
@@ -58,12 +77,13 @@ serverController.get("/", async (c) => {
     });
 
     // Transform the response to include sslConfig as a nested object
+    // and decrypt sensitive data for display
     const transformedServers = servers.map((server) => ({
       id: server.id,
       name: server.name,
       host: server.host,
       port: server.port,
-      username: server.username,
+      username: EncryptionService.decrypt(server.username), // Decrypt for display
       vhost: server.vhost,
       sslConfig: {
         enabled: server.sslEnabled,
@@ -125,7 +145,7 @@ serverController.get("/:id", async (c) => {
       name: server.name,
       host: server.host,
       port: server.port,
-      username: server.username,
+      username: EncryptionService.decrypt(server.username), // Decrypt for display
       vhost: server.vhost,
       sslConfig: {
         enabled: server.sslEnabled,
@@ -165,8 +185,9 @@ serverController.post(
         validateServerCreation(plan, resourceCounts.servers);
       }
 
-      console.log("Creating server with data:", data);
-      // Test connection before creating the server
+      console.log("Creating server with data:", { ...data, password: "***" });
+
+      // Test connection before creating the server (use plain text for testing)
       const client = new RabbitMQClient({
         host: data.host,
         port: data.port,
@@ -187,13 +208,14 @@ serverController.post(
         validateRabbitMqVersion(plan, rabbitMqVersion);
       }
 
+      // Encrypt sensitive data before storing
       const server = await prisma.rabbitMQServer.create({
         data: {
           name: data.name,
           host: data.host,
           port: data.port,
-          username: data.username,
-          password: data.password,
+          username: EncryptionService.encrypt(data.username), // Encrypt username
+          password: EncryptionService.encrypt(data.password), // Encrypt password
           vhost: data.vhost,
           sslEnabled: data.sslConfig?.enabled || false,
           sslVerifyPeer: data.sslConfig?.verifyPeer || true,
@@ -214,7 +236,7 @@ serverController.post(
             name: server.name,
             host: server.host,
             port: server.port,
-            username: server.username,
+            username: data.username, // Return original (not encrypted) for UI
             vhost: server.vhost,
             sslConfig: {
               enabled: server.sslEnabled,

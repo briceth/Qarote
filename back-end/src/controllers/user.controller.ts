@@ -1,11 +1,10 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import prisma from "../core/prisma";
-import { hashPassword, authenticate, authorize, SafeUser } from "../core/auth";
+import { authenticate, authorize, SafeUser } from "../core/auth";
 import { UpdateUserSchema, UpdateProfileSchema } from "../schemas/user";
 import { UpdateWorkspaceSchema } from "../schemas/workspace";
 import { InviteUserSchema } from "../schemas/auth";
-import { generateRandomToken } from "../core/auth";
 import { UserRole } from "@prisma/client";
 import { validateUserInvitation } from "../services/plan-validation.service";
 import {
@@ -13,6 +12,7 @@ import {
   getWorkspaceResourceCounts,
   planValidationMiddleware,
 } from "../middlewares/plan-validation";
+import { EncryptionService } from "@/services/encryption.service";
 
 const userController = new Hono();
 
@@ -280,7 +280,7 @@ userController.post(
       }
 
       // Generate invitation token and set expiration (7 days)
-      const token = generateRandomToken();
+      const token = EncryptionService.generateEncryptionKey();
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
