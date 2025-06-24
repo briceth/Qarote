@@ -12,6 +12,9 @@ import {
   useCompanyUsers,
   useWorkspaceUsers,
   useInviteUser,
+  useInvitations,
+  useSendInvitation,
+  useRevokeInvitation,
 } from "@/hooks/useApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -19,21 +22,27 @@ import {
   PersonalInfoTab,
   WorkspaceInfoTab,
   TeamTab,
+  EnhancedTeamTab,
   ProfileLoading,
   ProfileFormState,
   WorkspaceFormState,
   InviteFormState,
 } from "@/components/profile";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { WorkspacePlan, getPlanFeatures } from "@/lib/plans/planUtils";
 
 const Profile = () => {
   const { user } = useAuth();
   const { data: profileData, isLoading: profileLoading } = useProfile();
   const { data: workspaceUsersData, isLoading: usersLoading } =
     useWorkspaceUsers();
+  const { data: invitationsData, isLoading: invitationsLoading } =
+    useInvitations();
   const updateProfileMutation = useUpdateProfile();
   const updateWorkspaceMutation = useUpdateWorkspace();
-  const inviteUserMutation = useInviteUser();
+  const inviteUserMutation = useInviteUser(); // Keep for backwards compatibility
+  const sendInvitationMutation = useSendInvitation();
+  const revokeInvitationMutation = useRevokeInvitation();
 
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState(false);
@@ -62,7 +71,21 @@ const Profile = () => {
   const profile = profileData?.profile;
   const workspace = profile?.workspace;
   const workspaceUsers = workspaceUsersData?.users || [];
+  const invitations = invitationsData?.invitations || [];
   const isAdmin = profile?.role === "ADMIN";
+
+  // Plan-based access control
+  const workspacePlan =
+    (workspace?.plan as WorkspacePlan) || WorkspacePlan.FREE;
+  const planFeatures = getPlanFeatures(workspacePlan);
+  const currentUserCount = workspaceUsers.length;
+  const pendingInvitationCount = invitations.length;
+
+  // Check if user can invite more users based on plan limits
+  const canInviteMoreUsers = () => {
+    if (!planFeatures.maxUsers) return true; // Unlimited
+    return currentUserCount + pendingInvitationCount < planFeatures.maxUsers;
+  };
 
   // Initialize forms when profile data loads
   useEffect(() => {
@@ -108,16 +131,50 @@ const Profile = () => {
       return;
     }
 
+    // Check plan limits before sending invitation
+    if (!canInviteMoreUsers()) {
+      const maxUsers = planFeatures.maxUsers;
+      toast.error(
+        `Cannot invite more users. Your ${workspacePlan} plan allows up to ${maxUsers} users. You currently have ${currentUserCount} users and ${pendingInvitationCount} pending invitations.`
+      );
+      return;
+    }
+
     try {
-      await inviteUserMutation.mutateAsync({
-        ...inviteForm,
-        workspaceId: workspace.id,
+      const result = await sendInvitationMutation.mutateAsync({
+        email: inviteForm.email,
+        role: inviteForm.role,
+        message: inviteForm.message,
       });
+
       setInviteDialogOpen(false);
       setInviteForm({ email: "", role: "USER" });
-      toast.success("Invitation sent successfully");
+
+      toast.success(
+        `Invitation sent successfully to ${inviteForm.email}! ${
+          result.invitation.monthlyCost > 0
+            ? `Additional cost: $${result.invitation.monthlyCost}/month.`
+            : ""
+        }`
+      );
     } catch (error) {
-      toast.error("Failed to send invitation");
+      console.error("Invitation error:", error);
+      const errorMessage = extractErrorMessage(error);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRevokeInvitation = async (
+    invitationId: string,
+    email: string
+  ) => {
+    try {
+      await revokeInvitationMutation.mutateAsync(invitationId);
+      toast.success(`Invitation to ${email} has been revoked`);
+    } catch (error) {
+      console.error("Revoke invitation error:", error);
+      const errorMessage = extractErrorMessage(error);
+      toast.error(errorMessage);
     }
   };
 
@@ -204,16 +261,22 @@ const Profile = () => {
               </TabsContent>
 
               <TabsContent value="team" className="space-y-6">
-                <TeamTab
+                <EnhancedTeamTab
                   isAdmin={isAdmin}
                   workspaceUsers={workspaceUsers}
+                  invitations={invitations}
                   usersLoading={usersLoading}
+                  invitationsLoading={invitationsLoading}
                   inviteDialogOpen={inviteDialogOpen}
                   setInviteDialogOpen={setInviteDialogOpen}
                   inviteForm={inviteForm}
                   setInviteForm={setInviteForm}
                   onInviteUser={handleInviteUser}
-                  isInviting={inviteUserMutation.isPending}
+                  onRevokeInvitation={handleRevokeInvitation}
+                  isInviting={sendInvitationMutation.isPending}
+                  isRevoking={revokeInvitationMutation.isPending}
+                  workspacePlan={workspacePlan}
+                  canInviteMoreUsers={canInviteMoreUsers()}
                 />
               </TabsContent>
 
@@ -229,3 +292,47 @@ const Profile = () => {
 };
 
 export default Profile;
+
+// API Error types
+interface ApiErrorResponse {
+  error: string;
+  planLimits?: {
+    userLimit: string;
+    invitationLimit: string;
+    currentUsers: number;
+    pendingInvitations: number;
+  };
+}
+
+interface ApiError extends Error {
+  response?: {
+    data: ApiErrorResponse;
+    status: number;
+    statusText: string;
+  };
+}
+
+// Helper function to extract error message from API response
+const extractErrorMessage = (error: unknown): string => {
+  let errorMessage = "Failed to send invitation";
+
+  if (error && typeof error === "object" && "response" in error) {
+    const apiError = error as ApiError;
+    if (apiError.response?.data?.error) {
+      errorMessage = apiError.response.data.error;
+
+      // Handle plan limit errors with additional context
+      if (apiError.response.data.planLimits) {
+        const limits = apiError.response.data.planLimits;
+        errorMessage += `. ${limits.userLimit}. Current: ${limits.currentUsers} users, ${limits.pendingInvitations} pending invitations.`;
+      }
+    } else if (apiError.response?.statusText) {
+      errorMessage = `${errorMessage}: ${apiError.response.statusText}`;
+    }
+  } else if (error && typeof error === "object" && "message" in error) {
+    const genericError = error as Error;
+    errorMessage = genericError.message;
+  }
+
+  return errorMessage;
+};

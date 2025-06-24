@@ -97,3 +97,90 @@ export interface Invitation {
   createdAt: string;
   expiresAt: string;
 }
+
+// New invitation types for the enhanced system
+export interface InvitationWithInviter extends Invitation {
+  invitedBy: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+    displayName: string;
+  };
+}
+
+export interface SendInvitationRequest {
+  email: string;
+  role: "USER" | "ADMIN";
+  message?: string;
+}
+
+export interface SendInvitationResponse {
+  success: boolean;
+  message: string;
+  invitation: {
+    id: string;
+    email: string;
+    role: string;
+    expiresAt: string;
+    monthlyCost: number;
+  };
+  emailResult: {
+    messageId: string;
+  };
+}
+
+export interface GetInvitationsResponse {
+  success: boolean;
+  invitations: InvitationWithInviter[];
+  count: number;
+}
+
+export interface InvitationDetailsResponse {
+  success: boolean;
+  invitation: {
+    id: string;
+    email: string;
+    role: string;
+    expiresAt: string;
+    workspace: {
+      id: string;
+      name: string;
+      plan: string;
+    };
+    inviter: {
+      id: string;
+      firstName: string | null;
+      lastName: string | null;
+      email: string;
+      displayName: string;
+    };
+  };
+}
+
+export interface AcceptInvitationResponse {
+  success: boolean;
+  message: string;
+  user?: {
+    id: string;
+    email: string;
+    displayName: string;
+  };
+  workspace?: {
+    id: string;
+    name: string;
+  };
+  requiresRegistration?: boolean;
+  invitation?: {
+    token: string;
+    email: string;
+    role: string;
+    workspaceName: string;
+    inviterName: string;
+  };
+}
+
+export interface RevokeInvitationResponse {
+  success: boolean;
+  message: string;
+}

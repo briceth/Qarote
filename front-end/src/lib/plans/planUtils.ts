@@ -55,7 +55,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     canAccessRouting: true,
     maxQueues: 10,
     maxServers: 2,
-    maxUsers: 1,
+    maxUsers: 2,
     maxMessagesPerMonth: 100,
     hasAdvancedMetrics: true,
     hasAdvancedAlerts: false,

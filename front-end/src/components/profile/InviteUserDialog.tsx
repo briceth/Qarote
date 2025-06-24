@@ -1,3 +1,4 @@
+import { Plus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, UserPlus } from "lucide-react";
 import { InviteFormState } from "./profileUtils";
 
 interface InviteUserDialogProps {
@@ -26,6 +26,9 @@ interface InviteUserDialogProps {
   setInviteForm: (form: InviteFormState) => void;
   onInviteUser: () => void;
   isInviting: boolean;
+  canInvite?: boolean;
+  maxUsers?: number;
+  currentCount?: number;
 }
 
 export const InviteUserDialog = ({
@@ -74,7 +77,7 @@ export const InviteUserDialog = ({
               onValueChange={(value) =>
                 setInviteForm({
                   ...inviteForm,
-                  role: value as "ADMIN" | "USER" | "READONLY",
+                  role: value as "ADMIN" | "USER", // | "READONLY",
                 })
               }
             >

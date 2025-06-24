@@ -18,6 +18,7 @@ import {
   AcceptInvitationSchema,
 } from "../schemas/auth";
 import { InvitationStatus, UserRole } from "@prisma/client";
+import { sendWelcomeEmail } from "../services/email/email.service";
 
 const authController = new Hono();
 
@@ -65,7 +66,7 @@ authController.post(
             firstName,
             lastName,
             workspaceId,
-            role: workspaceId ? UserRole.ADMIN : UserRole.USER, // If creating a workspace, user is admin
+            role: workspaceId ? UserRole.ADMIN : UserRole.USER, // If creating a workspace, user is admin (TODO: note sure)
             lastLogin: new Date(),
           },
           select: {
@@ -92,6 +93,31 @@ authController.post(
         role: result.user.role,
         workspaceId: result.user.workspaceId,
       });
+
+      // Send welcome email for new workspace owners
+      if (result.workspaceId && workspaceName) {
+        try {
+          const workspace = await prisma.workspace.findUnique({
+            where: { id: result.workspaceId },
+            select: { name: true, plan: true },
+          });
+
+          if (workspace) {
+            await sendWelcomeEmail({
+              to: result.user.email,
+              name: result.user.firstName || result.user.email,
+              workspaceName: workspace.name,
+              plan: workspace.plan,
+            });
+          }
+        } catch (emailError) {
+          console.error(
+            "Failed to send welcome email during registration:",
+            emailError
+          );
+          // Don't fail the registration if email fails
+        }
+      }
 
       return c.json(
         {
@@ -365,6 +391,8 @@ authController.post(
         where: { email: invitation.email },
       });
 
+      const isNewUser = !user; // Track if this is a new user
+
       // Transaction to handle user creation/update and invitation acceptance
       const result = await prisma.$transaction(async (tx) => {
         if (user) {
@@ -417,6 +445,24 @@ authController.post(
         role: result.role,
         workspaceId: result.workspaceId,
       });
+
+      // Send welcome email for newly created users
+      if (isNewUser) {
+        try {
+          await sendWelcomeEmail({
+            to: result.email,
+            name: result.firstName || result.email,
+            workspaceName: invitation.workspace.name,
+            plan: invitation.workspace.plan,
+          });
+        } catch (emailError) {
+          console.error(
+            "Failed to send welcome email during invitation acceptance:",
+            emailError
+          );
+          // Don't fail the invitation acceptance if email fails
+        }
+      }
 
       const safeUser: SafeUser = {
         id: result.id,

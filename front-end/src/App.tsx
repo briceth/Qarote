@@ -31,6 +31,7 @@ const HelpSupport = lazy(() => import("./pages/HelpSupport"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
+const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -66,6 +67,14 @@ const App = () => (
                     element={
                       <PublicRoute>
                         <SignUp />
+                      </PublicRoute>
+                    }
+                  />
+                  <Route
+                    path="/invite/:token"
+                    element={
+                      <PublicRoute>
+                        <AcceptInvitation />
                       </PublicRoute>
                     }
                   />

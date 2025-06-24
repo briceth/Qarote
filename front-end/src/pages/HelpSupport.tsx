@@ -9,10 +9,12 @@ import {
   Mail,
   Book,
   Zap,
+  Copy,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { useToast } from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -112,6 +114,36 @@ const quickLinks = [
 
 export function HelpSupport() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { toast } = useToast();
+
+  const handleEmailCopy = async () => {
+    try {
+      await navigator.clipboard.writeText("support@rabbitscout.io");
+      toast({
+        title: "Email copied!",
+        description:
+          "support@rabbitscout.io has been copied to your clipboard.",
+      });
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Please manually copy: support@rabbitscout.io",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEmailClick = (e: React.MouseEvent) => {
+    // For better UX, we'll always try mailto first
+    // but provide a fallback copy option
+    try {
+      // The browser will handle this - no need to intercept
+      // Just let the normal mailto: behavior work
+    } catch (error) {
+      e.preventDefault();
+      handleEmailCopy();
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -220,27 +252,29 @@ export function HelpSupport() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-sm font-medium">General Support</p>
-                    <a
-                      href="mailto:support@rabbitmqdashboard.com"
-                      className="text-sm text-blue-600 hover:text-blue-700"
-                    >
-                      support@rabbitmqdashboard.com
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">
-                      Privacy & Data Questions
-                    </p>
-                    <a
-                      href="mailto:privacy@rabbitmqdashboard.com"
-                      className="text-sm text-blue-600 hover:text-blue-700"
-                    >
-                      privacy@rabbitmqdashboard.com
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href="mailto:support@rabbitscout.io?subject=RabbitScout Support Request"
+                        className="text-sm text-blue-600 hover:text-blue-700"
+                        onClick={handleEmailClick}
+                      >
+                        support@rabbitscout.io
+                      </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEmailCopy}
+                        className="h-6 px-2"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="pt-2">
                     <p className="text-xs text-gray-500">
                       We typically respond within 24 hours during business days.
+                      Can't open your email client? Use the copy button to get
+                      our email address.
                     </p>
                   </div>
                 </CardContent>

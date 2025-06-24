@@ -13,7 +13,14 @@ import {
   UpdateCompanyRequest,
   InviteUserRequest,
   Company,
+  Workspace,
   Invitation,
+  SendInvitationRequest,
+  SendInvitationResponse,
+  GetInvitationsResponse,
+  InvitationDetailsResponse,
+  AcceptInvitationResponse,
+  RevokeInvitationResponse,
 } from "./authTypes";
 
 export class AuthApiClient extends BaseApiClient {
@@ -87,5 +94,65 @@ export class AuthApiClient extends BaseApiClient {
     return this.request<void>("/auth/logout", {
       method: "POST",
     });
+  }
+
+  // Invitation management
+  async getInvitations(): Promise<GetInvitationsResponse> {
+    return this.request<GetInvitationsResponse>("/invitations");
+  }
+
+  async sendInvitation(
+    invitationData: SendInvitationRequest
+  ): Promise<SendInvitationResponse> {
+    return this.request<SendInvitationResponse>("/invitations", {
+      method: "POST",
+      body: JSON.stringify(invitationData),
+    });
+  }
+
+  async revokeInvitation(
+    invitationId: string
+  ): Promise<RevokeInvitationResponse> {
+    return this.request<RevokeInvitationResponse>(
+      `/invitations/${invitationId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
+  async getInvitationDetails(
+    token: string
+  ): Promise<InvitationDetailsResponse> {
+    return this.request<InvitationDetailsResponse>(`/invitations/${token}`);
+  }
+
+  async acceptInvitation(token: string): Promise<AcceptInvitationResponse> {
+    return this.request<AcceptInvitationResponse>(
+      `/invitations/${token}/accept`,
+      {
+        method: "POST",
+      }
+    );
+  }
+
+  async acceptInvitationWithRegistration(
+    token: string,
+    registrationData: {
+      password: string;
+      firstName: string;
+      lastName: string;
+    }
+  ): Promise<{ user: User; token: string; workspace: Workspace }> {
+    return this.request<{ user: User; token: string; workspace: Workspace }>(
+      "/auth/invitation/accept",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          token,
+          ...registrationData,
+        }),
+      }
+    );
   }
 }

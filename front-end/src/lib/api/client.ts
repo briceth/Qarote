@@ -172,6 +172,41 @@ class ApiClient {
     return this.authClient.inviteUser(userData);
   }
 
+  // New invitation methods
+  async getInvitations() {
+    return this.authClient.getInvitations();
+  }
+
+  async sendInvitation(
+    invitationData: Parameters<AuthApiClient["sendInvitation"]>[0]
+  ) {
+    return this.authClient.sendInvitation(invitationData);
+  }
+
+  async revokeInvitation(invitationId: string) {
+    return this.authClient.revokeInvitation(invitationId);
+  }
+
+  async getInvitationDetails(token: string) {
+    return this.authClient.getInvitationDetails(token);
+  }
+
+  async acceptInvitation(token: string) {
+    return this.authClient.acceptInvitation(token);
+  }
+
+  async acceptInvitationWithRegistration(
+    token: string,
+    registrationData: Parameters<
+      AuthApiClient["acceptInvitationWithRegistration"]
+    >[1]
+  ) {
+    return this.authClient.acceptInvitationWithRegistration(
+      token,
+      registrationData
+    );
+  }
+
   async logout() {
     return this.authClient.logout();
   }

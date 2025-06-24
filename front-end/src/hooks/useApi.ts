@@ -359,3 +359,56 @@ export const useInviteUser = () => {
     },
   });
 };
+
+// New invitation hooks
+export const useInvitations = () => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["invitations"],
+    queryFn: () => apiClient.getInvitations(),
+    enabled: isAuthenticated,
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+export const useSendInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (
+      invitationData: Parameters<typeof apiClient.sendInvitation>[0]
+    ) => apiClient.sendInvitation(invitationData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["workspaceUsers"] });
+    },
+  });
+};
+
+export const useRevokeInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      apiClient.revokeInvitation(invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+    },
+  });
+};
+
+export const useInvitationDetails = (token: string) => {
+  return useQuery({
+    queryKey: ["invitationDetails", token],
+    queryFn: () => apiClient.getInvitationDetails(token),
+    enabled: !!token,
+    staleTime: 300000, // 5 minutes
+  });
+};
+
+export const useAcceptInvitation = () => {
+  return useMutation({
+    mutationFn: (token: string) => apiClient.acceptInvitation(token),
+  });
+};

@@ -7,11 +7,14 @@ export interface PlanLimits {
   canExportData: boolean;
   maxQueues: number;
   maxServers: number;
-  maxUsers: number;
+  maxUsers: number | null; // null means unlimited
+  maxInvitations: number | null; // null means unlimited
   maxMessagesPerMonth: number | null; // null means unlimited
   hasAdvancedMetrics: boolean;
   hasAdvancedAlerts: boolean;
   hasPrioritySupport: boolean;
+  canInviteUsers: boolean;
+  userCostPerMonth?: number; // Cost per additional user per month
   // Node Memory Features
   canViewBasicMemoryMetrics: boolean;
   canViewAdvancedMemoryMetrics: boolean;
@@ -29,10 +32,12 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     maxQueues: 0,
     maxServers: 1,
     maxUsers: 1,
+    maxInvitations: 0,
     maxMessagesPerMonth: 0,
     hasAdvancedMetrics: false,
     hasAdvancedAlerts: false,
     hasPrioritySupport: false,
+    canInviteUsers: false,
     // Memory Features - Immediate Value for everyone
     canViewBasicMemoryMetrics: true,
     canViewAdvancedMemoryMetrics: false,
@@ -47,11 +52,14 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canExportData: true,
     maxQueues: 10,
     maxServers: 3,
-    maxUsers: 1,
+    maxUsers: 2,
+    maxInvitations: 1,
     maxMessagesPerMonth: 100,
     hasAdvancedMetrics: true,
     hasAdvancedAlerts: false,
     hasPrioritySupport: false,
+    canInviteUsers: true,
+    userCostPerMonth: 5,
     // Memory Features - Immediate Value for everyone
     canViewBasicMemoryMetrics: true,
     canViewAdvancedMemoryMetrics: false,
@@ -66,11 +74,14 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canExportData: true,
     maxQueues: 50,
     maxServers: 10,
-    maxUsers: 5,
+    maxUsers: 6,
+    maxInvitations: 5,
     maxMessagesPerMonth: 1000,
     hasAdvancedMetrics: true,
     hasAdvancedAlerts: true,
     hasPrioritySupport: false,
+    canInviteUsers: true,
+    userCostPerMonth: 8,
     // Memory Features - Immediate Value + Advanced Features
     canViewBasicMemoryMetrics: true,
     canViewAdvancedMemoryMetrics: true,
@@ -85,11 +96,14 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canExportData: true,
     maxQueues: 200,
     maxServers: 50,
-    maxUsers: 25,
+    maxUsers: null,
+    maxInvitations: null,
     maxMessagesPerMonth: null, // unlimited
     hasAdvancedMetrics: true,
     hasAdvancedAlerts: true,
     hasPrioritySupport: true,
+    canInviteUsers: true,
+    userCostPerMonth: 10,
     // Memory Features - All Features Available
     canViewBasicMemoryMetrics: true,
     canViewAdvancedMemoryMetrics: true,
@@ -223,15 +237,42 @@ export function validateMessageSending(
 
 export function validateUserInvitation(
   plan: WorkspacePlan,
-  currentUserCount: number
+  currentUserCount: number,
+  pendingInvitations: number = 0
 ): void {
   const limits = getPlanLimits(plan);
 
-  if (currentUserCount >= limits.maxUsers) {
+  if (!limits.canInviteUsers) {
+    throw new PlanValidationError(
+      "User invitation",
+      plan,
+      "Freelance, Startup, or Business",
+      currentUserCount,
+      limits.maxUsers || 0
+    );
+  }
+
+  // Check total user limit (current + pending)
+  const totalUsers = currentUserCount + pendingInvitations;
+
+  if (limits.maxUsers !== null && totalUsers >= limits.maxUsers) {
     throw new PlanLimitExceededError(
       "User invitation",
-      currentUserCount,
+      totalUsers,
       limits.maxUsers,
+      plan
+    );
+  }
+
+  // Check invitation limit
+  if (
+    limits.maxInvitations !== null &&
+    pendingInvitations >= limits.maxInvitations
+  ) {
+    throw new PlanLimitExceededError(
+      "Pending invitations",
+      pendingInvitations,
+      limits.maxInvitations,
       plan
     );
   }
@@ -320,4 +361,70 @@ export function validateMemoryOptimizationAccess(plan: WorkspacePlan): void {
       0
     );
   }
+}
+
+// Additional Invitation Validation Functions
+export function calculateMonthlyCostForUsers(
+  plan: WorkspacePlan,
+  additionalUsers: number
+): number {
+  const limits = getPlanLimits(plan);
+
+  if (!limits.userCostPerMonth || additionalUsers <= 0) {
+    return 0;
+  }
+
+  return limits.userCostPerMonth * additionalUsers;
+}
+
+export function canUserInviteUsers(plan: WorkspacePlan): boolean {
+  return getPlanLimits(plan).canInviteUsers;
+}
+
+export function canUserInviteMoreUsers(
+  plan: WorkspacePlan,
+  currentUserCount: number,
+  pendingInvitations: number = 0
+): boolean {
+  const limits = getPlanLimits(plan);
+
+  if (!limits.canInviteUsers) {
+    return false;
+  }
+
+  if (limits.maxUsers === null) {
+    return true; // Unlimited
+  }
+
+  const totalUsers = currentUserCount + pendingInvitations;
+  return totalUsers < limits.maxUsers;
+}
+
+export function getUserLimitText(plan: WorkspacePlan): string {
+  const limits = getPlanLimits(plan);
+
+  if (!limits.canInviteUsers) {
+    return "Cannot invite users";
+  }
+
+  if (limits.maxUsers === null) {
+    return "Unlimited users";
+  }
+
+  const additionalUsers = limits.maxUsers - 1; // Subtract admin
+  return `Up to ${additionalUsers} additional user${additionalUsers === 1 ? "" : "s"}`;
+}
+
+export function getInvitationLimitText(plan: WorkspacePlan): string {
+  const limits = getPlanLimits(plan);
+
+  if (!limits.canInviteUsers) {
+    return "Cannot send invitations";
+  }
+
+  if (limits.maxInvitations === null) {
+    return "Unlimited invitations";
+  }
+
+  return `Up to ${limits.maxInvitations} invitation${limits.maxInvitations === 1 ? "" : "s"}`;
 }

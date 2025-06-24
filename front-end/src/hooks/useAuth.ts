@@ -46,3 +46,29 @@ export const useLogout = () => {
     },
   });
 };
+
+export const useAcceptInvitation = () => {
+  const { login } = useAuth();
+
+  return useMutation({
+    mutationFn: async (params: {
+      token: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+    }) => {
+      const response = await apiClient.acceptInvitationWithRegistration(
+        params.token,
+        {
+          password: params.password,
+          firstName: params.firstName,
+          lastName: params.lastName,
+        }
+      );
+      return response;
+    },
+    onSuccess: (data) => {
+      login(data.token, data.user);
+    },
+  });
+};

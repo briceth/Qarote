@@ -19,7 +19,8 @@ export type CompanyFormState = WorkspaceFormState;
 
 export interface InviteFormState {
   email: string;
-  role: "ADMIN" | "USER" | "READONLY";
+  role: "ADMIN" | "USER";
+  message?: string;
 }
 
 export const formatDate = (dateString: string) => {

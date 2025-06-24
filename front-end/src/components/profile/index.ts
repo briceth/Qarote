@@ -3,6 +3,8 @@ export { WorkspaceInfoTab } from "./WorkspaceInfoTab";
 export { WorkspaceFormFields } from "./WorkspaceFormFields";
 export { NoWorkspaceCard } from "./NoWorkspaceCard";
 export { TeamTab } from "./TeamTab";
+export { EnhancedTeamTab } from "./EnhancedTeamTab";
 export { InviteUserDialog } from "./InviteUserDialog";
+export { InviteUserDialog as InviteUserDialogEnhanced } from "./InviteUserDialogEnhanced";
 export { ProfileLoading } from "./ProfileLoading";
 export * from "./profileUtils";
