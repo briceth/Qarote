@@ -1,18 +1,19 @@
 import { Suspense, lazy } from "react";
 import { RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TimeRange } from "@/components/MetricsChart";
+import { TimeRange } from "@/components/ThroughputChart";
 
-// Lazy load MetricsChart since it's a heavy charting component
-const MetricsChart = lazy(() =>
-  import("@/components/MetricsChart").then((module) => ({
-    default: module.MetricsChart,
+// Lazy load ThroughputChart since it's a heavy charting component
+const ThroughputChart = lazy(() =>
+  import("@/components/ThroughputChart").then((module) => ({
+    default: module.ThroughputChart,
   }))
 );
 
 interface ChartData {
   time: string;
-  messages: number;
+  published: number;
+  consumed: number;
 }
 
 interface MessageThroughputChartProps {
@@ -49,11 +50,9 @@ export const MessageThroughputChart = ({
     <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-900">
-          Message Throughput
+          Message Throughput ({selectedTimeRange.toUpperCase()})
         </CardTitle>
-        <p className="text-sm text-gray-500">
-          Real-time message flow over the {getTimeRangeText(selectedTimeRange)}
-        </p>
+        <p className="text-sm text-gray-500">Published vs Consumed messages</p>
       </CardHeader>
       <CardContent>
         {timeSeriesLoading ? (
@@ -76,7 +75,7 @@ export const MessageThroughputChart = ({
               </div>
             }
           >
-            <MetricsChart
+            <ThroughputChart
               data={chartData}
               onTimeRangeChange={onTimeRangeChange}
               selectedTimeRange={selectedTimeRange}

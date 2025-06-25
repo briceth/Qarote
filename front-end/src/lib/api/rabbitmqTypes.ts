@@ -300,6 +300,11 @@ export interface TimeSeriesResponse {
   timeseries: TimeSeriesDataPoint[];
   timeRange: string;
   dataPoints: number;
+  aggregatedThroughput?: Array<{
+    timestamp: number;
+    publishRate: number;
+    consumeRate: number;
+  }>;
 }
 
 export interface NodeMemoryDetailsResponse {

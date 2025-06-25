@@ -509,6 +509,35 @@ rabbitmqController.get("/servers/:id/metrics/timeseries", async (c) => {
       >
     );
 
+    // Calculate aggregated throughput data across all queues
+    const throughputData = timeseriesData.reduce(
+      (acc, metric) => {
+        const timestampKey = metric.timestamp.getTime();
+        if (!acc[timestampKey]) {
+          acc[timestampKey] = {
+            timestamp: timestampKey,
+            publishRate: 0,
+            consumeRate: 0,
+          };
+        }
+        acc[timestampKey].publishRate += metric.publishRate || 0;
+        acc[timestampKey].consumeRate += metric.consumeRate || 0;
+        return acc;
+      },
+      {} as Record<
+        number,
+        {
+          timestamp: number;
+          publishRate: number;
+          consumeRate: number;
+        }
+      >
+    );
+
+    const aggregatedThroughput = Object.values(throughputData).sort(
+      (a, b) => a.timestamp - b.timestamp
+    );
+
     return c.json({
       serverId: id,
       serverName: server.name,
@@ -516,6 +545,7 @@ rabbitmqController.get("/servers/:id/metrics/timeseries", async (c) => {
       startTime: startTime.toISOString(),
       endTime: new Date().toISOString(),
       queues: Object.values(groupedData),
+      aggregatedThroughput,
     });
   } catch (error) {
     console.error(`Error fetching timeseries for server ${id}:`, error);

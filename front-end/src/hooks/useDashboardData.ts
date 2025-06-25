@@ -10,18 +10,19 @@ import {
 
 interface ChartData {
   time: string;
-  messages: number;
+  published: number;
+  consumed: number;
 }
 
 export const useDashboardData = (selectedServerId: string | null) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("1m");
   const [chartData, setChartData] = useState<ChartData[]>([
-    { time: "00:00", messages: 0 },
-    { time: "04:00", messages: 0 },
-    { time: "08:00", messages: 0 },
-    { time: "12:00", messages: 0 },
-    { time: "16:00", messages: 0 },
-    { time: "20:00", messages: 0 },
+    { time: "00:00", published: 0, consumed: 0 },
+    { time: "04:00", published: 0, consumed: 0 },
+    { time: "08:00", published: 0, consumed: 0 },
+    { time: "12:00", published: 0, consumed: 0 },
+    { time: "16:00", published: 0, consumed: 0 },
+    { time: "20:00", published: 0, consumed: 0 },
   ]);
 
   // API calls
@@ -61,11 +62,30 @@ export const useDashboardData = (selectedServerId: string | null) => {
 
   // Update chart data from time series API
   useEffect(() => {
-    if (timeSeriesData?.timeseries) {
+    if (timeSeriesData?.aggregatedThroughput) {
+      const formattedData = timeSeriesData.aggregatedThroughput.map((point) => {
+        const date = new Date(point.timestamp);
+        const time = date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+
+        return {
+          time,
+          published: Math.round(point.publishRate),
+          consumed: Math.round(point.consumeRate),
+        };
+      });
+
+      setChartData(formattedData);
+    } else if (timeSeriesData?.timeseries) {
+      // Fallback to old format if aggregatedThroughput is not available
       setChartData(
         timeSeriesData.timeseries.map((point) => ({
           time: point.time,
-          messages: point.messages,
+          published: point.messages || 0,
+          consumed: 0, // Old format doesn't have separate consume data
         }))
       );
     }
