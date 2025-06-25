@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +36,12 @@ import {
   CheckCircle,
   MessageSquare,
 } from "lucide-react";
-import { usePublishMessage, useExchanges, useQueues } from "@/hooks/useApi";
+import {
+  usePublishMessage,
+  useExchanges,
+  useQueues,
+  queryKeys,
+} from "@/hooks/useApi";
 import { useToast } from "@/hooks/useToast";
 
 interface SendMessageDialogProps {
@@ -45,6 +51,7 @@ interface SendMessageDialogProps {
   defaultRoutingKey?: string;
   queueName?: string; // For direct queue publishing
   mode?: "exchange" | "queue"; // Publishing mode
+  onSuccess?: () => void; // Callback for successful message sending
 }
 
 export function SendMessageDialog({
@@ -54,6 +61,7 @@ export function SendMessageDialog({
   defaultRoutingKey = "",
   queueName,
   mode = queueName ? "queue" : "exchange",
+  onSuccess,
 }: SendMessageDialogProps) {
   const [open, setOpen] = useState(false);
   const [exchange, setExchange] = useState(defaultExchange);
@@ -62,6 +70,18 @@ export function SendMessageDialog({
     JSON.stringify({ message: "Hello World!", timestamp: Date.now() }, null, 2)
   );
   const [isPropertiesExpanded, setIsPropertiesExpanded] = useState(false);
+
+  // Routing error state
+  const [routingError, setRoutingError] = useState<{
+    message: string;
+    suggestions: string[];
+    details?: {
+      reason: string;
+      exchange: string;
+      routingKey: string;
+      possibleCauses: string[];
+    };
+  } | null>(null);
 
   // Message properties
   const [deliveryMode, setDeliveryMode] = useState("2"); // Persistent by default
@@ -77,6 +97,7 @@ export function SendMessageDialog({
   const [headers, setHeaders] = useState("");
 
   const publishMutation = usePublishMessage();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Fetch exchanges and queues for selection
@@ -89,6 +110,7 @@ export function SendMessageDialog({
       (ex) => ex.name && ex.name.trim() !== ""
     ) || [];
   const queues = queuesData?.queues || [];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -159,19 +181,64 @@ export function SendMessageDialog({
         },
         {
           onSuccess: (data) => {
-            setOpen(false);
-            toast({
-              title: "Message sent successfully",
-              description: `Message sent via exchange "${data.exchange || "default"}" with routing key "${data.routingKey}" to queue "${queueName}". Message length: ${data.messageLength} characters.`,
-            });
-            // Reset form
-            resetForm();
+            console.log("publishMutation data", data);
+            if (data.routed) {
+              setRoutingError(null); // Clear any previous routing errors
+              setOpen(false);
+              toast({
+                title: "Message sent successfully",
+                description: `Message sent via exchange "${data.exchange || "default"}" with routing key "${data.routingKey}" to queue "${queueName}". Message length: ${data.messageLength} characters.`,
+              });
+              // Reset form
+              resetForm();
+              // Call the success callback to refresh queue data
+              console.log(
+                "SendMessageDialog: Calling onSuccess callback for queue mode"
+              );
+              handleRefreshAfterSuccess();
+            } else {
+              // Message was published but not routed - show detailed error
+              setRoutingError({
+                message:
+                  data.error ||
+                  "Message was published but not delivered to any queue",
+                suggestions: data.suggestions || [],
+                details: data.details,
+              });
+
+              toast({
+                title: "Message not routed",
+                description:
+                  data.error ||
+                  "Message was published but not delivered to any queue",
+                variant: "destructive",
+              });
+            }
           },
           onError: (error) => {
+            setRoutingError(null); // Clear routing error for other types of errors
+
+            // Try to parse the error response for routing details
+            let errorMessage =
+              error.message || "An error occurred while sending the message.";
+            let suggestions: string[] = [];
+
+            if (error.message && error.message.includes("not routed")) {
+              try {
+                // If the error contains routing information, try to extract it
+                const errorData = JSON.parse(error.message);
+                if (errorData.suggestions) {
+                  suggestions = errorData.suggestions;
+                  errorMessage = errorData.error || errorMessage;
+                }
+              } catch (e) {
+                // If parsing fails, use the original error message
+              }
+            }
+
             toast({
               title: "Failed to send message",
-              description:
-                error.message || "An error occurred while sending the message.",
+              description: errorMessage,
               variant: "destructive",
             });
           },
@@ -191,19 +258,63 @@ export function SendMessageDialog({
         },
         {
           onSuccess: (data) => {
-            setOpen(false);
-            toast({
-              title: "Message sent successfully",
-              description: `Message published to exchange "${data.exchange}" with routing key "${data.routingKey}". Message length: ${data.messageLength} characters.`,
-            });
-            // Reset form
-            resetForm();
+            if (data.routed) {
+              setRoutingError(null); // Clear any previous routing errors
+              setOpen(false);
+              toast({
+                title: "Message sent successfully",
+                description: `Message published to exchange "${data.exchange}" with routing key "${data.routingKey}". Message length: ${data.messageLength} characters.`,
+              });
+              // Reset form
+              resetForm();
+              // Call the success callback to refresh queue data
+              console.log(
+                "SendMessageDialog: Calling onSuccess callback for exchange mode"
+              );
+              handleRefreshAfterSuccess();
+            } else {
+              // Message was published but not routed - show detailed error
+              setRoutingError({
+                message:
+                  data.error ||
+                  "Message was published but not delivered to any queue",
+                suggestions: data.suggestions || [],
+                details: data.details,
+              });
+
+              toast({
+                title: "Message not routed",
+                description:
+                  data.error ||
+                  "Message was published but not delivered to any queue",
+                variant: "destructive",
+              });
+            }
           },
           onError: (error) => {
+            setRoutingError(null); // Clear routing error for other types of errors
+
+            // Try to parse the error response for routing details
+            let errorMessage =
+              error.message || "An error occurred while sending the message.";
+            let suggestions: string[] = [];
+
+            if (error.message && error.message.includes("not routed")) {
+              try {
+                // If the error contains routing information, try to extract it
+                const errorData = JSON.parse(error.message);
+                if (errorData.suggestions) {
+                  suggestions = errorData.suggestions;
+                  errorMessage = errorData.error || errorMessage;
+                }
+              } catch (e) {
+                // If parsing fails, use the original error message
+              }
+            }
+
             toast({
               title: "Failed to send message",
-              description:
-                error.message || "An error occurred while sending the message.",
+              description: errorMessage,
               variant: "destructive",
             });
           },
@@ -243,6 +354,57 @@ export function SendMessageDialog({
     setAppId("");
     setMessageType("");
     setHeaders("");
+    setRoutingError(null); // Clear routing errors
+  };
+
+  // Helper function to apply suggested routing settings
+  const applySuggestedSettings = (suggestion: string) => {
+    if (suggestion.includes("default exchange")) {
+      setExchange("");
+      if (queueName) {
+        setRoutingKey(queueName);
+      }
+      setRoutingError(null);
+      toast({
+        title: "Settings applied",
+        description:
+          "Switched to default exchange with queue name as routing key",
+      });
+    } else if (suggestion.includes("routing key")) {
+      // Auto-suggest common routing keys based on available queues
+      if (queues.length > 0) {
+        setRoutingKey(queues[0].name);
+        toast({
+          title: "Settings applied",
+          description: `Set routing key to "${queues[0].name}" (first available queue)`,
+        });
+      }
+    }
+  };
+
+  // Enhanced refresh function that invalidates multiple caches
+  const handleRefreshAfterSuccess = async () => {
+    console.log(
+      "SendMessageDialog: Refreshing data after successful message send, serverId:",
+      serverId
+    );
+    try {
+      if (serverId) {
+        // Invalidate queues cache to refresh queue data
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.queues(serverId),
+        });
+
+        console.log("SendMessageDialog: Cache invalidation completed");
+      }
+
+      // Call the original onSuccess callback if provided
+      onSuccess?.();
+    } catch (error) {
+      console.error("SendMessageDialog: Error during cache refresh:", error);
+      // Still call onSuccess even if cache refresh fails
+      onSuccess?.();
+    }
   };
 
   const formatPayload = () => {
@@ -275,6 +437,71 @@ export function SendMessageDialog({
             and properties.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Routing Error Display */}
+        {routingError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-3">
+                <div className="font-medium">{routingError.message}</div>
+
+                {routingError.details && (
+                  <div className="text-sm space-y-2">
+                    <div>
+                      <strong>Issue:</strong> {routingError.details.reason}
+                    </div>
+                    <div>
+                      <strong>Exchange:</strong> {routingError.details.exchange}
+                    </div>
+                    <div>
+                      <strong>Routing Key:</strong>{" "}
+                      {routingError.details.routingKey}
+                    </div>
+                  </div>
+                )}
+
+                {routingError.suggestions.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="font-medium text-sm">Suggestions:</div>
+                    <div className="space-y-2">
+                      {routingError.suggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <div className="w-1 h-1 bg-current rounded-full mt-2 flex-shrink-0" />
+                          <div className="flex-1">{suggestion}</div>
+                          {suggestion.includes("default exchange") && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => applySuggestedSettings(suggestion)}
+                              className="ml-2 text-xs"
+                            >
+                              Apply
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRoutingError(null)}
+                  className="mt-2"
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Exchange and Routing Key */}

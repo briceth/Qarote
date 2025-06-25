@@ -80,10 +80,19 @@ export interface PublishToExchangeRequest {
 export interface PublishMessageResponse {
   success: boolean;
   message: string;
+  routed: boolean;
   exchange: string;
   routingKey: string;
   queueName: string;
   messageLength: number;
+  error?: string;
+  suggestions?: string[];
+  details?: {
+    reason: string;
+    exchange: string;
+    routingKey: string;
+    possibleCauses: string[];
+  };
 }
 
 export interface CreateQueueRequest {

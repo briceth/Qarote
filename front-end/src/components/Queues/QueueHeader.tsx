@@ -1,25 +1,32 @@
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
-import { AddQueueForm } from "@/components/AddQueueForm";
-import { MessageSquare, Plus, Lock } from "lucide-react";
+import { AddQueueButton } from "@/components/AddQueueButton";
+import { MessageSquare, Lock } from "lucide-react";
 import { WorkspacePlan } from "@/lib/plans/planUtils";
 
 interface QueueHeaderProps {
   selectedServerId: string;
   workspacePlan: WorkspacePlan;
+  queueCount: number;
+  workspaceLoading: boolean;
   canAddQueue: boolean;
   canSendMessages: boolean;
   onAddQueueClick: () => void;
   onSendMessageClick: () => void;
+  onRefetch?: () => void; // Callback to refresh queue data
 }
 
 export function QueueHeader({
   selectedServerId,
+  workspacePlan,
+  queueCount,
+  workspaceLoading,
   canAddQueue,
   canSendMessages,
   onAddQueueClick,
   onSendMessageClick,
+  onRefetch,
 }: QueueHeaderProps) {
   const actions = (
     <>
@@ -28,6 +35,7 @@ export function QueueHeader({
         <SendMessageDialog
           serverId={selectedServerId}
           mode="exchange"
+          onSuccess={onRefetch}
           trigger={
             <Button variant="outline" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -52,30 +60,14 @@ export function QueueHeader({
       )}
 
       {/* Add Queue Button with plan restrictions */}
-      {canAddQueue ? (
-        <AddQueueForm
-          serverId={selectedServerId}
-          trigger={
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add Queue
-            </Button>
-          }
-        />
-      ) : (
-        <Button
-          onClick={onAddQueueClick}
-          disabled={true}
-          className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
-          title="Upgrade to add queues"
-        >
-          <Lock className="w-4 h-4" />
-          Add Queue
-          <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
-            Pro
-          </span>
-        </Button>
-      )}
+      <AddQueueButton
+        workspacePlan={workspacePlan}
+        queueCount={queueCount}
+        serverId={selectedServerId}
+        workspaceLoading={workspaceLoading}
+        onUpgradeClick={onAddQueueClick}
+        onSuccess={onRefetch}
+      />
     </>
   );
 

@@ -73,6 +73,7 @@ export function QueueHeader({
             serverId={selectedServerId}
             queueName={queueName}
             mode="queue"
+            onSuccess={onRefetch}
             trigger={
               <Button variant="outline" className="flex items-center gap-2">
                 <Send className="w-4 h-4" />
@@ -100,6 +101,7 @@ export function QueueHeader({
         {canAddQueue ? (
           <AddQueueForm
             serverId={selectedServerId}
+            onSuccess={onRefetch}
             trigger={
               <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2">
                 <Plus className="w-4 h-4" />

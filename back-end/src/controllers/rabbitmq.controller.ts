@@ -856,16 +856,71 @@ rabbitmqController.post(
           })()
         : undefined;
 
-      await client.publishMessage(
+      const publishResult = await client.publishMessage(
         targetExchange,
         targetRoutingKey,
         message,
         publishProperties
       );
 
+      // Check if the message was routed successfully
+      if (!publishResult.routed) {
+        // Provide detailed error and suggestions for unrouted messages
+        const suggestions = [];
+
+        if (targetExchange === "") {
+          // Using default exchange - message should route directly to queue with matching name
+          suggestions.push(`Ensure a queue named "${targetRoutingKey}" exists`);
+          suggestions.push(
+            `The default exchange routes messages directly to queues using the routing key as the queue name`
+          );
+        } else {
+          // Using named exchange - need proper binding
+          suggestions.push(
+            `Check that the exchange "${targetExchange}" exists`
+          );
+          suggestions.push(
+            `Verify that a queue is bound to exchange "${targetExchange}" with routing key "${targetRoutingKey}"`
+          );
+          suggestions.push(
+            `Consider using the default exchange (empty string) to route directly to a queue`
+          );
+        }
+
+        return c.json(
+          {
+            success: false,
+            message: "Message was published but not routed to any queue",
+            routed: false,
+            exchange: targetExchange,
+            routingKey: targetRoutingKey,
+            queueName,
+            messageLength: message.length,
+            error: "Message not routed",
+            suggestions,
+            details: {
+              reason:
+                targetExchange === ""
+                  ? `No queue named "${targetRoutingKey}" exists for default exchange routing`
+                  : `No queue bound to exchange "${targetExchange}" with routing key "${targetRoutingKey}"`,
+              exchange: targetExchange || "(default)",
+              routingKey: targetRoutingKey,
+              possibleCauses: [
+                "Queue does not exist",
+                "Exchange does not exist",
+                "No binding between exchange and queue with the specified routing key",
+                "Queue was deleted after binding was created",
+              ],
+            },
+          },
+          400
+        );
+      }
+
       return c.json({
         success: true,
-        message: "Message sent successfully",
+        message: "Message sent and routed successfully",
+        routed: true,
         exchange: targetExchange,
         routingKey: targetRoutingKey,
         queueName,

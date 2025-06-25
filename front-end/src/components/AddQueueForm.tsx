@@ -38,9 +38,14 @@ import { useToast } from "@/hooks/useToast";
 interface AddQueueFormProps {
   trigger?: React.ReactNode;
   serverId?: string;
+  onSuccess?: () => void; // Callback for successful queue creation
 }
 
-export function AddQueueForm({ trigger, serverId }: AddQueueFormProps) {
+export function AddQueueForm({
+  trigger,
+  serverId,
+  onSuccess,
+}: AddQueueFormProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [durable, setDurable] = useState(true);
@@ -137,6 +142,9 @@ export function AddQueueForm({ trigger, serverId }: AddQueueFormProps) {
           setBindToExchange("");
           setRoutingKey("");
           setIsAdvancedExpanded(false);
+
+          // Call the success callback to refresh queue data
+          onSuccess?.();
         },
         onError: (error) => {
           // Extract user-friendly error message based on the error type
@@ -287,12 +295,12 @@ export function AddQueueForm({ trigger, serverId }: AddQueueFormProps) {
                                 ex.type === "direct"
                                   ? "bg-green-500"
                                   : ex.type === "fanout"
-                                  ? "bg-blue-500"
-                                  : ex.type === "topic"
-                                  ? "bg-orange-500"
-                                  : ex.type === "headers"
-                                  ? "bg-purple-500"
-                                  : "bg-gray-500"
+                                    ? "bg-blue-500"
+                                    : ex.type === "topic"
+                                      ? "bg-orange-500"
+                                      : ex.type === "headers"
+                                        ? "bg-purple-500"
+                                        : "bg-gray-500"
                               }`}
                             />
                             <span className="font-medium">

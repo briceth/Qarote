@@ -143,6 +143,39 @@ export function canUserAddServerWithCount(
   return currentServerCount < features.maxServers;
 }
 
+export function canUserAddQueueWithCount(
+  plan: WorkspacePlan,
+  currentQueueCount: number
+): boolean {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canAddQueue) {
+    return false;
+  }
+
+  // If maxQueues is undefined, it's unlimited
+  if (features.maxQueues === undefined) {
+    return true;
+  }
+
+  return currentQueueCount < features.maxQueues;
+}
+
+export function getQueueLimitForPlan(plan: WorkspacePlan): number | undefined {
+  return getPlanFeatures(plan).maxQueues;
+}
+
+export function getQueueLimitText(plan: WorkspacePlan): string {
+  const features = getPlanFeatures(plan);
+  if (!features.canAddQueue) {
+    return "Cannot add queues";
+  }
+  if (features.maxQueues === undefined) {
+    return "Unlimited queues";
+  }
+  return `Up to ${features.maxQueues} queues`;
+}
+
 export function canUserExportData(plan: WorkspacePlan): boolean {
   return getPlanFeatures(plan).canExportData;
 }
@@ -174,7 +207,6 @@ export function getServerLimitForPlan(plan: WorkspacePlan): number | undefined {
 }
 
 export function getPlanDisplayName(plan: WorkspacePlan): string {
-  console.log("getPlanDisplayName called with plan:", plan);
   switch (plan) {
     case WorkspacePlan.FREE:
       return "Free";

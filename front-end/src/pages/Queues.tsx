@@ -1,13 +1,17 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DataStorageWarning } from "@/components/PrivacyNotice";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useQueues } from "@/hooks/useApi";
-import { canUserAddQueue, canUserSendMessages } from "@/lib/plans/planUtils";
+import { useQueues, queryKeys } from "@/hooks/useApi";
+import {
+  canUserSendMessages,
+  canUserAddQueueWithCount,
+} from "@/lib/plans/planUtils";
 import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 import { QueueHeader } from "@/components/Queues/QueueHeader";
 import { PlanRestrictions } from "@/components/Queues/PlanRestrictions";
@@ -16,14 +20,23 @@ import { QueueTable } from "@/components/Queues/QueueTable";
 
 const Queues = () => {
   const navigate = useNavigate();
-  const { workspacePlan } = useWorkspace();
+  const queryClient = useQueryClient();
+  const { workspacePlan, isLoading: workspaceLoading } = useWorkspace();
   const [searchTerm, setSearchTerm] = useState("");
+  const [restrictionsDismissed, setRestrictionsDismissed] = useState(false);
   const { selectedServerId, hasServers } = useServerContext();
   const { data: queuesData, isLoading, refetch } = useQueues(selectedServerId);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // Use the actual workspace plan from context
-  const canAddQueue = canUserAddQueue(workspacePlan);
+  const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
+  const queueCount = queues.length;
+
+  console.log("workspacePlan", workspacePlan);
+
+  // Use the actual workspace plan from context and queue count
+  const canAddQueue = workspaceLoading
+    ? false
+    : canUserAddQueueWithCount(workspacePlan, queueCount);
   const canSendMessages = canUserSendMessages(workspacePlan);
 
   const handleAddQueueClick = () => {
@@ -43,7 +56,22 @@ const Queues = () => {
     // If canSendMessages is true, the SendMessageDialog will handle it
   };
 
-  const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
+  // Wrapper for refetch with logging to debug refresh issues
+  const handleRefetch = async () => {
+    console.log("Queues page: Refetching queue data...");
+    try {
+      // Use both methods to ensure refresh works
+      await Promise.all([
+        refetch(),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.queues(selectedServerId),
+        }),
+      ]);
+      console.log("Queues page: Refetch completed successfully");
+    } catch (error) {
+      console.error("Queues page: Refetch failed:", error);
+    }
+  };
 
   const filteredQueues = useMemo(() => {
     if (!searchTerm) return queues;
@@ -114,20 +142,28 @@ const Queues = () => {
                 <QueueHeader
                   selectedServerId={selectedServerId}
                   workspacePlan={workspacePlan}
+                  queueCount={queueCount}
+                  workspaceLoading={workspaceLoading}
                   canAddQueue={canAddQueue}
                   canSendMessages={canSendMessages}
                   onAddQueueClick={handleAddQueueClick}
                   onSendMessageClick={handleSendMessageClick}
+                  onRefetch={handleRefetch}
                 />
               </div>
             </div>
 
             {/* Plan Restrictions */}
-            <PlanRestrictions
-              canAddQueue={canAddQueue}
-              canSendMessages={canSendMessages}
-              onUpgrade={() => setShowUpgradeModal(true)}
-            />
+            {!restrictionsDismissed && (
+              <PlanRestrictions
+                workspacePlan={workspacePlan}
+                queueCount={queueCount}
+                canAddQueue={canAddQueue}
+                canSendMessages={canSendMessages}
+                onUpgrade={() => setShowUpgradeModal(true)}
+                onDismiss={() => setRestrictionsDismissed(true)}
+              />
+            )}
 
             {/* Privacy Notice */}
             <DataStorageWarning
@@ -152,7 +188,7 @@ const Queues = () => {
               onNavigateToQueue={(queueName) =>
                 navigate(`/queues/${queueName}`)
               }
-              onRefetch={refetch}
+              onRefetch={handleRefetch}
             />
 
             {/* Plan Upgrade Modal */}
