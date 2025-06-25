@@ -13,6 +13,7 @@ import { AddServerButton } from "@/components/AddServerButton";
 import { PrimaryMetricsCards } from "@/components/PrimaryMetricsCards";
 import { SecondaryMetricsCards } from "@/components/SecondaryMetricsCards";
 import { MessageThroughputChart } from "@/components/MessageThroughputChart";
+import { QueueDepthsChart } from "@/components/QueueDepthsChart";
 import { ActiveQueuesSection } from "@/components/ActiveQueuesSection";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
@@ -144,6 +145,9 @@ const Index = () => {
               timeSeriesLoading={timeSeriesLoading}
               onTimeRangeChange={handleTimeRangeChange}
             />
+
+            {/* Queue Depths Chart - Full Width */}
+            <QueueDepthsChart queues={queues || []} isLoading={queuesLoading} />
 
             {/* Active Queues - Full Width Section */}
             <ActiveQueuesSection
