@@ -751,11 +751,22 @@ rabbitmqController.post(
     "json",
     z.object({
       message: z.string(),
+      exchange: z.string().optional().default(""), // Default exchange for direct queue publishing
+      routingKey: z.string().optional(), // Optional routing key, defaults to queue name
       properties: z
         .object({
           deliveryMode: z.number().optional(),
           priority: z.number().optional(),
           headers: z.record(z.any()).optional(),
+          expiration: z.string().optional(),
+          appId: z.string().optional(),
+          contentType: z.string().optional(),
+          contentEncoding: z.string().optional(),
+          correlationId: z.string().optional(),
+          replyTo: z.string().optional(),
+          messageId: z.string().optional(),
+          timestamp: z.number().optional(),
+          type: z.string().optional(),
         })
         .optional(),
     })
@@ -763,13 +774,16 @@ rabbitmqController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const { message, properties } = c.req.valid("json");
+    const { message, exchange, routingKey, properties } = c.req.valid("json");
     const user = c.get("user");
 
     try {
       // Get server to check workspace ownership
       const server = await prisma.rabbitMQServer.findUnique({
-        where: { id: serverId },
+        where: {
+          id: serverId,
+          workspaceId: user.workspaceId!,
+        },
         select: { workspaceId: true },
       });
 
@@ -805,14 +819,55 @@ rabbitmqController.post(
         getDecryptedCredentials(rabbitMQServer)
       );
 
-      // For now, we'll just return success. In a real implementation,
-      // you would use the RabbitMQ client to send the message
-      // TODO: add exchange handling
-      await client.publishMessage("exchange", queueName, message, properties);
+      // Use the provided exchange and routing key, or defaults for direct queue publishing
+      const targetExchange = exchange || ""; // Empty string means default exchange
+      const targetRoutingKey = routingKey || queueName; // Use queue name as routing key by default
+
+      // Convert properties to match RabbitMQ client expectations
+      const publishProperties = properties
+        ? (() => {
+            const props: any = {};
+
+            // Only include properties that are not undefined
+            if (properties.deliveryMode !== undefined)
+              props.delivery_mode = properties.deliveryMode;
+            if (properties.priority !== undefined)
+              props.priority = properties.priority;
+            if (properties.headers !== undefined)
+              props.headers = properties.headers;
+            if (properties.expiration !== undefined)
+              props.expiration = properties.expiration;
+            if (properties.appId !== undefined) props.app_id = properties.appId;
+            if (properties.contentType !== undefined)
+              props.content_type = properties.contentType;
+            if (properties.contentEncoding !== undefined)
+              props.content_encoding = properties.contentEncoding;
+            if (properties.correlationId !== undefined)
+              props.correlation_id = properties.correlationId;
+            if (properties.replyTo !== undefined)
+              props.reply_to = properties.replyTo;
+            if (properties.messageId !== undefined)
+              props.message_id = properties.messageId;
+            if (properties.timestamp !== undefined)
+              props.timestamp = properties.timestamp;
+            if (properties.type !== undefined) props.type = properties.type;
+
+            return Object.keys(props).length > 0 ? props : undefined;
+          })()
+        : undefined;
+
+      await client.publishMessage(
+        targetExchange,
+        targetRoutingKey,
+        message,
+        publishProperties
+      );
 
       return c.json({
         success: true,
         message: "Message sent successfully",
+        exchange: targetExchange,
+        routingKey: targetRoutingKey,
         queueName,
         messageLength: message.length,
       });

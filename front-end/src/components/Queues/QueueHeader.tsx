@@ -27,6 +27,7 @@ export function QueueHeader({
       {canSendMessages ? (
         <SendMessageDialog
           serverId={selectedServerId}
+          mode="exchange"
           trigger={
             <Button variant="outline" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />

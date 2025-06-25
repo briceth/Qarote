@@ -35,10 +35,32 @@ export interface BrowseMessagesResponse {
 
 export interface PublishMessageRequest {
   serverId: string;
+  queueName: string;
+  message: string;
+  exchange?: string; // Default exchange for direct queue publishing
+  routingKey?: string; // Optional routing key, defaults to queue name
+  properties?: {
+    deliveryMode?: number;
+    priority?: number;
+    headers?: Record<string, unknown>;
+    expiration?: string;
+    appId?: string;
+    contentType?: string;
+    contentEncoding?: string;
+    correlationId?: string;
+    replyTo?: string;
+    messageId?: string;
+    timestamp?: number;
+    type?: string;
+  };
+}
+
+export interface PublishToExchangeRequest {
+  serverId: string;
   exchange: string;
   routingKey: string;
   payload: string;
-  properties: {
+  properties?: {
     delivery_mode?: number;
     priority?: number;
     expiration?: string;
@@ -58,10 +80,10 @@ export interface PublishMessageRequest {
 export interface PublishMessageResponse {
   success: boolean;
   message: string;
-  routed: boolean;
   exchange: string;
   routingKey: string;
-  payloadSize: number;
+  queueName: string;
+  messageLength: number;
 }
 
 export interface CreateQueueRequest {

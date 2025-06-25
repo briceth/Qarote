@@ -83,15 +83,43 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
     const encodedExchange = encodeURIComponent(exchange);
     const endpoint = `/exchanges/${this.vhost}/${encodedExchange}/publish`;
 
+    // Map our property names to RabbitMQ Management API property names
+    const rabbitMQProperties: any = {};
+
+    // Always set delivery_mode
+    rabbitMQProperties.delivery_mode = properties.delivery_mode || 2;
+
+    // Map other properties, filtering out undefined values
+    if (properties.priority !== undefined)
+      rabbitMQProperties.priority = properties.priority;
+    if (properties.headers) rabbitMQProperties.headers = properties.headers;
+    if (properties.expiration)
+      rabbitMQProperties.expiration = properties.expiration;
+    if (properties.app_id) rabbitMQProperties.app_id = properties.app_id;
+    if (properties.content_type)
+      rabbitMQProperties.content_type = properties.content_type;
+    if (properties.content_encoding)
+      rabbitMQProperties.content_encoding = properties.content_encoding;
+    if (properties.correlation_id)
+      rabbitMQProperties.correlation_id = properties.correlation_id;
+    if (properties.reply_to) rabbitMQProperties.reply_to = properties.reply_to;
+    if (properties.message_id)
+      rabbitMQProperties.message_id = properties.message_id;
+    if (properties.timestamp)
+      rabbitMQProperties.timestamp = properties.timestamp;
+    if (properties.type) rabbitMQProperties.type = properties.type;
+
     const publishData = {
-      properties: {
-        delivery_mode: 2, // Persistent message
-        ...properties,
-      },
+      properties: rabbitMQProperties,
       routing_key: routingKey,
       payload: payload,
       payload_encoding: "string",
     };
+
+    console.log(
+      "Publishing message with data:",
+      JSON.stringify(publishData, null, 2)
+    );
 
     return this.request(endpoint, {
       method: "POST",

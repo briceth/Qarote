@@ -110,9 +110,9 @@ export class RabbitMQApiClient extends BaseApiClient {
   async publishMessage(
     params: PublishMessageRequest
   ): Promise<PublishMessageResponse> {
-    const { serverId, ...publishData } = params;
+    const { serverId, queueName, ...publishData } = params;
     return this.request<PublishMessageResponse>(
-      `/rabbitmq/servers/${serverId}/publish`,
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/messages`,
       {
         method: "POST",
         body: JSON.stringify(publishData),

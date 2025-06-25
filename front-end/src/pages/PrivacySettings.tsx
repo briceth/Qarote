@@ -182,10 +182,10 @@ export default function PrivacySettings() {
                     need help with your data settings, please contact our
                     privacy team at{" "}
                     <a
-                      href="mailto:privacy@rabbitmqdashboard.com"
+                      href="mailto:support@rabbitmqdashboard.com"
                       className="underline"
                     >
-                      privacy@rabbitmqdashboard.com
+                      support@rabbitmqdashboard.com
                     </a>
                   </p>
                 </div>

@@ -71,7 +71,8 @@ export function QueueHeader({
         {canSendMessages ? (
           <SendMessageDialog
             serverId={selectedServerId}
-            defaultRoutingKey={queueName}
+            queueName={queueName}
+            mode="queue"
             trigger={
               <Button variant="outline" className="flex items-center gap-2">
                 <Send className="w-4 h-4" />

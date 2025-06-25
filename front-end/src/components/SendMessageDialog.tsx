@@ -43,6 +43,8 @@ interface SendMessageDialogProps {
   serverId?: string;
   defaultExchange?: string;
   defaultRoutingKey?: string;
+  queueName?: string; // For direct queue publishing
+  mode?: "exchange" | "queue"; // Publishing mode
 }
 
 export function SendMessageDialog({
@@ -50,6 +52,8 @@ export function SendMessageDialog({
   serverId,
   defaultExchange = "",
   defaultRoutingKey = "",
+  queueName,
+  mode = queueName ? "queue" : "exchange",
 }: SendMessageDialogProps) {
   const [open, setOpen] = useState(false);
   const [exchange, setExchange] = useState(defaultExchange);
@@ -64,9 +68,12 @@ export function SendMessageDialog({
   const [priority, setPriority] = useState("");
   const [expiration, setExpiration] = useState("");
   const [contentType, setContentType] = useState("application/json");
+  const [contentEncoding, setContentEncoding] = useState("");
   const [correlationId, setCorrelationId] = useState("");
   const [replyTo, setReplyTo] = useState("");
   const [messageId, setMessageId] = useState("");
+  const [appId, setAppId] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [headers, setHeaders] = useState("");
 
   const publishMutation = usePublishMessage();
@@ -82,11 +89,21 @@ export function SendMessageDialog({
       (ex) => ex.name && ex.name.trim() !== ""
     ) || [];
   const queues = queuesData?.queues || [];
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!serverId || !exchange || !payload) {
+    if (!serverId) {
+      return;
+    }
+
+    // For queue mode, we need a queue name. For exchange mode, we need exchange.
+    if (mode === "queue" && !queueName) {
+      return;
+    }
+    if (mode === "exchange" && !exchange) {
+      return;
+    }
+    if (!payload) {
       return;
     }
 
@@ -101,69 +118,131 @@ export function SendMessageDialog({
       }
     }
 
-    // Build properties object
-    const properties: Record<string, unknown> = {
-      delivery_mode: parseInt(deliveryMode),
-    };
-
+    // Build properties object with all supported properties
+    const properties: {
+      deliveryMode?: number;
+      priority?: number;
+      expiration?: string;
+      contentType?: string;
+      contentEncoding?: string;
+      correlationId?: string;
+      replyTo?: string;
+      messageId?: string;
+      appId?: string;
+      type?: string;
+      headers?: Record<string, unknown>;
+    } = {};
+    if (deliveryMode) properties.deliveryMode = parseInt(deliveryMode);
     if (priority) properties.priority = parseInt(priority);
     if (expiration) properties.expiration = expiration;
-    if (contentType) properties.content_type = contentType;
-    if (correlationId) properties.correlation_id = correlationId;
-    if (replyTo) properties.reply_to = replyTo;
-    if (messageId) properties.message_id = messageId;
+    if (contentType) properties.contentType = contentType;
+    if (contentEncoding) properties.contentEncoding = contentEncoding;
+    if (correlationId) properties.correlationId = correlationId;
+    if (replyTo) properties.replyTo = replyTo;
+    if (messageId) properties.messageId = messageId;
+    if (appId) properties.appId = appId;
+    if (messageType) properties.type = messageType;
     if (Object.keys(parsedHeaders).length > 0)
       properties.headers = parsedHeaders;
 
-    publishMutation.mutate(
-      {
-        serverId,
-        exchange,
-        routingKey,
-        payload,
-        properties,
-      },
-      {
-        onSuccess: (data) => {
-          setOpen(false);
-          toast({
-            title: "Message sent successfully",
-            description: `Message published to exchange "${exchange}"${
-              routingKey ? ` with routing key "${routingKey}"` : ""
-            }.${
-              data.routed
-                ? " Message was routed to queues."
-                : " Message was not routed (no matching queues)."
-            }`,
-          });
-          // Reset form
-          setExchange(defaultExchange);
-          setRoutingKey(defaultRoutingKey);
-          setPayload(
-            JSON.stringify(
-              { message: "Hello World!", timestamp: Date.now() },
-              null,
-              2
-            )
-          );
-          setIsPropertiesExpanded(false);
-          setPriority("");
-          setExpiration("");
-          setCorrelationId("");
-          setReplyTo("");
-          setMessageId("");
-          setHeaders("");
+    if (mode === "queue" && queueName) {
+      // Direct queue publishing
+      publishMutation.mutate(
+        {
+          serverId,
+          queueName,
+          message: payload,
+          exchange: exchange || "", // Use default exchange if not specified
+          routingKey: routingKey || queueName, // Use queue name as routing key if not specified
+          properties:
+            Object.keys(properties).length > 0 ? properties : undefined,
         },
-        onError: (error) => {
-          toast({
-            title: "Failed to send message",
-            description:
-              error.message || "An error occurred while sending the message.",
-            variant: "destructive",
-          });
+        {
+          onSuccess: (data) => {
+            setOpen(false);
+            toast({
+              title: "Message sent successfully",
+              description: `Message sent via exchange "${data.exchange || "default"}" with routing key "${data.routingKey}" to queue "${queueName}". Message length: ${data.messageLength} characters.`,
+            });
+            // Reset form
+            resetForm();
+          },
+          onError: (error) => {
+            toast({
+              title: "Failed to send message",
+              description:
+                error.message || "An error occurred while sending the message.",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    } else if (mode === "exchange" && exchange) {
+      // Exchange publishing (now supported)
+      publishMutation.mutate(
+        {
+          serverId,
+          queueName: routingKey || "", // Use routing key as queue name for exchange publishing
+          message: payload,
+          exchange,
+          routingKey,
+          properties:
+            Object.keys(properties).length > 0 ? properties : undefined,
         },
-      }
+        {
+          onSuccess: (data) => {
+            setOpen(false);
+            toast({
+              title: "Message sent successfully",
+              description: `Message published to exchange "${data.exchange}" with routing key "${data.routingKey}". Message length: ${data.messageLength} characters.`,
+            });
+            // Reset form
+            resetForm();
+          },
+          onError: (error) => {
+            toast({
+              title: "Failed to send message",
+              description:
+                error.message || "An error occurred while sending the message.",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    } else {
+      toast({
+        title: "Invalid configuration",
+        description:
+          mode === "queue"
+            ? "Queue name is required for queue publishing."
+            : "Exchange name is required for exchange publishing.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setPayload(
+      JSON.stringify(
+        { message: "Hello World!", timestamp: Date.now() },
+        null,
+        2
+      )
     );
+    setExchange(defaultExchange);
+    setRoutingKey(defaultRoutingKey);
+    setIsPropertiesExpanded(false);
+    setDeliveryMode("2");
+    setPriority("");
+    setExpiration("");
+    setContentType("application/json");
+    setContentEncoding("");
+    setCorrelationId("");
+    setReplyTo("");
+    setMessageId("");
+    setAppId("");
+    setMessageType("");
+    setHeaders("");
   };
 
   const formatPayload = () => {
@@ -185,7 +264,7 @@ export function SendMessageDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -219,12 +298,12 @@ export function SendMessageDialog({
                               ex.type === "direct"
                                 ? "bg-green-500"
                                 : ex.type === "fanout"
-                                ? "bg-blue-500"
-                                : ex.type === "topic"
-                                ? "bg-orange-500"
-                                : ex.type === "headers"
-                                ? "bg-purple-500"
-                                : "bg-gray-500"
+                                  ? "bg-blue-500"
+                                  : ex.type === "topic"
+                                    ? "bg-orange-500"
+                                    : ex.type === "headers"
+                                      ? "bg-purple-500"
+                                      : "bg-gray-500"
                             }`}
                           />
                           <span className="font-medium">
@@ -467,12 +546,33 @@ export function SendMessageDialog({
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="contentEncoding">Content Encoding</Label>
+                  <Input
+                    id="contentEncoding"
+                    value={contentEncoding}
+                    onChange={(e) => setContentEncoding(e.target.value)}
+                    placeholder="gzip"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="expiration">Expiration (ms)</Label>
                   <Input
                     id="expiration"
                     value={expiration}
                     onChange={(e) => setExpiration(e.target.value)}
                     placeholder="60000"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="messageType">Message Type</Label>
+                  <Input
+                    id="messageType"
+                    value={messageType}
+                    onChange={(e) => setMessageType(e.target.value)}
+                    placeholder="order.created"
                   />
                 </div>
               </div>
@@ -498,13 +598,25 @@ export function SendMessageDialog({
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="messageId">Message ID</Label>
+                  <Input
+                    id="messageId"
+                    value={messageId}
+                    onChange={(e) => setMessageId(e.target.value)}
+                    placeholder="msg-123456"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="messageId">Message ID</Label>
+                <Label htmlFor="appId">Application ID</Label>
                 <Input
-                  id="messageId"
-                  value={messageId}
-                  onChange={(e) => setMessageId(e.target.value)}
-                  placeholder="msg-123456"
+                  id="appId"
+                  value={appId}
+                  onChange={(e) => setAppId(e.target.value)}
+                  placeholder="my-app-v1.0"
                 />
               </div>
 

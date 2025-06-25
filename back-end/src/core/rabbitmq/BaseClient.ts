@@ -38,6 +38,10 @@ export class RabbitMQBaseClient {
         process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
       }
 
+      console.debug(
+        `Fetching RabbitMQ API endpoint: ${this.baseUrl}${endpoint}`
+      );
+
       const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       if (!response.ok) {
@@ -61,6 +65,7 @@ export class RabbitMQBaseClient {
         return text ? { message: text } : {};
       }
     } catch (error) {
+      console.error(error);
       console.error(`Error fetching from RabbitMQ API (${endpoint}):`, error);
       throw error;
     }
