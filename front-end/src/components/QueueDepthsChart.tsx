@@ -25,7 +25,7 @@ interface QueueDepthsChartProps {
 }
 
 export const QueueDepthsChart = ({
-  queues,
+  queues = [],
   isLoading,
 }: QueueDepthsChartProps) => {
   // Prepare data for the chart - show all queues, prioritize those with messages
