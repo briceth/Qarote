@@ -28,6 +28,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Send,
   Settings,
   ChevronDown,
@@ -35,6 +41,7 @@ import {
   AlertCircle,
   CheckCircle,
   MessageSquare,
+  HelpCircle,
 } from "lucide-react";
 import {
   usePublishMessage,
@@ -43,6 +50,42 @@ import {
   queryKeys,
 } from "@/hooks/useApi";
 import { useToast } from "@/hooks/useToast";
+
+interface LabelWithTooltipProps {
+  htmlFor: string;
+  label: string;
+  tooltip: string;
+  side?: "top" | "right" | "bottom" | "left";
+}
+
+function LabelWithTooltip({
+  htmlFor,
+  label,
+  tooltip,
+  side = "right",
+}: LabelWithTooltipProps) {
+  return (
+    <div className="flex items-center gap-1">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+        </TooltipTrigger>
+        <TooltipContent
+          side={side}
+          sideOffset={5}
+          align="start"
+          className="max-w-sm z-[9999] border shadow-md"
+          avoidCollisions={true}
+          collisionPadding={20}
+          sticky="always"
+        >
+          <p className="text-sm leading-relaxed">{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
 
 interface SendMessageDialogProps {
   trigger?: React.ReactNode;
@@ -88,7 +131,7 @@ export function SendMessageDialog({
   const [priority, setPriority] = useState("");
   const [expiration, setExpiration] = useState("");
   const [contentType, setContentType] = useState("application/json");
-  const [contentEncoding, setContentEncoding] = useState("");
+  const [contentEncoding, setContentEncoding] = useState("none");
   const [correlationId, setCorrelationId] = useState("");
   const [replyTo, setReplyTo] = useState("");
   const [messageId, setMessageId] = useState("");
@@ -158,7 +201,8 @@ export function SendMessageDialog({
     if (priority) properties.priority = parseInt(priority);
     if (expiration) properties.expiration = expiration;
     if (contentType) properties.contentType = contentType;
-    if (contentEncoding) properties.contentEncoding = contentEncoding;
+    if (contentEncoding && contentEncoding !== "none")
+      properties.contentEncoding = contentEncoding;
     if (correlationId) properties.correlationId = correlationId;
     if (replyTo) properties.replyTo = replyTo;
     if (messageId) properties.messageId = messageId;
@@ -347,7 +391,7 @@ export function SendMessageDialog({
     setPriority("");
     setExpiration("");
     setContentType("application/json");
-    setContentEncoding("");
+    setContentEncoding("none");
     setCorrelationId("");
     setReplyTo("");
     setMessageId("");
@@ -431,489 +475,597 @@ export function SendMessageDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Send Message to Exchange
-          </DialogTitle>
-          <DialogDescription>
-            Publish a message to a RabbitMQ exchange with optional routing key
-            and properties.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw]"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <TooltipProvider delayDuration={300}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Send Message to Exchange
+            </DialogTitle>
+            <DialogDescription>
+              Publish a message to a RabbitMQ exchange with optional routing key
+              and properties.
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Routing Error Display */}
-        {routingError && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <div className="space-y-3">
-                <div className="font-medium">{routingError.message}</div>
+          {/* Routing Error Display */}
+          {routingError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-3">
+                  <div className="font-medium">{routingError.message}</div>
 
-                {routingError.details && (
-                  <div className="text-sm space-y-2">
-                    <div>
-                      <strong>Issue:</strong> {routingError.details.reason}
+                  {routingError.details && (
+                    <div className="text-sm space-y-2">
+                      <div>
+                        <strong>Issue:</strong> {routingError.details.reason}
+                      </div>
+                      <div>
+                        <strong>Exchange:</strong>{" "}
+                        {routingError.details.exchange}
+                      </div>
+                      <div>
+                        <strong>Routing Key:</strong>{" "}
+                        {routingError.details.routingKey}
+                      </div>
                     </div>
-                    <div>
-                      <strong>Exchange:</strong> {routingError.details.exchange}
-                    </div>
-                    <div>
-                      <strong>Routing Key:</strong>{" "}
-                      {routingError.details.routingKey}
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {routingError.suggestions.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="font-medium text-sm">Suggestions:</div>
+                  {routingError.suggestions.length > 0 && (
                     <div className="space-y-2">
-                      {routingError.suggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start gap-2 text-sm"
-                        >
-                          <div className="w-1 h-1 bg-current rounded-full mt-2 flex-shrink-0" />
-                          <div className="flex-1">{suggestion}</div>
-                          {suggestion.includes("default exchange") && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => applySuggestedSettings(suggestion)}
-                              className="ml-2 text-xs"
-                            >
-                              Apply
-                            </Button>
-                          )}
-                        </div>
-                      ))}
+                      <div className="font-medium text-sm">Suggestions:</div>
+                      <div className="space-y-2">
+                        {routingError.suggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 text-sm"
+                          >
+                            <div className="w-1 h-1 bg-current rounded-full mt-2 flex-shrink-0" />
+                            <div className="flex-1">{suggestion}</div>
+                            {suggestion.includes("default exchange") && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  applySuggestedSettings(suggestion)
+                                }
+                                className="ml-2 text-xs"
+                              >
+                                Apply
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRoutingError(null)}
+                    className="mt-2"
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Exchange and Routing Key */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <LabelWithTooltip
+                  htmlFor="exchange"
+                  label="Exchange *"
+                  tooltip="The exchange to publish the message to. Exchanges route messages to queues based on routing rules and exchange type (direct, fanout, topic, headers)."
+                />
+                <Select value={exchange} onValueChange={setExchange} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an exchange..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exchanges.length > 0 ? (
+                      exchanges.map((ex) => (
+                        <SelectItem
+                          key={ex.name || "(Default)"}
+                          value={ex.name || "(Default)"}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                ex.type === "direct"
+                                  ? "bg-green-500"
+                                  : ex.type === "fanout"
+                                    ? "bg-blue-500"
+                                    : ex.type === "topic"
+                                      ? "bg-orange-500"
+                                      : ex.type === "headers"
+                                        ? "bg-purple-500"
+                                        : "bg-gray-500"
+                              }`}
+                            />
+                            <span className="font-medium">
+                              {ex.name || "(Default)"}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {ex.type}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="__no_exchanges__" disabled>
+                        No exchanges available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <LabelWithTooltip
+                  htmlFor="routingKey"
+                  label="Routing Key"
+                  tooltip="Determines how messages are routed to queues. For direct exchanges, use exact queue names. For topic exchanges, use patterns with wildcards (* for one word, # for multiple words)."
+                  side="left"
+                />
+                <div className="flex gap-2">
+                  <Input
+                    id="routingKey"
+                    value={routingKey}
+                    onChange={(e) => setRoutingKey(e.target.value)}
+                    placeholder="e.g., user.created, logs.info"
+                    list="routingKeySuggestions"
+                    className="flex-1"
+                  />
+                  {(() => {
+                    const selectedExchange = exchanges.find(
+                      (ex) => ex.name === exchange
+                    );
+                    if (
+                      selectedExchange?.type === "direct" &&
+                      queues.length > 0
+                    ) {
+                      return (
+                        <Select onValueChange={setRoutingKey}>
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Quick select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {queues.slice(0, 10).map((queue) => (
+                              <SelectItem key={queue.name} value={queue.name}>
+                                {queue.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+                <datalist id="routingKeySuggestions">
+                  {/* Suggestions from queue names */}
+                  {queues.slice(0, 10).map((queue) => (
+                    <option key={queue.name} value={queue.name} />
+                  ))}
+                  {/* Common routing key patterns */}
+                  <option value="user.created" />
+                  <option value="user.updated" />
+                  <option value="user.deleted" />
+                  <option value="order.created" />
+                  <option value="order.updated" />
+                  <option value="notification.email" />
+                  <option value="notification.sms" />
+                  <option value="logs.info" />
+                  <option value="logs.error" />
+                  <option value="events.system" />
+                </datalist>
+              </div>
+            </div>
+
+            {/* Exchange Type Info */}
+            {exchange &&
+              (() => {
+                const selectedExchange = exchanges.find(
+                  (ex) => ex.name === exchange
+                );
+                if (!selectedExchange) return null;
+
+                const getExchangeInfo = (type: string) => {
+                  switch (type) {
+                    case "direct":
+                      return {
+                        description:
+                          "Messages are routed to queues based on an exact match between routing key and binding key.",
+                        routingKeyHelp:
+                          "Use exact queue names or specific routing keys.",
+                      };
+                    case "fanout":
+                      return {
+                        description:
+                          "Messages are routed to all bound queues, ignoring the routing key.",
+                        routingKeyHelp:
+                          "Routing key is ignored for fanout exchanges.",
+                      };
+                    case "topic":
+                      return {
+                        description:
+                          "Messages are routed based on wildcard matches between routing key and binding pattern.",
+                        routingKeyHelp:
+                          'Use patterns like "user.created", "logs.*", "events.#".',
+                      };
+                    case "headers":
+                      return {
+                        description:
+                          "Messages are routed based on header values rather than routing key.",
+                        routingKeyHelp:
+                          "Routing key is typically ignored. Use message headers instead.",
+                      };
+                    default:
+                      return {
+                        description: "Custom exchange type.",
+                        routingKeyHelp:
+                          "Refer to exchange-specific documentation.",
+                      };
+                  }
+                };
+
+                const info = getExchangeInfo(selectedExchange.type);
+
+                return (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <MessageSquare className="h-4 w-4" />
+                    <AlertDescription className="space-y-2">
+                      <div>
+                        <strong>
+                          {selectedExchange.type.charAt(0).toUpperCase() +
+                            selectedExchange.type.slice(1)}{" "}
+                          Exchange:
+                        </strong>{" "}
+                        {info.description}
+                      </div>
+                      <div className="text-sm text-blue-700">
+                        <strong>Routing Key:</strong> {info.routingKeyHelp}
+                      </div>
+                      {selectedExchange.bindings &&
+                        selectedExchange.bindings.length > 0 && (
+                          <div className="text-sm text-blue-700">
+                            <strong>Bound to:</strong>{" "}
+                            {selectedExchange.bindings.length} queue
+                            {selectedExchange.bindings.length !== 1 ? "s" : ""}
+                          </div>
+                        )}
+                    </AlertDescription>
+                  </Alert>
+                );
+              })()}
+
+            {/* Message Payload */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <LabelWithTooltip
+                  htmlFor="payload"
+                  label="Message Payload *"
+                  tooltip="The actual content of your message. Can be JSON, XML, plain text, or any format. Make sure the Content Type property matches your payload format."
+                />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setRoutingError(null)}
-                  className="mt-2"
+                  onClick={formatPayload}
                 >
-                  Dismiss
+                  Format JSON
                 </Button>
               </div>
-            </AlertDescription>
-          </Alert>
-        )}
+              <Textarea
+                id="payload"
+                value={payload}
+                onChange={(e) => setPayload(e.target.value)}
+                placeholder="Enter your message payload..."
+                className="min-h-[120px] font-mono text-sm"
+                required
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Exchange and Routing Key */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="exchange">Exchange *</Label>
-              <Select value={exchange} onValueChange={setExchange} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an exchange..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {exchanges.length > 0 ? (
-                    exchanges.map((ex) => (
-                      <SelectItem
-                        key={ex.name || "(Default)"}
-                        value={ex.name || "(Default)"}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              ex.type === "direct"
-                                ? "bg-green-500"
-                                : ex.type === "fanout"
-                                  ? "bg-blue-500"
-                                  : ex.type === "topic"
-                                    ? "bg-orange-500"
-                                    : ex.type === "headers"
-                                      ? "bg-purple-500"
-                                      : "bg-gray-500"
-                            }`}
-                          />
-                          <span className="font-medium">
-                            {ex.name || "(Default)"}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {ex.type}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))
+            <Separator />
+
+            {/* Advanced Properties */}
+            <Collapsible
+              open={isPropertiesExpanded}
+              onOpenChange={setIsPropertiesExpanded}
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex items-center justify-between w-full p-0 h-auto"
+                >
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Message Properties
+                    <Badge variant="secondary" className="text-xs">
+                      Optional
+                    </Badge>
+                  </div>
+                  {isPropertiesExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
                   ) : (
-                    <SelectItem value="__no_exchanges__" disabled>
-                      No exchanges available
-                    </SelectItem>
+                    <ChevronRight className="h-4 w-4" />
                   )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="routingKey">Routing Key</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="routingKey"
-                  value={routingKey}
-                  onChange={(e) => setRoutingKey(e.target.value)}
-                  placeholder="e.g., user.created, logs.info"
-                  list="routingKeySuggestions"
-                  className="flex-1"
-                />
-                {(() => {
-                  const selectedExchange = exchanges.find(
-                    (ex) => ex.name === exchange
-                  );
-                  if (
-                    selectedExchange?.type === "direct" &&
-                    queues.length > 0
-                  ) {
-                    return (
-                      <Select onValueChange={setRoutingKey}>
-                        <SelectTrigger className="w-[120px]">
-                          <SelectValue placeholder="Quick select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {queues.slice(0, 10).map((queue) => (
-                            <SelectItem key={queue.name} value={queue.name}>
-                              {queue.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-              <datalist id="routingKeySuggestions">
-                {/* Suggestions from queue names */}
-                {queues.slice(0, 10).map((queue) => (
-                  <option key={queue.name} value={queue.name} />
-                ))}
-                {/* Common routing key patterns */}
-                <option value="user.created" />
-                <option value="user.updated" />
-                <option value="user.deleted" />
-                <option value="order.created" />
-                <option value="order.updated" />
-                <option value="notification.email" />
-                <option value="notification.sms" />
-                <option value="logs.info" />
-                <option value="logs.error" />
-                <option value="events.system" />
-              </datalist>
-            </div>
-          </div>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="deliveryMode"
+                      label="Delivery Mode"
+                      tooltip="Set the delivery mode for the message. Persistent messages are saved to disk and survive broker restarts. Transient messages are kept in memory and may be lost if the broker crashes."
+                    />
+                    <Select
+                      value={deliveryMode}
+                      onValueChange={setDeliveryMode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Transient (1)</SelectItem>
+                        <SelectItem value="2">Persistent (2)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="priority"
+                      label="Priority (0-255)"
+                      tooltip="Message priority level from 0 (lowest) to 255 (highest). Higher priority messages are delivered before lower priority ones. Note: Priority queues must be declared with x-max-priority argument."
+                      side="left"
+                    />
+                    <Input
+                      id="priority"
+                      type="number"
+                      min="0"
+                      max="255"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
 
-          {/* Exchange Type Info */}
-          {exchange &&
-            (() => {
-              const selectedExchange = exchanges.find(
-                (ex) => ex.name === exchange
-              );
-              if (!selectedExchange) return null;
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="contentType"
+                      label="Content Type"
+                      tooltip="MIME type of the message body (e.g., application/json, text/plain, application/xml). Helps consumers understand how to process the message payload."
+                    />
+                    <Select value={contentType} onValueChange={setContentType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select content type..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="application/json">
+                          application/json
+                        </SelectItem>
+                        <SelectItem value="text/plain">text/plain</SelectItem>
+                        <SelectItem value="application/xml">
+                          application/xml
+                        </SelectItem>
+                        <SelectItem value="text/xml">text/xml</SelectItem>
+                        <SelectItem value="application/octet-stream">
+                          application/octet-stream
+                        </SelectItem>
+                        <SelectItem value="text/html">text/html</SelectItem>
+                        <SelectItem value="text/csv">text/csv</SelectItem>
+                        <SelectItem value="application/pdf">
+                          application/pdf
+                        </SelectItem>
+                        <SelectItem value="image/png">image/png</SelectItem>
+                        <SelectItem value="image/jpeg">image/jpeg</SelectItem>
+                        <SelectItem value="application/protobuf">
+                          application/protobuf
+                        </SelectItem>
+                        <SelectItem value="application/avro">
+                          application/avro
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="contentEncoding"
+                      label="Content Encoding"
+                      tooltip="Encoding method used for the message body (e.g., gzip, deflate, base64). Indicates compression or encoding applied to the payload."
+                      side="left"
+                    />
+                    <Select
+                      value={contentEncoding}
+                      onValueChange={setContentEncoding}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select encoding (optional)..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="gzip">gzip</SelectItem>
+                        <SelectItem value="deflate">deflate</SelectItem>
+                        <SelectItem value="base64">base64</SelectItem>
+                        <SelectItem value="compress">compress</SelectItem>
+                        <SelectItem value="br">brotli (br)</SelectItem>
+                        <SelectItem value="identity">identity</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-              const getExchangeInfo = (type: string) => {
-                switch (type) {
-                  case "direct":
-                    return {
-                      description:
-                        "Messages are routed to queues based on an exact match between routing key and binding key.",
-                      routingKeyHelp:
-                        "Use exact queue names or specific routing keys.",
-                    };
-                  case "fanout":
-                    return {
-                      description:
-                        "Messages are routed to all bound queues, ignoring the routing key.",
-                      routingKeyHelp:
-                        "Routing key is ignored for fanout exchanges.",
-                    };
-                  case "topic":
-                    return {
-                      description:
-                        "Messages are routed based on wildcard matches between routing key and binding pattern.",
-                      routingKeyHelp:
-                        'Use patterns like "user.created", "logs.*", "events.#".',
-                    };
-                  case "headers":
-                    return {
-                      description:
-                        "Messages are routed based on header values rather than routing key.",
-                      routingKeyHelp:
-                        "Routing key is typically ignored. Use message headers instead.",
-                    };
-                  default:
-                    return {
-                      description: "Custom exchange type.",
-                      routingKeyHelp:
-                        "Refer to exchange-specific documentation.",
-                    };
-                }
-              };
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="expiration"
+                      label="Expiration (ms)"
+                      tooltip="Time-to-live (TTL) for the message in milliseconds. After this time, the message will be discarded if not consumed. Use 0 or leave empty for no expiration."
+                    />
+                    <Input
+                      id="expiration"
+                      value={expiration}
+                      onChange={(e) => setExpiration(e.target.value)}
+                      placeholder="60000"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="messageType"
+                      label="Message Type"
+                      tooltip="Application-specific message type identifier (e.g., order.created, user.updated). Helps consumers route and process messages based on their type."
+                      side="left"
+                    />
+                    <Input
+                      id="messageType"
+                      value={messageType}
+                      onChange={(e) => setMessageType(e.target.value)}
+                      placeholder="order.created"
+                    />
+                  </div>
+                </div>
 
-              const info = getExchangeInfo(selectedExchange.type);
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="correlationId"
+                      label="Correlation ID"
+                      tooltip="Unique identifier to correlate request and response messages. Essential for request-reply patterns and distributed tracing."
+                    />
+                    <Input
+                      id="correlationId"
+                      value={correlationId}
+                      onChange={(e) => setCorrelationId(e.target.value)}
+                      placeholder="req-123456"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="replyTo"
+                      label="Reply To"
+                      tooltip="Queue name where reply messages should be sent. Used in request-reply messaging patterns to specify the callback queue."
+                      side="left"
+                    />
+                    <Input
+                      id="replyTo"
+                      value={replyTo}
+                      onChange={(e) => setReplyTo(e.target.value)}
+                      placeholder="response.queue"
+                    />
+                  </div>
+                </div>
 
-              return (
-                <Alert className="border-blue-200 bg-blue-50">
-                  <MessageSquare className="h-4 w-4" />
-                  <AlertDescription className="space-y-2">
-                    <div>
-                      <strong>
-                        {selectedExchange.type.charAt(0).toUpperCase() +
-                          selectedExchange.type.slice(1)}{" "}
-                        Exchange:
-                      </strong>{" "}
-                      {info.description}
-                    </div>
-                    <div className="text-sm text-blue-700">
-                      <strong>Routing Key:</strong> {info.routingKeyHelp}
-                    </div>
-                    {selectedExchange.bindings &&
-                      selectedExchange.bindings.length > 0 && (
-                        <div className="text-sm text-blue-700">
-                          <strong>Bound to:</strong>{" "}
-                          {selectedExchange.bindings.length} queue
-                          {selectedExchange.bindings.length !== 1 ? "s" : ""}
-                        </div>
-                      )}
-                  </AlertDescription>
-                </Alert>
-              );
-            })()}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <LabelWithTooltip
+                      htmlFor="messageId"
+                      label="Message ID"
+                      tooltip="Unique identifier for this specific message. Useful for message deduplication, logging, and tracking message flow through your system."
+                    />
+                    <Input
+                      id="messageId"
+                      value={messageId}
+                      onChange={(e) => setMessageId(e.target.value)}
+                      placeholder="msg-123456"
+                    />
+                  </div>
+                </div>
 
-          {/* Message Payload */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="payload">Message Payload *</Label>
+                <div className="space-y-2">
+                  <LabelWithTooltip
+                    htmlFor="appId"
+                    label="Application ID"
+                    tooltip="Identifier of the application that published the message. Useful for monitoring, debugging, and routing decisions based on the source application."
+                  />
+                  <Input
+                    id="appId"
+                    value={appId}
+                    onChange={(e) => setAppId(e.target.value)}
+                    placeholder="my-app-v1.0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <LabelWithTooltip
+                    htmlFor="headers"
+                    label="Custom Headers (JSON)"
+                    tooltip="Additional metadata for your message as key-value pairs in JSON format. Headers can be used for routing decisions, filtering, and passing application-specific data."
+                  />
+                  <Textarea
+                    id="headers"
+                    value={headers}
+                    onChange={(e) => setHeaders(e.target.value)}
+                    placeholder='{"x-custom-header": "value", "x-retry-count": 3}'
+                    className="font-mono text-sm"
+                    rows={3}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Error/Success Messages */}
+            {publishMutation.isError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {publishMutation.error?.message || "Failed to send message"}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {publishMutation.isSuccess && (
+              <Alert className="border-green-200 bg-green-50 text-green-800">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Message sent successfully to exchange "{exchange}"
+                  {routingKey && ` with routing key "${routingKey}"`}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={formatPayload}
+                onClick={() => setOpen(false)}
               >
-                Format JSON
+                Cancel
               </Button>
-            </div>
-            <Textarea
-              id="payload"
-              value={payload}
-              onChange={(e) => setPayload(e.target.value)}
-              placeholder="Enter your message payload..."
-              className="min-h-[120px] font-mono text-sm"
-              required
-            />
-          </div>
-
-          <Separator />
-
-          {/* Advanced Properties */}
-          <Collapsible
-            open={isPropertiesExpanded}
-            onOpenChange={setIsPropertiesExpanded}
-          >
-            <CollapsibleTrigger asChild>
               <Button
-                type="button"
-                variant="ghost"
-                className="flex items-center justify-between w-full p-0 h-auto"
+                type="submit"
+                disabled={publishMutation.isPending || !exchange || !payload}
+                className="gap-2"
               >
-                <div className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Message Properties
-                  <Badge variant="secondary" className="text-xs">
-                    Optional
-                  </Badge>
-                </div>
-                {isPropertiesExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
+                {publishMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Sending...
+                  </>
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <>
+                    <Send className="h-4 w-4" />
+                    Send Message
+                  </>
                 )}
               </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="deliveryMode">Delivery Mode</Label>
-                  <Select value={deliveryMode} onValueChange={setDeliveryMode}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Transient (1)</SelectItem>
-                      <SelectItem value="2">Persistent (2)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Priority (0-255)</Label>
-                  <Input
-                    id="priority"
-                    type="number"
-                    min="0"
-                    max="255"
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="contentType">Content Type</Label>
-                  <Input
-                    id="contentType"
-                    value={contentType}
-                    onChange={(e) => setContentType(e.target.value)}
-                    placeholder="application/json"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contentEncoding">Content Encoding</Label>
-                  <Input
-                    id="contentEncoding"
-                    value={contentEncoding}
-                    onChange={(e) => setContentEncoding(e.target.value)}
-                    placeholder="gzip"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="expiration">Expiration (ms)</Label>
-                  <Input
-                    id="expiration"
-                    value={expiration}
-                    onChange={(e) => setExpiration(e.target.value)}
-                    placeholder="60000"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="messageType">Message Type</Label>
-                  <Input
-                    id="messageType"
-                    value={messageType}
-                    onChange={(e) => setMessageType(e.target.value)}
-                    placeholder="order.created"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="correlationId">Correlation ID</Label>
-                  <Input
-                    id="correlationId"
-                    value={correlationId}
-                    onChange={(e) => setCorrelationId(e.target.value)}
-                    placeholder="req-123456"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="replyTo">Reply To</Label>
-                  <Input
-                    id="replyTo"
-                    value={replyTo}
-                    onChange={(e) => setReplyTo(e.target.value)}
-                    placeholder="response.queue"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="messageId">Message ID</Label>
-                  <Input
-                    id="messageId"
-                    value={messageId}
-                    onChange={(e) => setMessageId(e.target.value)}
-                    placeholder="msg-123456"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="appId">Application ID</Label>
-                <Input
-                  id="appId"
-                  value={appId}
-                  onChange={(e) => setAppId(e.target.value)}
-                  placeholder="my-app-v1.0"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="headers">Custom Headers (JSON)</Label>
-                <Textarea
-                  id="headers"
-                  value={headers}
-                  onChange={(e) => setHeaders(e.target.value)}
-                  placeholder='{"x-custom-header": "value", "x-retry-count": 3}'
-                  className="font-mono text-sm"
-                  rows={3}
-                />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Error/Success Messages */}
-          {publishMutation.isError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {publishMutation.error?.message || "Failed to send message"}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {publishMutation.isSuccess && (
-            <Alert className="border-green-200 bg-green-50 text-green-800">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                Message sent successfully to exchange "{exchange}"
-                {routingKey && ` with routing key "${routingKey}"`}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={publishMutation.isPending || !exchange || !payload}
-              className="gap-2"
-            >
-              {publishMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  Send Message
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+            </div>
+          </form>
+        </TooltipProvider>
       </DialogContent>
     </Dialog>
   );
