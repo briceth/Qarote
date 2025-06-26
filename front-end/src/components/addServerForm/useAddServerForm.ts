@@ -1,23 +1,59 @@
-import { useState } from "react";
-import type { AddServerFormData, ConnectionStatus, SSLConfig } from "./types";
+import { useState, useCallback, useEffect } from "react";
+import type {
+  AddServerFormData,
+  ConnectionStatus,
+  SSLConfig,
+  Server,
+} from "./types";
 import { apiClient } from "@/lib/api";
 
-export const useAddServerForm = () => {
-  const [formData, setFormData] = useState<AddServerFormData>({
-    name: "",
-    host: "",
-    port: 15672,
-    username: "guest",
-    password: "guest",
-    vhost: "/",
-    sslConfig: {
-      enabled: false,
-      verifyPeer: true,
-      caCertPath: "",
-      clientCertPath: "",
-      clientKeyPath: "",
-    },
-  });
+interface UseAddServerFormProps {
+  server?: Server;
+  mode?: "add" | "edit";
+}
+
+export const useAddServerForm = ({
+  server,
+  mode = "add",
+}: UseAddServerFormProps = {}) => {
+  const getInitialFormData = useCallback((): AddServerFormData => {
+    if (mode === "edit" && server) {
+      return {
+        name: server.name,
+        host: server.host,
+        port: server.port,
+        username: server.username,
+        password: "", // Don't prefill password for security
+        vhost: server.vhost,
+        sslConfig: server.sslConfig || {
+          enabled: false,
+          verifyPeer: true,
+          caCertPath: "",
+          clientCertPath: "",
+          clientKeyPath: "",
+        },
+      };
+    }
+
+    return {
+      name: "",
+      host: "",
+      port: 15672,
+      username: "guest",
+      password: "guest",
+      vhost: "/",
+      sslConfig: {
+        enabled: false,
+        verifyPeer: true,
+        caCertPath: "",
+        clientCertPath: "",
+        clientKeyPath: "",
+      },
+    };
+  }, [mode, server]);
+
+  const [formData, setFormData] =
+    useState<AddServerFormData>(getInitialFormData());
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof AddServerFormData, string>>
@@ -29,6 +65,15 @@ export const useAddServerForm = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+
+  // Update form data when server prop changes (for edit mode)
+  useEffect(() => {
+    if (mode === "edit" && server) {
+      setFormData(getInitialFormData());
+      setErrors({});
+      setConnectionStatus({ status: "idle" });
+    }
+  }, [server, mode, getInitialFormData]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof AddServerFormData, string>> = {};
@@ -127,21 +172,7 @@ export const useAddServerForm = () => {
   };
 
   const resetForm = () => {
-    setFormData({
-      name: "",
-      host: "",
-      port: 15672,
-      username: "guest",
-      password: "guest",
-      vhost: "/",
-      sslConfig: {
-        enabled: false,
-        verifyPeer: true,
-        caCertPath: "",
-        clientCertPath: "",
-        clientKeyPath: "",
-      },
-    });
+    setFormData(getInitialFormData());
     setErrors({});
     setConnectionStatus({ status: "idle" });
   };
@@ -161,5 +192,7 @@ export const useAddServerForm = () => {
     handleSSLConfigChange,
     testConnection,
     resetForm,
+    mode,
+    server,
   };
 };

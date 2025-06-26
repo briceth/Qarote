@@ -48,6 +48,7 @@ import { useLocation, Link } from "react-router-dom";
 import { canUserAddServerWithCount } from "@/lib/plans/planUtils";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Lock } from "lucide-react";
+import { ServerManagement } from "@/components/ServerManagement";
 
 const menuItems = [
   {
@@ -161,25 +162,39 @@ export function AppSidebar() {
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Server
             </span>
-            {canAddServer ? (
-              <AddServerForm
+            <div className="flex items-center gap-1">
+              {canAddServer ? (
+                <AddServerForm
+                  trigger={
+                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  }
+                />
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 opacity-50 cursor-not-allowed"
+                  onClick={handleAddServerClick}
+                  title="Upgrade to add servers"
+                >
+                  <Lock className="h-3 w-3" />
+                </Button>
+              )}
+              <ServerManagement
                 trigger={
-                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                    <Plus className="h-3 w-3" />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    title="Manage servers"
+                  >
+                    <Settings className="h-3 w-3" />
                   </Button>
                 }
               />
-            ) : (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 opacity-50 cursor-not-allowed"
-                onClick={handleAddServerClick}
-                title="Upgrade to add servers"
-              >
-                <Lock className="h-3 w-3" />
-              </Button>
-            )}
+            </div>
           </div>
 
           {servers.length > 0 ? (

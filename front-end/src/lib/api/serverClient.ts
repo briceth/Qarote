@@ -26,6 +26,24 @@ export class ServerApiClient extends BaseApiClient {
     });
   }
 
+  async updateServer(
+    id: string,
+    server: Partial<Omit<Server, "id" | "createdAt" | "updatedAt">> & {
+      password?: string;
+    }
+  ): Promise<{ server: Server }> {
+    return this.request<{ server: Server }>(`/servers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(server),
+    });
+  }
+
+  async deleteServer(id: string): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/servers/${id}`, {
+      method: "DELETE",
+    });
+  }
+
   async testConnection(credentials: {
     host: string;
     port: number;

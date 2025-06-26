@@ -10,7 +10,7 @@ interface RabbitMQConfig {
 
 class TestMessageGenerator {
   private config: RabbitMQConfig;
-  private connection: amqp.Connection | null = null;
+  private connection: amqp.ChannelModel | null = null;
   private channel: amqp.Channel | null = null;
 
   constructor(config: RabbitMQConfig) {

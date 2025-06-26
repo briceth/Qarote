@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import {
@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Server } from "lucide-react";
+import { Loader2, Plus, Server, Edit } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,11 +26,21 @@ import type { AddServerFormProps } from "./types";
 
 export const AddServerForm = ({
   onServerAdded,
+  onServerUpdated,
   trigger,
+  server,
+  mode = "add",
+  isOpen: controlledIsOpen,
+  onOpenChange: controlledOnOpenChange,
 }: AddServerFormProps) => {
   const { setSelectedServerId } = useServerContext();
   const queryClient = useQueryClient();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+
+  // Use controlled or internal state for dialog open state
+  const isOpen =
+    controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = controlledOnOpenChange || setInternalIsOpen;
 
   const {
     formData,
@@ -47,7 +57,7 @@ export const AddServerForm = ({
     handleSSLConfigChange,
     testConnection,
     resetForm,
-  } = useAddServerForm();
+  } = useAddServerForm({ server, mode });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,51 +67,63 @@ export const AddServerForm = ({
     setIsLoading(true);
 
     try {
-      const result = await apiClient.createServer({
-        name: formData.name,
-        host: formData.host,
-        port: formData.port,
-        username: formData.username,
-        password: formData.password,
-        vhost: formData.vhost,
-        sslConfig: formData.sslConfig,
-      });
+      if (mode === "edit" && server) {
+        // Update existing server
+        const result = await apiClient.updateServer(server.id, {
+          name: formData.name,
+          host: formData.host,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          vhost: formData.vhost,
+          sslConfig: formData.sslConfig,
+        });
 
-      // Set this as the selected server
-      setSelectedServerId(result.server.id);
+        // Invalidate servers query to refresh the server list
+        queryClient.invalidateQueries({ queryKey: queryKeys.servers });
 
-      // Invalidate servers query to refresh the server list
-      queryClient.invalidateQueries({ queryKey: queryKeys.servers });
+        // Close dialog
+        setIsOpen(false);
 
-      // Reset form
-      setFormData({
-        name: "",
-        host: "",
-        port: 15672,
-        username: "guest",
-        password: "guest",
-        vhost: "/",
-        sslConfig: {
-          enabled: false,
-          verifyPeer: true,
-          caCertPath: "",
-          clientCertPath: "",
-          clientKeyPath: "",
-        },
-      });
+        // Notify parent component
+        onServerUpdated?.();
+      } else {
+        // Create new server
+        const result = await apiClient.createServer({
+          name: formData.name,
+          host: formData.host,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          vhost: formData.vhost,
+          sslConfig: formData.sslConfig,
+        });
+
+        // Set this as the selected server (only for new servers)
+        setSelectedServerId(result.server.id);
+
+        // Invalidate servers query to refresh the server list
+        queryClient.invalidateQueries({ queryKey: queryKeys.servers });
+
+        // Close dialog
+        setIsOpen(false);
+
+        // Notify parent component
+        onServerAdded?.();
+      }
+
+      // Reset form and status
       setConnectionStatus({ status: "idle" });
       setErrors({});
-
-      // Close dialog
-      setIsOpen(false);
-
-      // Notify parent component
-      onServerAdded?.();
     } catch (error) {
       setConnectionStatus({
         status: "error",
         message:
-          error instanceof Error ? error.message : "Failed to create server",
+          error instanceof Error
+            ? error.message
+            : mode === "edit"
+              ? "Failed to update server"
+              : "Failed to create server",
       });
     } finally {
       setIsLoading(false);
@@ -118,23 +140,36 @@ export const AddServerForm = ({
         }
       }}
     >
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Server
-          </Button>
-        )}
-      </DialogTrigger>
+      {/* Only render trigger if not in controlled mode */}
+      {controlledIsOpen === undefined && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Server
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[700px] lg:max-w-[800px] max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <Server className="h-5 w-5" />
-            Add RabbitMQ Server
+            {mode === "edit" ? (
+              <>
+                <Edit className="h-5 w-5" />
+                Edit RabbitMQ Server
+              </>
+            ) : (
+              <>
+                <Server className="h-5 w-5" />
+                Add RabbitMQ Server
+              </>
+            )}
           </DialogTitle>
           <DialogDescription>
-            Connect to your RabbitMQ server by providing the connection details
-            below.
+            {mode === "edit"
+              ? "Update the connection details for your RabbitMQ server."
+              : "Connect to your RabbitMQ server by providing the connection details below."}
           </DialogDescription>
         </DialogHeader>
 
@@ -185,10 +220,12 @@ export const AddServerForm = ({
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : mode === "edit" ? (
+              <Edit className="h-4 w-4 mr-2" />
             ) : (
               <Plus className="h-4 w-4 mr-2" />
             )}
-            Add Server
+            {mode === "edit" ? "Update Server" : "Add Server"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -25,7 +25,22 @@ export interface ConnectionStatus {
   };
 }
 
+export interface Server {
+  id: string;
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  vhost: string;
+  sslConfig?: SSLConfig;
+}
+
 export interface AddServerFormProps {
   onServerAdded?: () => void;
+  onServerUpdated?: () => void;
   trigger?: React.ReactNode;
+  server?: Server; // For edit mode
+  mode?: "add" | "edit";
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }

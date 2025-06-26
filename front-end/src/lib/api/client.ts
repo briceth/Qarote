@@ -46,6 +46,17 @@ class ApiClient {
     return this.serverClient.createServer(server);
   }
 
+  async updateServer(
+    id: string,
+    server: Parameters<ServerApiClient["updateServer"]>[1]
+  ) {
+    return this.serverClient.updateServer(id, server);
+  }
+
+  async deleteServer(id: string) {
+    return this.serverClient.deleteServer(id);
+  }
+
   async testConnection(
     credentials: Parameters<ServerApiClient["testConnection"]>[0]
   ) {
