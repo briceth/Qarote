@@ -56,7 +56,7 @@ serverController.get("/", async (c) => {
     // If user has no workspace, they can only see servers with no workspace (personal servers)
     const servers = await prisma.rabbitMQServer.findMany({
       where: {
-        workspaceId: user.workspaceId || null,
+        workspaceId: user.workspaceId!,
       },
       select: {
         id: true,
@@ -111,7 +111,7 @@ serverController.get("/", async (c) => {
   }
 });
 
-// Get a specific server by ID (only if it belongs to user's company)
+// Get a specific server by ID (only if it belongs to user's workspace)
 serverController.get("/:id", async (c) => {
   const id = c.req.param("id");
   const user = c.get("user");
@@ -121,7 +121,7 @@ serverController.get("/:id", async (c) => {
       where: {
         id,
         // Ensure the server belongs to the user's workspace
-        workspaceId: user.workspaceId || null,
+        workspaceId: user.workspaceId!,
       },
       select: {
         id: true,
@@ -179,7 +179,7 @@ serverController.get("/:id", async (c) => {
   }
 });
 
-// Create a new server (automatically assigned to user's company)
+// Create a new server (automatically assigned to user's workspace)
 serverController.post(
   "/",
   zValidator("json", CreateServerSchema),
@@ -303,7 +303,7 @@ serverController.post(
   }
 );
 
-// Update a server (only if it belongs to user's company)
+// Update a server (only if it belongs to user's workspace)
 serverController.put(
   "/:id",
   zValidator("json", UpdateServerSchema),
@@ -317,7 +317,7 @@ serverController.put(
       const existingServer = await prisma.rabbitMQServer.findUnique({
         where: {
           id,
-          workspaceId: user.workspaceId || null,
+          workspaceId: user.workspaceId!,
         },
       });
 
@@ -374,7 +374,7 @@ serverController.put(
   }
 );
 
-// Delete a server (only if it belongs to user's company)
+// Delete a server (only if it belongs to user's workspace)
 serverController.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const user = c.get("user");
@@ -384,7 +384,7 @@ serverController.delete("/:id", async (c) => {
     const existingServer = await prisma.rabbitMQServer.findUnique({
       where: {
         id,
-        workspaceId: user.workspaceId || null,
+        workspaceId: user.workspaceId!,
       },
     });
 
@@ -446,7 +446,7 @@ serverController.put("/:id/warning-shown", async (c) => {
     const existingServer = await prisma.rabbitMQServer.findUnique({
       where: {
         id,
-        workspaceId: user.workspaceId || null,
+        workspaceId: user.workspaceId!,
       },
     });
 

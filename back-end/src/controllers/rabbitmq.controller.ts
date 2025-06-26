@@ -662,7 +662,7 @@ rabbitmqController.get("/servers/:id/channels", async (c) => {
   }
 });
 
-// Create a new queue (with plan validation)
+// Create a new queue for a specific server (with plan validation)
 rabbitmqController.post(
   "/servers/:serverId/queues",
   zValidator("json", CreateQueueSchema),
@@ -674,7 +674,7 @@ rabbitmqController.post(
     try {
       // Get server to check workspace ownership and over-limit status
       const server = await prisma.rabbitMQServer.findUnique({
-        where: { id: serverId },
+        where: { id: serverId, workspaceId: user.workspaceId! },
         select: {
           workspaceId: true,
           isOverQueueLimit: true,
@@ -745,7 +745,7 @@ rabbitmqController.post(
   }
 );
 
-// Send message to queue (with plan validation)
+// Send message to queue for a specific server (with plan validation)
 rabbitmqController.post(
   "/servers/:serverId/queues/:queueName/messages",
   zValidator(
@@ -943,7 +943,7 @@ rabbitmqController.post(
   }
 );
 
-// Purge queue messages (DELETE)
+// Purge queue messages for a specific server (DELETE)
 rabbitmqController.delete(
   "/servers/:serverId/queues/:queueName/messages",
   async (c) => {
@@ -989,13 +989,11 @@ rabbitmqController.delete(
   }
 );
 
-// Get detailed memory metrics for a specific node
+// Get detailed memory metrics for a specific node for a specific server
 rabbitmqController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
   const id = c.req.param("id");
   const nodeName = c.req.param("nodeName");
   const user = c.get("user");
-  console.log(`Fetching memory metrics for node ${nodeName} on server ${id}`);
-  console.log(`User workspace ID: ${user.workspaceId}`);
 
   try {
     console.log(`Fetching memory details for node ${nodeName} on server ${id}`);
