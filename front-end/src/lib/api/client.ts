@@ -281,6 +281,10 @@ class ApiClient {
     return this.workspaceClient.getCurrentPlanLimits();
   }
 
+  async getCurrentWorkspaceMonthlyMessageCount() {
+    return this.workspaceClient.getCurrentWorkspaceMonthlyMessageCount();
+  }
+
   async getWorspacePrivacySettings(companyId: string) {
     return this.workspaceClient.getWorkspacePrivacySettings(companyId);
   }

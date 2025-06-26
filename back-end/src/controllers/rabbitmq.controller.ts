@@ -21,6 +21,7 @@ import {
   getWorkspacePlan,
   getWorkspaceResourceCounts,
   getMonthlyMessageCount,
+  incrementMonthlyMessageCount,
   planValidationMiddleware,
 } from "../middlewares/plan-validation";
 import { RabbitMQOverview } from "@/types/rabbitmq";
@@ -916,6 +917,9 @@ rabbitmqController.post(
           400
         );
       }
+
+      // Increment monthly message count after successful send
+      await incrementMonthlyMessageCount(server.workspaceId);
 
       return c.json({
         success: true,

@@ -107,4 +107,13 @@ export class WorkspaceApiClient extends BaseApiClient {
       method: "DELETE",
     });
   }
+
+  async getCurrentWorkspaceMonthlyMessageCount(): Promise<{
+    monthlyMessageCount: number;
+    workspaceId: string;
+    currentMonth: number;
+    currentYear: number;
+  }> {
+    return this.request("/workspaces/current/monthly-message-count");
+  }
 }

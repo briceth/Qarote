@@ -13,6 +13,7 @@ export const queryKeys = {
   nodes: (serverId: string) => ["nodes", serverId] as const,
   alerts: ["alerts"] as const,
   recentAlerts: ["alerts", "recent"] as const,
+  monthlyMessageCount: ["monthlyMessageCount"] as const,
 };
 
 // Server hooks
@@ -344,6 +345,19 @@ export const useWorkspaceUsers = () => {
     queryFn: () => apiClient.getWorkspaceUsers(),
     enabled: isAuthenticated,
     staleTime: 60000, // 1 minute
+  });
+};
+
+// Monthly message count hook
+export const useMonthlyMessageCount = () => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.monthlyMessageCount,
+    queryFn: () => apiClient.getCurrentWorkspaceMonthlyMessageCount(),
+    enabled: isAuthenticated,
+    staleTime: 10000, // 10 seconds (refresh more frequently since this changes often)
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 

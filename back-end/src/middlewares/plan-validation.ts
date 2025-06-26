@@ -98,7 +98,61 @@ export async function getWorkspaceResourceCounts(workspaceId: string) {
 export async function getMonthlyMessageCount(
   workspaceId: string
 ): Promise<number> {
-  // For now, return 0. In a real implementation, you would track message sending
-  // This could be implemented with a separate table or Redis counter
-  return 0;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // JavaScript months are 0-indexed
+
+  try {
+    const messageCount = await prisma.monthlyMessageCount.findUnique({
+      where: {
+        monthly_message_count_unique: {
+          workspaceId,
+          year,
+          month,
+        },
+      },
+    });
+
+    return messageCount?.count || 0;
+  } catch (error) {
+    console.error("Error fetching monthly message count:", error);
+    return 0;
+  }
+}
+
+export async function incrementMonthlyMessageCount(
+  workspaceId: string
+): Promise<number> {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // JavaScript months are 0-indexed
+
+  try {
+    // Use upsert to either create a new record or increment existing one
+    const messageCount = await prisma.monthlyMessageCount.upsert({
+      where: {
+        monthly_message_count_unique: {
+          workspaceId,
+          year,
+          month,
+        },
+      },
+      update: {
+        count: {
+          increment: 1,
+        },
+      },
+      create: {
+        workspaceId,
+        year,
+        month,
+        count: 1,
+      },
+    });
+
+    return messageCount.count;
+  } catch (error) {
+    console.error("Error incrementing monthly message count:", error);
+    throw new Error("Failed to increment message count");
+  }
 }

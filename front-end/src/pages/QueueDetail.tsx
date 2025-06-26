@@ -3,7 +3,11 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useQueue, useQueueConsumers } from "@/hooks/useApi";
+import {
+  useQueue,
+  useQueueConsumers,
+  useMonthlyMessageCount,
+} from "@/hooks/useApi";
 
 // Queue Detail Components
 import { QueueHeader } from "@/components/QueueDetail/QueueHeader";
@@ -20,12 +24,9 @@ const QueueDetail = () => {
   const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
 
-  // TODO: Replace with actual monthly message count from API
-  // For testing: uncomment one of the lines below to simulate different scenarios
-  const monthlyMessageCount = 105; // Test value - need to implement API endpoint
-  // const monthlyMessageCount = 95; // Test FREELANCE plan near limit (95/100)
-  // const monthlyMessageCount = 100; // Test FREELANCE plan at limit (100/100)
-  // const monthlyMessageCount = 950; // Test STARTUP plan near limit (950/1000)
+  const { data: monthlyMessageData } = useMonthlyMessageCount();
+  // Use real monthly message count from API
+  const monthlyMessageCount = monthlyMessageData?.monthlyMessageCount || 0;
 
   const {
     data: queueData,
@@ -33,11 +34,8 @@ const QueueDetail = () => {
     refetch,
   } = useQueue(selectedServerId, queueName);
 
-  const {
-    data: consumersData,
-    isLoading: consumersLoading,
-    refetch: refetchConsumers,
-  } = useQueueConsumers(selectedServerId, queueName);
+  const { data: consumersData, isLoading: consumersLoading } =
+    useQueueConsumers(selectedServerId, queueName);
 
   const queue = queueData?.queue;
 

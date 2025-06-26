@@ -267,7 +267,7 @@ export function AddQueueForm({
           {/* Exchange Binding */}
           <div className="space-y-4">
             <Label className="text-sm font-medium">
-              Exchange Binding (Optional)
+              Exchange Binding (Recommanded)
             </Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

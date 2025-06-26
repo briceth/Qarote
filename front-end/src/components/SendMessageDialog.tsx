@@ -395,6 +395,11 @@ export function SendMessageDialog({
           queryKey: queryKeys.queues(serverId),
         });
 
+        // Invalidate monthly message count cache to refresh plan restrictions
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.monthlyMessageCount,
+        });
+
         console.log("SendMessageDialog: Cache invalidation completed");
       }
 

@@ -1,14 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ArrowLeft, Send, Plus, Trash2, Lock } from "lucide-react";
+import { ArrowLeft, Send, Trash2, Lock } from "lucide-react";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
-import { AddQueueForm } from "@/components/AddQueueForm";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import {
-  canUserAddQueue,
-  canUserSendMessagesWithCount,
-} from "@/lib/plans/planUtils";
+import { canUserSendMessagesWithCount } from "@/lib/plans/planUtils";
 import { useState } from "react";
 import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
 
@@ -33,16 +29,9 @@ export function QueueHeader({
   const { workspacePlan, isLoading: workspaceLoading } = useWorkspace();
 
   // Use the actual workspace plan from context with message count restrictions
-  const canAddQueue = canUserAddQueue(workspacePlan);
   const canSendMessages = workspaceLoading
     ? false
     : canUserSendMessagesWithCount(workspacePlan, monthlyMessageCount);
-
-  const handleAddQueueClick = () => {
-    if (!canAddQueue) {
-      setShowUpgradeModal(true);
-    }
-  };
 
   const handleSendMessageClick = () => {
     if (!canSendMessages) {
@@ -120,33 +109,6 @@ export function QueueHeader({
                   : workspacePlan === "STARTUP"
                     ? `${monthlyMessageCount}/1000`
                     : "Pro"}
-            </span>
-          </Button>
-        )}
-
-        {/* Add Queue Button with plan restrictions */}
-        {canAddQueue ? (
-          <AddQueueForm
-            serverId={selectedServerId}
-            onSuccess={onRefetch}
-            trigger={
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Add Queue
-              </Button>
-            }
-          />
-        ) : (
-          <Button
-            onClick={handleAddQueueClick}
-            disabled={true}
-            className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
-            title="Upgrade to add queues"
-          >
-            <Lock className="w-4 h-4" />
-            Add Queue
-            <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
-              Pro
             </span>
           </Button>
         )}

@@ -17,6 +17,7 @@ import {
   validateDataExport,
   getPlanLimits,
 } from "../services/plan-validation.service";
+import { getMonthlyMessageCount } from "../middlewares/plan-validation";
 
 const workspaceController = new Hono();
 
@@ -73,6 +74,32 @@ workspaceController.get("/current", async (c) => {
   } catch (error) {
     console.error(`Error fetching workspace ${user.workspaceId}:`, error);
     return c.json({ error: "Failed to fetch workspace" }, 500);
+  }
+});
+
+// Get current workspace monthly message count
+workspaceController.get("/current/monthly-message-count", async (c) => {
+  const user = c.get("user");
+
+  if (!user.workspaceId) {
+    return c.json({ error: "You are not associated with any workspace" }, 404);
+  }
+
+  try {
+    const monthlyMessageCount = await getMonthlyMessageCount(user.workspaceId);
+
+    return c.json({
+      monthlyMessageCount,
+      workspaceId: user.workspaceId,
+      currentMonth: new Date().getMonth() + 1,
+      currentYear: new Date().getFullYear(),
+    });
+  } catch (error) {
+    console.error(
+      `Error fetching monthly message count for workspace ${user.workspaceId}:`,
+      error
+    );
+    return c.json({ error: "Failed to fetch monthly message count" }, 500);
   }
 });
 

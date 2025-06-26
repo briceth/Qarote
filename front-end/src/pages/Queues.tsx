@@ -7,7 +7,7 @@ import { DataStorageWarning } from "@/components/PrivacyNotice";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useQueues, queryKeys } from "@/hooks/useApi";
+import { useQueues, queryKeys, useMonthlyMessageCount } from "@/hooks/useApi";
 import {
   canUserAddQueueWithCount,
   canUserSendMessagesWithCount,
@@ -26,28 +26,25 @@ const Queues = () => {
   const [restrictionsDismissed, setRestrictionsDismissed] = useState(false);
   const { selectedServerId, hasServers } = useServerContext();
   const { data: queuesData, isLoading, refetch } = useQueues(selectedServerId);
+  const { data: monthlyMessageData, isLoading: messageCountLoading } =
+    useMonthlyMessageCount();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
   const queueCount = queues.length;
 
-  // TODO: Replace with actual monthly message count from API
-  // For testing: uncomment one of the lines below to simulate different scenarios
-  // const monthlyMessageCount = 0; // Placeholder - need to implement API endpoint
-  const monthlyMessageCount = 105; // Temporary: simulate the 105 messages we just created
-  // const monthlyMessageCount = 95; // Test FREELANCE plan near limit (95/100)
-  // const monthlyMessageCount = 100; // Test FREELANCE plan at limit (100/100)
-  // const monthlyMessageCount = 950; // Test STARTUP plan near limit (950/1000)
-
-  console.log("workspacePlan", workspacePlan);
+  // Use real monthly message count from API
+  const monthlyMessageCount = monthlyMessageData?.monthlyMessageCount || 0;
 
   // Use the actual workspace plan from context and queue count
-  const canAddQueue = workspaceLoading
-    ? false
-    : canUserAddQueueWithCount(workspacePlan, queueCount);
-  const canSendMessages = workspaceLoading
-    ? false
-    : canUserSendMessagesWithCount(workspacePlan, monthlyMessageCount);
+  const canAddQueue =
+    workspaceLoading || messageCountLoading
+      ? false
+      : canUserAddQueueWithCount(workspacePlan, queueCount);
+  const canSendMessages =
+    workspaceLoading || messageCountLoading
+      ? false
+      : canUserSendMessagesWithCount(workspacePlan, monthlyMessageCount);
 
   const handleAddQueueClick = () => {
     if (canAddQueue) {

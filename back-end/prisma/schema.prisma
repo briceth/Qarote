@@ -110,6 +110,7 @@ model Workspace {
   alertRules   AlertRule[]
   alerts       Alert[]
   feedback     Feedback[]
+  monthlyMessageCounts MonthlyMessageCount[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   invitations  Invitation[]
@@ -310,4 +311,23 @@ model TempCache {
   @@index([expiresAt], name: "temp_cache_expires_at_idx")
   @@index([createdAt], name: "temp_cache_created_at_idx")
   @@map("temp_cache")
+}
+
+model MonthlyMessageCount {
+  id          String   @id @default(uuid())
+  workspaceId String
+  year        Int
+  month       Int      // 1-12
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // Ensure unique monthly count per workspace
+  @@unique([workspaceId, year, month], name: "monthly_message_count_unique")
+  @@index([workspaceId], name: "monthly_message_count_workspace_idx")
+  @@index([year, month], name: "monthly_message_count_date_idx")
+  @@map("monthly_message_counts")
 }
