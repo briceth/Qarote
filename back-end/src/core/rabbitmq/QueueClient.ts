@@ -37,21 +37,20 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
 
   async getMessages(
     queueName: string,
-    count: number = 10,
-    ackMode: AckMode = "ack_requeue_true"
+    count: number = 10
   ): Promise<RabbitMQMessage[]> {
     const encodedQueueName = encodeURIComponent(queueName);
     const endpoint = `/queues/${this.vhost}/${encodedQueueName}/get`;
 
     const payload = {
       count,
-      ackmode: ackMode, // ack_requeue_true, ack_requeue_false, reject_requeue_true, reject_requeue_false
+      ackmode: "ack_requeue_true",
       encoding: "auto",
     };
 
     try {
       console.log(
-        `Browsing messages from queue: ${queueName} (count: ${count}, ackmode: ${ackMode})`
+        `Browsing messages from queue: ${queueName} (count: ${count})`
       );
 
       const result = await this.request(endpoint, {

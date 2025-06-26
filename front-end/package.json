@@ -1,8 +1,13 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "rabbit-scout-front-end",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Rabbit Scout Frontend",
+  "main": "index.html",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,6 +18,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -59,8 +65,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "vaul": "^0.9.3",
-    "zod": "^3.23.8"
+    "vaul": "^0.9.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
@@ -80,10 +85,5 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
-  },
-  "description": "## Project info",
-  "main": "eslint.config.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }

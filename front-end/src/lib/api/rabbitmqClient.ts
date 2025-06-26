@@ -107,6 +107,20 @@ export class RabbitMQApiClient extends BaseApiClient {
     );
   }
 
+  async stopMessageStreaming(
+    serverId: string,
+    queueName: string
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+        queueName
+      )}/messages/browse/stop`,
+      {
+        method: "POST",
+      }
+    );
+  }
+
   async publishMessage(
     params: PublishMessageRequest
   ): Promise<PublishMessageResponse> {

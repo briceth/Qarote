@@ -186,7 +186,7 @@ const mockClient = new RabbitMQApiClient("http://test-api");
 - **Retry Logic**: Implement automatic retry for failed requests
 - **Rate Limiting**: Add client-side rate limiting
 - **Real-time**: WebSocket support for live updates
-- **Validation**: Runtime type validation with Zod
+- **Validation**: Runtime type validation with ?
 - **Documentation**: Auto-generated API documentation
 
 ---

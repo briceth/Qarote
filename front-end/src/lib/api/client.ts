@@ -11,8 +11,8 @@ import { WorkspaceApiClient } from "./workspaceClient";
 import { LogsApiClient } from "./logsClient";
 import { FeedbackApiClient } from "./feedbackClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
-import type { FeedbackRequest } from "@/types/feedback";
 import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
+import type { FeedbackRequest } from "@/types/feedback";
 
 class ApiClient {
   private serverClient: ServerApiClient;
@@ -96,6 +96,10 @@ class ApiClient {
       count,
       ackMode
     );
+  }
+
+  async stopMessageStreaming(serverId: string, queueName: string) {
+    return this.rabbitmqClient.stopMessageStreaming(serverId, queueName);
   }
 
   async publishMessage(

@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => ({
           // Icons
           "vendor-icons": ["lucide-react"],
           // Form and validation
-          "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
+          "vendor-forms": ["react-hook-form", "@hookform/resolvers"],
           // Date and time utilities
           "vendor-utils": [
             "date-fns",

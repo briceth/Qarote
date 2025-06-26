@@ -152,6 +152,13 @@ export const useBrowseMessages = (
   });
 };
 
+export const useStopMessageStreaming = () => {
+  return useMutation({
+    mutationFn: (params: { serverId: string; queueName: string }) =>
+      apiClient.stopMessageStreaming(params.serverId, params.queueName),
+  });
+};
+
 // Connections and Channels hooks
 export const useConnections = (serverId: string) => {
   const { isAuthenticated } = useAuth();

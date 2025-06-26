@@ -18,25 +18,21 @@ import feedbackController from "./controllers/feedback.controller";
 import invitationController from "./controllers/invitation.controller";
 
 import { corsMiddleware } from "./middlewares/cors";
-import { alertService } from "./services/alert.service";
-import { TemporaryStorage } from "./core/privacy";
+// import { alertService } from "./services/alert.service";
+// import { TemporaryStorage } from "./core/privacy";
+import { streamRegistry } from "./core/DatabaseStreamRegistry";
 
-// Load environment variables
 dotenv.config();
 
-// Initialize Prisma
 const prisma = new PrismaClient();
 
-// Initialize Hono app
 const app = new Hono();
 
-// Global middlewares
 app.use(logger());
 app.use("*", corsMiddleware);
 app.use("*", prettyJSON());
 app.use("*", secureHeaders());
 
-// Routes
 app.route("/api/servers", serverController);
 app.route("/api/rabbitmq", rabbitmqController);
 app.route("/api/alerts", alertController);
@@ -48,19 +44,15 @@ app.route("/api/routing", routingController);
 app.route("/api/feedback", feedbackController);
 app.route("/api/invitations", invitationController);
 
-// Health check endpoint
 app.get("/livez", (c) =>
   c.json({ status: "ok", message: "RabbitMQ Dashboard API" })
 );
 
-// Start the server
 const port = parseInt(process.env.PORT!);
 const host = process.env.HOST;
 
-// Connect to database and start server
 async function startServer() {
   try {
-    // Connect to Prisma
     await prisma.$connect();
     console.log("Connected to database");
 
@@ -71,7 +63,6 @@ async function startServer() {
     // const cleanupInterval = TemporaryStorage.startPeriodicCleanup(60);
     // console.log("Cache cleanup service started (runs every 60 minutes)");
 
-    // Start the server
     serve(
       {
         fetch: app.fetch,
@@ -89,20 +80,20 @@ async function startServer() {
   }
 }
 
-// Handle graceful shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down server...");
   // alertService.stop();
   await prisma.$disconnect();
+  await streamRegistry.cleanup();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
   console.log("Shutting down server...");
-  alertService.stop();
+  // alertService.stop();
   await prisma.$disconnect();
+  await streamRegistry.cleanup();
   process.exit(0);
 });
 
-// Start the server
 startServer();

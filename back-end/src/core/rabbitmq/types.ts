@@ -42,11 +42,7 @@ export interface BindingArguments {
   [key: string]: string | number | boolean;
 }
 
-export type AckMode =
-  | "ack_requeue_true"
-  | "ack_requeue_false"
-  | "reject_requeue_true"
-  | "reject_requeue_false";
+export type AckMode = "ack_requeue_true" | "reject_requeue_true";
 
 export interface PurgeQueueResult {
   purged: number;

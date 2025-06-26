@@ -90,6 +90,12 @@ enum FeedbackStatus {
   CLOSED
 }
 
+enum StreamStatus {
+  ACTIVE
+  STOPPING
+  STOPPED
+}
+
 model Workspace {
   id           String         @id @default(uuid())
   name         String
@@ -330,4 +336,27 @@ model MonthlyMessageCount {
   @@index([workspaceId], name: "monthly_message_count_workspace_idx")
   @@index([year, month], name: "monthly_message_count_date_idx")
   @@map("monthly_message_counts")
+}
+
+model ActiveStream {
+  id              String       @id // Unique stream ID
+  userId          String       // User who owns the stream
+  serverId        String       // RabbitMQ server ID
+  queueName       String       // Queue being streamed
+  serverInstance  String       // Which backend server instance is handling this
+  startTime       DateTime     @default(now())
+  lastHeartbeat   DateTime     @default(now())
+  status          StreamStatus @default(ACTIVE)
+  
+  // Optional metadata
+  connectionInfo  Json?        // Store connection details if needed
+  
+  // Indexes for performance
+  @@index([userId], name: "active_stream_user_idx")
+  @@index([serverId], name: "active_stream_server_idx")
+  @@index([serverInstance], name: "active_stream_instance_idx")
+  @@index([status], name: "active_stream_status_idx")
+  @@index([lastHeartbeat], name: "active_stream_heartbeat_idx")
+  @@index([userId, serverId, queueName], name: "active_stream_composite_idx") // For fast lookups
+  @@map("active_streams")
 }

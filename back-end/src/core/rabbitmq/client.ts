@@ -36,10 +36,9 @@ export class RabbitMQClient extends RabbitMQApiClient {
 
   async getMessages(
     queueName: string,
-    count: number = 10,
-    ackMode: AckMode = "ack_requeue_true"
+    count: number = 10
   ): Promise<RabbitMQMessage[]> {
-    return this.queueClient.getMessages(queueName, count, ackMode);
+    return this.queueClient.getMessages(queueName, count);
   }
 
   async publishMessage(
