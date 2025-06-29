@@ -1,4 +1,5 @@
 import prisma from "../core/prisma";
+import logger from "../core/logger";
 import {
   AlertType,
   ComparisonOperator,
@@ -29,12 +30,12 @@ export class AlertService {
    */
   start(): void {
     if (this.isRunning) {
-      console.log("Alert service is already running");
+      logger.info("Alert service is already running");
       return;
     }
 
     this.isRunning = true;
-    console.log("Starting alert monitoring service...");
+    logger.info("Starting alert monitoring service...");
 
     // Run immediately, then at intervals
     this.evaluateAllAlerts();
@@ -48,7 +49,7 @@ export class AlertService {
    */
   stop(): void {
     if (!this.isRunning) {
-      console.log("Alert service is not running");
+      logger.info("Alert service is not running");
       return;
     }
 
@@ -57,7 +58,7 @@ export class AlertService {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
-    console.log("Alert monitoring service stopped");
+    logger.info("Alert monitoring service stopped");
   }
 
   /**
@@ -65,7 +66,7 @@ export class AlertService {
    */
   private async evaluateAllAlerts(): Promise<void> {
     try {
-      console.log("Evaluating alert rules...");
+      logger.info("Evaluating alert rules...");
 
       const alertRules = await prisma.alertRule.findMany({
         where: {
@@ -77,17 +78,17 @@ export class AlertService {
         },
       });
 
-      console.log(`Found ${alertRules.length} active alert rules`);
+      logger.info(`Found ${alertRules.length} active alert rules`);
 
       for (const rule of alertRules) {
         try {
           await this.evaluateAlertRule(rule);
         } catch (error) {
-          console.error(`Error evaluating alert rule ${rule.id}:`, error);
+          logger.error(`Error evaluating alert rule ${rule.id}:`, error);
         }
       }
     } catch (error) {
-      console.error("Error in evaluateAllAlerts:", error);
+      logger.error("Error in evaluateAllAlerts:", error);
     }
   }
 
@@ -98,7 +99,7 @@ export class AlertService {
     const currentValue = await this.getMetricValue(rule);
 
     if (currentValue === null) {
-      console.log(
+      logger.info(
         `No metric value available for rule ${rule.name} (${rule.id})`
       );
       return;
@@ -124,7 +125,7 @@ export class AlertService {
       if (!existingActiveAlert) {
         // Create new alert
         await this.createAlert(rule, currentValue);
-        console.log(
+        logger.info(
           `Alert triggered for rule: ${rule.name} (value: ${currentValue.value}, threshold: ${rule.threshold})`
         );
       }
@@ -169,11 +170,11 @@ export class AlertService {
           return await this.getNodeStatusMetric(server.id);
 
         default:
-          console.warn(`Unsupported alert type: ${rule.type}`);
+          logger.warn(`Unsupported alert type: ${rule.type}`);
           return null;
       }
     } catch (error) {
-      console.error(`Error getting metric for rule ${rule.id}:`, error);
+      logger.error(`Error getting metric for rule ${rule.id}:`, error);
       return null;
     }
   }
@@ -241,7 +242,7 @@ export class AlertService {
           resolvedAt: new Date(),
         },
       });
-      console.log(`Auto-resolved alert: ${alert.title}`);
+      logger.info(`Auto-resolved alert: ${alert.title}`);
     }
   }
 
@@ -321,7 +322,7 @@ export class AlertService {
         timestamp: new Date(),
       };
     } catch (error) {
-      console.error("Error getting connection count:", error);
+      logger.error("Error getting connection count:", error);
       return null;
     }
   }

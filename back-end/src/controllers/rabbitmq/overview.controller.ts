@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
+import logger from "../../core/logger";
 import {
   createRabbitMQClient,
   createErrorResponse,
@@ -70,7 +71,7 @@ overviewController.get("/servers/:id/overview", async (c) => {
 
     return c.json(response);
   } catch (error) {
-    console.error(`Error fetching overview for server ${id}:`, error);
+    logger.error(`Error fetching overview for server ${id}:`, error);
     return createErrorResponse(
       c,
       error,

@@ -1,5 +1,6 @@
 import React from "react";
 import { X, Check, Zap } from "lucide-react";
+import logger from "../../lib/logger";
 import {
   WorkspacePlan,
   getPlanDisplayName,
@@ -156,7 +157,7 @@ const PlanUpgradeModal: React.FC<PlanUpgradeModalProps> = ({
                     }`}
                     onClick={() => {
                       // Handle upgrade - you can integrate with your payment system
-                      console.log(`Upgrading to ${plan}`);
+                      logger.info(`Upgrading to ${plan}`);
                     }}
                   >
                     <Zap className="w-4 h-4 inline-block mr-2" />

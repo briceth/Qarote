@@ -3,6 +3,7 @@ import prisma from "../../core/prisma";
 import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
+import logger from "../../core/logger";
 
 const metricsController = new Hono();
 
@@ -43,7 +44,7 @@ metricsController.get("/servers/:id/metrics", async (c) => {
       metrics: enhancedMetrics,
     });
   } catch (error) {
-    console.error(`Error fetching metrics for server ${id}:`, error);
+    logger.error(`Error fetching metrics for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch metrics");
   }
 });
@@ -182,7 +183,7 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
       aggregatedThroughput,
     });
   } catch (error) {
-    console.error(`Error fetching timeseries for server ${id}:`, error);
+    logger.error(`Error fetching timeseries for server ${id}:`, error);
     return createErrorResponse(
       c,
       error,

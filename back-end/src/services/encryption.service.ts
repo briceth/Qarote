@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import logger from "../core/logger";
 
 // Use environment variable for encryption key in production
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
@@ -34,7 +35,7 @@ export class EncryptionService {
 
       return decrypted;
     } catch (error) {
-      console.error("Decryption failed:", error);
+      logger.error("Decryption failed:", error);
       throw new Error("Failed to decrypt sensitive data");
     }
   }

@@ -12,6 +12,7 @@ import { ExchangeNode } from "./ExchangeNode";
 import { QueueNode } from "./QueueNode";
 import { MessageFlow } from "./MessageFlow";
 import { VisualizationControls } from "./VisualizationControls";
+import logger from "../../lib/logger";
 import {
   ExchangeNode as ExchangeNodeType,
   QueueNode as QueueNodeType,
@@ -760,7 +761,7 @@ export const RoutingVisualization: React.FC = () => {
                 }}
                 onExport={() => {
                   // TODO: Implement export functionality
-                  console.log("Export functionality would be implemented here");
+                  logger.info("Export functionality would be implemented here");
                 }}
                 metrics={metrics}
               />

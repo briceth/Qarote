@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import logger from "../lib/logger";
 import {
   Select,
   SelectContent,
@@ -142,7 +143,7 @@ export function FeedbackForm({ onSuccess, className }: FeedbackFormProps) {
 
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to submit feedback:", error);
+      logger.error("Failed to submit feedback:", error);
       toast({
         title: "Submission Failed",
         description: "Failed to submit feedback. Please try again.",

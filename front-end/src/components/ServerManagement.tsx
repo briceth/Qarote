@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import logger from "../lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -134,7 +135,7 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
       onServerUpdated();
     } catch (error) {
       toast.error("Failed to delete server. Please try again.");
-      console.error("Delete server error:", error);
+      logger.error("Delete server error:", error);
     }
   };
 

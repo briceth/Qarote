@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { User, Shield, MessageSquare, Crown } from "lucide-react";
+import logger from "../lib/logger";
 import {
   useProfile,
   useUpdateProfile,
@@ -159,7 +160,7 @@ const Profile = () => {
         }`
       );
     } catch (error) {
-      console.error("Invitation error:", error);
+      logger.error("Invitation error:", error);
       const errorMessage = extractErrorMessage(error);
       toast.error(errorMessage);
     }
@@ -173,7 +174,7 @@ const Profile = () => {
       await revokeInvitationMutation.mutateAsync(invitationId);
       toast.success(`Invitation to ${email} has been revoked`);
     } catch (error) {
-      console.error("Revoke invitation error:", error);
+      logger.error("Revoke invitation error:", error);
       const errorMessage = extractErrorMessage(error);
       toast.error(errorMessage);
     }

@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
+import logger from "../lib/logger";
 import {
   StorageSettings,
   RetentionSettings,
@@ -45,7 +46,7 @@ export function DataRetentionSettings({
         );
         setSettings(response.privacy as CompanyPrivacySettings);
       } catch (error) {
-        console.error("Failed to load privacy settings:", error);
+        logger.error("Failed to load privacy settings:", error);
         toast({
           title: "Error",
           description: "Failed to load privacy settings",
@@ -93,7 +94,7 @@ export function DataRetentionSettings({
         description: "Privacy settings have been saved successfully",
       });
     } catch (error) {
-      console.error("Failed to update privacy settings:", error);
+      logger.error("Failed to update privacy settings:", error);
       toast({
         title: "Error",
         description: "Failed to update privacy settings",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import logger from "../../lib/logger";
 import {
   Card,
   CardContent,
@@ -82,7 +83,7 @@ export function FeedbackDetail({ feedbackId, onClose }: FeedbackDetailProps) {
       setStatus(data.feedback.status);
       setResponse(data.feedback.response || "");
     } catch (err) {
-      console.error("Failed to load feedback:", err);
+      logger.error("Failed to load feedback:", err);
       setError(err instanceof Error ? err.message : "Failed to load feedback");
     } finally {
       setLoading(false);
@@ -106,7 +107,7 @@ export function FeedbackDetail({ feedbackId, onClose }: FeedbackDetailProps) {
       // Reload feedback to get updated data
       await loadFeedback();
     } catch (err) {
-      console.error("Failed to update feedback:", err);
+      logger.error("Failed to update feedback:", err);
       setError(
         err instanceof Error ? err.message : "Failed to update feedback"
       );
@@ -131,7 +132,7 @@ export function FeedbackDetail({ feedbackId, onClose }: FeedbackDetailProps) {
       await apiClient.deleteFeedback(feedback.id);
       onClose();
     } catch (err) {
-      console.error("Failed to delete feedback:", err);
+      logger.error("Failed to delete feedback:", err);
       setError(
         err instanceof Error ? err.message : "Failed to delete feedback"
       );

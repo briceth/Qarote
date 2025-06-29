@@ -1,4 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
+import logger from "../core/logger";
 
 export interface PlanLimits {
   canAddQueue: boolean;
@@ -198,7 +199,7 @@ export function validateQueueCreation(
 ): void {
   const limits = getPlanLimits(plan);
 
-  console.log(
+  logger.info(
     `validateQueueCreation: plan=${plan}, canAddQueue=${limits.canAddQueue}, currentCount=${currentQueueCount}, maxQueues=${limits.maxQueues}`
   );
 
@@ -254,7 +255,7 @@ export function validateMessageSending(
 ): void {
   const limits = getPlanLimits(plan);
 
-  console.log(
+  logger.info(
     `validateMessageSending: plan=${plan}, canSendMessages=${limits.canSendMessages}, currentMessages=${currentMonthlyMessages}, maxMessages=${limits.maxMessagesPerMonth}`
   );
 

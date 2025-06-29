@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import logger from "../../lib/logger";
 import {
   Card,
   CardContent,
@@ -105,7 +106,7 @@ export function FeedbackStats() {
       const response = await apiClient.getFeedbackStats();
       setStats(response.stats);
     } catch (err) {
-      console.error("Failed to load feedback stats:", err);
+      logger.error("Failed to load feedback stats:", err);
       setError(
         err instanceof Error ? err.message : "Failed to load statistics"
       );

@@ -1,3 +1,4 @@
+import logger from "../logger";
 import type {
   RabbitMQOverview,
   RabbitMQConnection,
@@ -46,10 +47,10 @@ export class RabbitMQMetricsCalculator {
       }
 
       // Default latency for idle system
-      console.warn("No active message flow detected, using default latency");
+      logger.warn("No active message flow detected, using default latency");
       return 1.2;
     } catch (error) {
-      console.error("Error calculating latency:", error);
+      logger.error("Error calculating latency:", error);
       return 2.5; // Default fallback
     }
   }
@@ -57,7 +58,7 @@ export class RabbitMQMetricsCalculator {
   static calculateDiskUsage(nodes: RabbitMQNode[]): number {
     try {
       if (!nodes?.length) {
-        console.warn("No RabbitMQ nodes available for disk usage calculation");
+        logger.warn("No RabbitMQ nodes available for disk usage calculation");
         return 0;
       }
 
@@ -93,12 +94,12 @@ export class RabbitMQMetricsCalculator {
         }, 0) / nodes.length;
 
       // Assume disk usage correlates somewhat with memory usage for RabbitMQ
-      console.warn(
+      logger.warn(
         "Using memory usage to estimate disk usage due to missing disk stats"
       );
       return Math.max(25, Math.min(85, avgMemoryUsage * 0.8 + 20));
     } catch (error) {
-      console.error("Error calculating disk usage:", error);
+      logger.error("Error calculating disk usage:", error);
       return 45; // Default fallback
     }
   }
@@ -106,7 +107,7 @@ export class RabbitMQMetricsCalculator {
   static calculateTotalMemoryBytes(nodes: RabbitMQNode[]): number {
     try {
       if (!nodes?.length) {
-        console.warn("No RabbitMQ nodes available for memory calculation");
+        logger.warn("No RabbitMQ nodes available for memory calculation");
         return 0;
       }
 
@@ -133,7 +134,7 @@ export class RabbitMQMetricsCalculator {
 
       return totalMemory;
     } catch (error) {
-      console.error("Error calculating total memory:", error);
+      logger.error("Error calculating total memory:", error);
       return 8589934592; // Default fallback: 8GB in bytes
     }
   }
@@ -141,7 +142,7 @@ export class RabbitMQMetricsCalculator {
   static calculateAverageCpuUsage(nodes: RabbitMQNode[]): number {
     try {
       if (!nodes?.length) {
-        console.warn("No RabbitMQ nodes available for CPU calculation");
+        logger.warn("No RabbitMQ nodes available for CPU calculation");
         return 0;
       }
 
@@ -178,14 +179,14 @@ export class RabbitMQMetricsCalculator {
       }
 
       if (nodeCount === 0) {
-        console.warn("No active RabbitMQ nodes found for CPU calculation");
+        logger.warn("No active RabbitMQ nodes found for CPU calculation");
         return 0;
       }
 
       const avgCpuUsage = totalCpuUsage / nodeCount;
       return Math.max(0, Math.min(100, avgCpuUsage));
     } catch (error) {
-      console.error("Error calculating average CPU usage:", error);
+      logger.error("Error calculating average CPU usage:", error);
       return 15; // Default fallback: 15% CPU usage
     }
   }

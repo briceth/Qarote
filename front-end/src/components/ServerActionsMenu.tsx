@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logger from "../lib/logger";
 import {
   MoreVertical,
   Edit,
@@ -58,7 +59,7 @@ export function ServerActionsMenu({
       onServerUpdated?.();
     } catch (error) {
       toast.error("Failed to delete server. Please try again.");
-      console.error("Delete server error:", error);
+      logger.error("Delete server error:", error);
     }
   };
 

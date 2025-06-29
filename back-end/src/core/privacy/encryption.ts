@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import logger from "../logger";
 
 /**
  * Encryption utilities for sensitive data
@@ -32,7 +33,7 @@ export class EncryptionService {
         tag: cipher.getAuthTag().toString("hex"),
       };
     } catch (error) {
-      console.error("Encryption error:", error);
+      logger.error("Encryption error:", error);
       throw new Error("Failed to encrypt data");
     }
   }
@@ -61,7 +62,7 @@ export class EncryptionService {
 
       return JSON.parse(decrypted);
     } catch (error) {
-      console.error("Decryption error:", error);
+      logger.error("Decryption error:", error);
       throw new Error("Failed to decrypt data");
     }
   }

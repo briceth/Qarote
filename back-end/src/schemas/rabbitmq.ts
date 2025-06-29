@@ -3,8 +3,7 @@ import { z } from "zod/v4";
 
 const HostSchema = z
   .string({
-    required_error: "Host is required",
-    invalid_type_error: "Host must be a string",
+    message: "Host must be a string",
   })
   .min(1, "Host is required")
   .max(253, "Host must be 253 characters or less")
@@ -67,10 +66,10 @@ export const PublishMessageSchema = z.object({
       timestamp: z.number().optional(),
       type: z.string().optional(),
       headers: z
-        .record(z.union([z.string(), z.number(), z.boolean()]))
+        .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
         .optional(),
     })
-    .default({}),
+    .default(() => ({ delivery_mode: 2 })),
 });
 
 // Schema for creating a new queue
@@ -80,7 +79,7 @@ export const CreateQueueSchema = z.object({
   autoDelete: z.boolean().default(false),
   exclusive: z.boolean().default(false),
   arguments: z
-    .record(z.union([z.string(), z.number(), z.boolean()]))
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
     .default({}),
   // Optional binding configuration
   bindToExchange: z.string().optional(),

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import logger from "../../lib/logger";
 import {
   CreditCard,
   Download,
@@ -119,7 +120,7 @@ export const BillingTab: React.FC = () => {
         setSubscription(data.subscription);
       }
     } catch (error) {
-      console.error("Error fetching subscription:", error);
+      logger.error("Error fetching subscription:", error);
     }
   }, [token]);
 
@@ -150,7 +151,7 @@ export const BillingTab: React.FC = () => {
           setPagination(data.pagination);
         }
       } catch (error) {
-        console.error("Error fetching payments:", error);
+        logger.error("Error fetching payments:", error);
       } finally {
         setLoading(false);
         setLoadingMore(false);

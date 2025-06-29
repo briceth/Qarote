@@ -4,6 +4,7 @@ import { WorkspacePlan } from "@/lib/plans/planUtils";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadStripe } from "@stripe/stripe-js";
+import logger from "../lib/logger";
 
 // Initialize Stripe
 const stripePromise = loadStripe(
@@ -71,7 +72,7 @@ export const usePlanUpgrade = () => {
       // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (error) {
-      console.error("Error upgrading plan:", error);
+      logger.error("Error upgrading plan:", error);
       alert("There was an error upgrading your plan. Please try again.");
     } finally {
       setIsUpgrading(false);
@@ -102,7 +103,7 @@ export const usePlanUpgrade = () => {
       const { url } = await response.json();
       window.location.href = url;
     } catch (error) {
-      console.error("Error opening customer portal:", error);
+      logger.error("Error opening customer portal:", error);
       alert(
         "There was an error opening the customer portal. Please try again."
       );

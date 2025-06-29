@@ -5,6 +5,7 @@ import prisma from "../core/prisma";
 import { authenticate, authorize, SafeUser } from "../core/auth";
 import { isSuperAdmin } from "../core/superAdmin";
 import { UserRole } from "@prisma/client";
+import logger from "../core/logger";
 
 const feedbackController = new Hono();
 
@@ -83,7 +84,7 @@ feedbackController.post(
         feedback,
       });
     } catch (error) {
-      console.error("Error submitting feedback:", error);
+      logger.error("Error submitting feedback:", error);
       return c.json({ error: "Failed to submit feedback" }, 500);
     }
   }
@@ -164,7 +165,7 @@ feedbackController.get(
         },
       });
     } catch (error) {
-      console.error("Error fetching feedback:", error);
+      logger.error("Error fetching feedback:", error);
       return c.json({ error: "Failed to fetch feedback" }, 500);
     }
   }
@@ -220,7 +221,7 @@ feedbackController.get(
 
       return c.json({ feedback });
     } catch (error) {
-      console.error("Error fetching feedback:", error);
+      logger.error("Error fetching feedback:", error);
       return c.json({ error: "Failed to fetch feedback" }, 500);
     }
   }
@@ -292,7 +293,7 @@ feedbackController.put(
         feedback,
       });
     } catch (error) {
-      console.error("Error updating feedback:", error);
+      logger.error("Error updating feedback:", error);
       return c.json({ error: "Failed to update feedback" }, 500);
     }
   }
@@ -358,7 +359,7 @@ feedbackController.get(
 
       return c.json({ stats });
     } catch (error) {
-      console.error("Error fetching feedback stats:", error);
+      logger.error("Error fetching feedback stats:", error);
       return c.json({ error: "Failed to fetch feedback stats" }, 500);
     }
   }
@@ -387,7 +388,7 @@ feedbackController.delete(
 
       return c.json({ message: "Feedback deleted successfully" });
     } catch (error) {
-      console.error("Error deleting feedback:", error);
+      logger.error("Error deleting feedback:", error);
       return c.json({ error: "Failed to delete feedback" }, 500);
     }
   }

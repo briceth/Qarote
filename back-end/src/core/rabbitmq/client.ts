@@ -16,6 +16,7 @@ import type {
 import { RabbitMQApiClient } from "./ApiClient";
 import { RabbitMQQueueClient } from "./QueueClient";
 import { RabbitMQMetricsCalculator } from "./MetricsCalculator";
+import logger from "../logger";
 
 /**
  * Main RabbitMQ client that combines all functionality
@@ -93,7 +94,7 @@ export class RabbitMQClient extends RabbitMQApiClient {
         channels
       );
     } catch (error) {
-      console.error("Error fetching comprehensive metrics:", error);
+      logger.error("Error fetching comprehensive metrics:", error);
       throw error;
     }
   }

@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import logger from "./logger";
 
 interface StreamInfo {
   id: string;
@@ -34,7 +35,7 @@ class DatabaseStreamRegistry {
       2 * 60 * 1000
     );
 
-    console.log(
+    logger.info(
       `DatabaseStreamRegistry initialized with instance ID: ${this.serverInstanceId}`
     );
   }
@@ -65,13 +66,13 @@ class DatabaseStreamRegistry {
       this.localCleanupFunctions.set(streamId, cleanup);
 
       const activeCount = await this.getActiveStreamCount();
-      console.log(
+      logger.info(
         `Stream registered in DB: ${streamId}, total active: ${activeCount}`
       );
 
       return true;
     } catch (error) {
-      console.error(`Error registering stream ${streamId}:`, error);
+      logger.error(`Error registering stream ${streamId}:`, error);
       return false;
     }
   }
@@ -84,11 +85,11 @@ class DatabaseStreamRegistry {
       });
 
       if (!stream) {
-        console.log(`Stream not found in DB: ${streamId}`);
+        logger.info(`Stream not found in DB: ${streamId}`);
         return false;
       }
 
-      console.log(
+      logger.info(
         `Stopping stream: ${streamId} (status: ${stream.status}, instance: ${stream.serverInstance})`
       );
 
@@ -102,12 +103,12 @@ class DatabaseStreamRegistry {
       if (stream.serverInstance === this.serverInstanceId) {
         const cleanup = this.localCleanupFunctions.get(streamId);
         if (cleanup) {
-          console.log(`Executing local cleanup for stream: ${streamId}`);
+          logger.info(`Executing local cleanup for stream: ${streamId}`);
           cleanup();
           this.localCleanupFunctions.delete(streamId);
         }
       } else {
-        console.log(
+        logger.info(
           `Stream ${streamId} belongs to different server instance: ${stream.serverInstance}`
         );
         // For cross-server cleanup, we could use PostgreSQL LISTEN/NOTIFY
@@ -119,10 +120,10 @@ class DatabaseStreamRegistry {
         where: { id: streamId },
       });
 
-      console.log(`Stream stopped and removed from DB: ${streamId}`);
+      logger.info(`Stream stopped and removed from DB: ${streamId}`);
       return true;
     } catch (error) {
-      console.error(`Error stopping stream ${streamId}:`, error);
+      logger.error(`Error stopping stream ${streamId}:`, error);
       return false;
     }
   }
@@ -144,10 +145,10 @@ class DatabaseStreamRegistry {
         }
       }
 
-      console.log(`Stopped ${stopped} streams for user: ${userId}`);
+      logger.info(`Stopped ${stopped} streams for user: ${userId}`);
       return stopped;
     } catch (error) {
-      console.error(`Error stopping user streams for ${userId}:`, error);
+      logger.error(`Error stopping user streams for ${userId}:`, error);
       return 0;
     }
   }
@@ -168,10 +169,10 @@ class DatabaseStreamRegistry {
         }
       }
 
-      console.log(`Stopped ${stopped} streams for server: ${serverId}`);
+      logger.info(`Stopped ${stopped} streams for server: ${serverId}`);
       return stopped;
     } catch (error) {
-      console.error(`Error stopping server streams for ${serverId}:`, error);
+      logger.error(`Error stopping server streams for ${serverId}:`, error);
       return 0;
     }
   }
@@ -193,12 +194,12 @@ class DatabaseStreamRegistry {
         }
       }
 
-      console.log(
+      logger.info(
         `Stopped ${stopped} streams for server instance: ${instanceId}`
       );
       return stopped;
     } catch (error) {
-      console.error(
+      logger.error(
         `Error stopping instance streams for ${serverInstance}:`,
         error
       );
@@ -226,7 +227,7 @@ class DatabaseStreamRegistry {
         duration: now - stream.startTime.getTime(),
       }));
     } catch (error) {
-      console.error("Error fetching active streams:", error);
+      logger.error("Error fetching active streams:", error);
       return [];
     }
   }
@@ -254,7 +255,7 @@ class DatabaseStreamRegistry {
         duration: now - stream.startTime.getTime(),
       }));
     } catch (error) {
-      console.error(`Error fetching user streams for ${userId}:`, error);
+      logger.error(`Error fetching user streams for ${userId}:`, error);
       return [];
     }
   }
@@ -265,7 +266,7 @@ class DatabaseStreamRegistry {
         where: { status: "ACTIVE" },
       });
     } catch (error) {
-      console.error("Error counting active streams:", error);
+      logger.error("Error counting active streams:", error);
       return 0;
     }
   }
@@ -285,7 +286,7 @@ class DatabaseStreamRegistry {
         {} as Record<string, StreamInfo[]>
       );
     } catch (error) {
-      console.error("Error grouping streams by server:", error);
+      logger.error("Error grouping streams by server:", error);
       return {};
     }
   }
@@ -304,12 +305,12 @@ class DatabaseStreamRegistry {
       });
 
       if (updated.count > 0) {
-        console.log(
+        logger.info(
           `Updated heartbeat for ${updated.count} streams on instance ${this.serverInstanceId}`
         );
       }
     } catch (error) {
-      console.error("Error updating heartbeat:", error);
+      logger.error("Error updating heartbeat:", error);
     }
   }
 
@@ -327,7 +328,7 @@ class DatabaseStreamRegistry {
 
       let cleanedUp = 0;
       for (const stream of staleStreams) {
-        console.log(
+        logger.info(
           `Cleaning up stale stream: ${stream.id} (last heartbeat: ${stream.lastHeartbeat})`
         );
 
@@ -349,10 +350,10 @@ class DatabaseStreamRegistry {
       }
 
       if (cleanedUp > 0) {
-        console.log(`Cleaned up ${cleanedUp} stale streams`);
+        logger.info(`Cleaned up ${cleanedUp} stale streams`);
       }
     } catch (error) {
-      console.error("Error cleaning up stale streams:", error);
+      logger.error("Error cleaning up stale streams:", error);
     }
   }
 
@@ -417,13 +418,13 @@ class DatabaseStreamRegistry {
         myInstanceId: this.serverInstanceId,
       };
     } catch (error) {
-      console.error("Error getting health stats:", error);
+      logger.error("Error getting health stats:", error);
       return null;
     }
   }
 
   async cleanup() {
-    console.log("Cleaning up DatabaseStreamRegistry...");
+    logger.info("Cleaning up DatabaseStreamRegistry...");
 
     try {
       // Stop intervals
@@ -436,11 +437,11 @@ class DatabaseStreamRegistry {
 
       // Clean up all streams for this server instance
       const stoppedCount = await this.stopInstanceStreams();
-      console.log(
+      logger.info(
         `DatabaseStreamRegistry cleanup complete: stopped ${stoppedCount} streams`
       );
     } catch (error) {
-      console.error("Error during DatabaseStreamRegistry cleanup:", error);
+      logger.error("Error during DatabaseStreamRegistry cleanup:", error);
     }
   }
 }

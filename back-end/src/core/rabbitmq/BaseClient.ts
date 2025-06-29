@@ -1,4 +1,5 @@
 import type { RabbitMQCredentials, SSLConfig } from "../../types/rabbitmq";
+import logger from "../logger";
 
 /**
  * Base RabbitMQ client with connection management and request handling
@@ -38,7 +39,7 @@ export class RabbitMQBaseClient {
         process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
       }
 
-      console.debug(
+      logger.debug(
         `Fetching RabbitMQ API endpoint: ${this.baseUrl}${endpoint}`
       );
 
@@ -50,7 +51,7 @@ export class RabbitMQBaseClient {
         );
       }
 
-      console.log(
+      logger.info(
         `Fetched ${endpoint} successfully: ${response.status} ${response.statusText}`
       );
 
@@ -65,8 +66,8 @@ export class RabbitMQBaseClient {
         return text ? { message: text } : {};
       }
     } catch (error) {
-      console.error(error);
-      console.error(`Error fetching from RabbitMQ API (${endpoint}):`, error);
+      logger.error(error);
+      logger.error(`Error fetching from RabbitMQ API (${endpoint}):`, error);
       throw error;
     }
   }

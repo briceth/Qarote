@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
+import logger from "../../core/logger";
 
 const infrastructureController = new Hono();
 
@@ -22,7 +23,7 @@ infrastructureController.get("/servers/:id/nodes", async (c) => {
     const nodes = await client.getNodes();
     return c.json({ nodes });
   } catch (error) {
-    console.error(`Error fetching nodes for server ${id}:`, error);
+    logger.error(`Error fetching nodes for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch nodes");
   }
 });
@@ -40,7 +41,7 @@ infrastructureController.get("/servers/:id/exchanges", async (c) => {
     const exchanges = await client.getExchanges();
     return c.json({ exchanges });
   } catch (error) {
-    console.error(`Error fetching exchanges for server ${id}:`, error);
+    logger.error(`Error fetching exchanges for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch exchanges");
   }
 });
@@ -58,7 +59,7 @@ infrastructureController.get("/servers/:id/connections", async (c) => {
     const connections = await client.getConnections();
     return c.json({ connections });
   } catch (error) {
-    console.error(`Error fetching connections for server ${id}:`, error);
+    logger.error(`Error fetching connections for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch connections");
   }
 });
@@ -76,7 +77,7 @@ infrastructureController.get("/servers/:id/channels", async (c) => {
     const channels = await client.getChannels();
     return c.json({ channels });
   } catch (error) {
-    console.error(`Error fetching channels for server ${id}:`, error);
+    logger.error(`Error fetching channels for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch channels");
   }
 });

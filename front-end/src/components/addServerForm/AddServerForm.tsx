@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import logger from "../../lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -200,7 +201,7 @@ export const AddServerForm = ({
               onUpgrade={() => {
                 // Navigate to upgrade page or show upgrade modal
                 // For now, we'll just log - this can be enhanced later
-                console.log("Upgrade plan requested");
+                logger.info("Upgrade plan requested");
               }}
             />
           </form>

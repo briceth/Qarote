@@ -8,6 +8,7 @@ import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useQueues, queryKeys, useMonthlyMessageCount } from "@/hooks/useApi";
+import logger from "../lib/logger";
 import {
   canUserAddQueueWithCount,
   canUserSendMessagesWithCount,
@@ -65,7 +66,7 @@ const Queues = () => {
 
   // Wrapper for refetch with logging to debug refresh issues
   const handleRefetch = async () => {
-    console.log("Queues page: Refetching queue data...");
+    logger.info("Queues page: Refetching queue data...");
     try {
       // Use both methods to ensure refresh works
       await Promise.all([
@@ -74,9 +75,9 @@ const Queues = () => {
           queryKey: queryKeys.queues(selectedServerId),
         }),
       ]);
-      console.log("Queues page: Refetch completed successfully");
+      logger.info("Queues page: Refetch completed successfully");
     } catch (error) {
-      console.error("Queues page: Refetch failed:", error);
+      logger.error("Queues page: Refetch failed:", error);
     }
   };
 

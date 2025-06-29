@@ -7,6 +7,7 @@ import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
 import { validateMessageSending } from "../../services/plan-validation.service";
+import logger from "../../core/logger";
 import {
   getWorkspacePlan,
   getMonthlyMessageCount,
@@ -36,7 +37,7 @@ messagesController.post(
         .object({
           deliveryMode: z.number().optional(),
           priority: z.number().optional(),
-          headers: z.record(z.any()).optional(),
+          headers: z.record(z.string(), z.any()).optional(),
           expiration: z.string().optional(),
           appId: z.string().optional(),
           contentType: z.string().optional(),
@@ -80,7 +81,7 @@ messagesController.post(
         getMonthlyMessageCount(server.workspaceId),
       ]);
 
-      console.log(
+      logger.info(
         `Message sending validation: Plan=${plan}, Monthly messages=${monthlyMessageCount}`
       );
       validateMessageSending(plan, monthlyMessageCount);
@@ -199,7 +200,7 @@ messagesController.post(
         messageLength: message.length,
       });
     } catch (error) {
-      console.error("Error sending message:", error);
+      logger.error("Error sending message:", error);
       return createErrorResponse(c, error, 500, "Failed to send message");
     }
   }
@@ -243,7 +244,7 @@ messagesController.get(
         // Create unique stream ID
         const streamId = `${user.id}:${serverId}:${queueName}:${Date.now()}`;
 
-        console.log(
+        logger.info(
           `SSE stream started for queue: ${queueName}, server: ${serverId}, user: ${user.id}, streamId: ${streamId}`
         );
 
@@ -263,7 +264,7 @@ messagesController.get(
             clearTimeout(maxDurationTimeout);
           }
 
-          console.log(
+          logger.info(
             `SSE stream ended for queue: ${queueName}, streamId: ${streamId}, duration: ${duration}ms, messages sent: ${messageIndex}`
           );
         };
@@ -279,7 +280,7 @@ messagesController.get(
 
         // Handle client disconnect/abort
         stream.onAbort = async () => {
-          console.log(
+          logger.info(
             `SSE stream aborted by client for queue: ${queueName}, streamId: ${streamId}`
           );
           await streamRegistry.stop(streamId);
@@ -288,7 +289,7 @@ messagesController.get(
         // Set a maximum connection duration (30 minutes) to prevent indefinite connections
         const maxDuration = 30 * 60 * 1000; // 30 minutes
         const maxDurationTimeout = setTimeout(async () => {
-          console.log(
+          logger.info(
             `SSE stream max duration reached for queue: ${queueName}, streamId: ${streamId}`
           );
           await streamRegistry.stop(streamId);
@@ -308,7 +309,7 @@ messagesController.get(
               event: "heartbeat",
             });
           } catch (error) {
-            console.log(
+            logger.info(
               `Client connection lost for queue: ${queueName}`,
               error
             );
@@ -317,7 +318,7 @@ messagesController.get(
         };
 
         const streamMessages = async () => {
-          console.log(`isActive: ${isActive}`);
+          logger.info(`isActive: ${isActive}`);
           if (!isActive) return;
 
           try {
@@ -335,9 +336,9 @@ messagesController.get(
             const queue = await client.getQueue(queueName);
             const currentMessageCount = queue.messages || 0;
 
-            console.log(`currentMessageCount: ${currentMessageCount}`);
-            console.log(`lastMessageCount: ${lastMessageCount}`);
-            console.log(`messageIndex: ${messageIndex}`);
+            logger.info(`currentMessageCount: ${currentMessageCount}`);
+            logger.info(`lastMessageCount: ${lastMessageCount}`);
+            logger.info(`messageIndex: ${messageIndex}`);
 
             // If there are new messages or this is the first check
             if (
@@ -351,7 +352,7 @@ messagesController.get(
                 Math.min(count, 50)
               );
 
-              console.log(
+              logger.info(
                 `Fetched ${messages.length} messages from queue: ${queueName}`
               );
 
@@ -413,7 +414,7 @@ messagesController.get(
               event: "heartbeat",
             });
           } catch (error: unknown) {
-            console.error("Error in SSE stream:", error);
+            logger.error("Error in SSE stream:", error);
             // If we can't write to the stream, the client has likely disconnected
             const errorObj = error as Error;
             if (
@@ -422,7 +423,7 @@ messagesController.get(
               errorObj.message?.includes("closed") ||
               errorObj.message?.includes("disconnected")
             ) {
-              console.log(
+              logger.info(
                 `Client disconnected during streaming for queue: ${queueName}`
               );
               cleanup();
@@ -441,7 +442,7 @@ messagesController.get(
                   event: "error",
                 });
               } catch (writeError) {
-                console.log(
+                logger.info(
                   `Failed to write error to stream, client likely disconnected: ${writeError}`
                 );
                 cleanup();
@@ -470,7 +471,7 @@ messagesController.get(
         };
       });
     } catch (error) {
-      console.error(`Error browsing messages for queue ${queueName}:`, error);
+      logger.error(`Error browsing messages for queue ${queueName}:`, error);
       return createErrorResponse(c, error, 500, "Failed to browse messages");
     }
   }
@@ -508,7 +509,7 @@ messagesController.post(
 
       const totalActiveStreams = await streamRegistry.getActiveStreamCount();
 
-      console.log(
+      logger.info(
         `Stop stream requested for user: ${user.id}, server: ${serverId}, queue: ${queueName} - Stopped ${stoppedCount} streams`
       );
 
@@ -519,7 +520,7 @@ messagesController.post(
         activeStreams: totalActiveStreams,
       });
     } catch (error) {
-      console.error("Error processing stream stop:", error);
+      logger.error("Error processing stream stop:", error);
       return createErrorResponse(
         c,
         error,

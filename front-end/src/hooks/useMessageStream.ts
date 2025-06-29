@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStopMessageStreaming } from "./useApi";
+import logger from "../lib/logger";
 
 export interface StreamedMessage {
   id: number;
@@ -95,7 +96,7 @@ export function useMessageStream({
   }, [isConnecting, isConnected]);
 
   const disconnect = useCallback(async () => {
-    console.log("useMessageStream: Disconnecting", {
+    logger.info("useMessageStream: Disconnecting", {
       hasEventSource: !!eventSourceRef.current,
       hasAbortController: !!abortControllerRef.current,
       isConnected: isConnectedRef.current,
@@ -118,7 +119,7 @@ export function useMessageStream({
 
     // First, close the EventSource connection
     if (eventSourceRef.current) {
-      console.log("useMessageStream: Aborting SSE connection");
+      logger.info("useMessageStream: Aborting SSE connection");
       eventSourceRef.current.abort();
       eventSourceRef.current = null;
     }
@@ -126,7 +127,7 @@ export function useMessageStream({
       abortControllerRef.current &&
       abortControllerRef.current !== eventSourceRef.current
     ) {
-      console.log("useMessageStream: Aborting additional controller");
+      logger.info("useMessageStream: Aborting additional controller");
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
@@ -138,15 +139,15 @@ export function useMessageStream({
       (isConnectedRef.current || isConnectingRef.current)
     ) {
       try {
-        console.log("useMessageStream: Notifying backend to stop streaming");
+        logger.info("useMessageStream: Notifying backend to stop streaming");
         stopStreamingMutation.mutate(
           { serverId, queueName },
           {
             onSuccess: (result) => {
-              console.log("useMessageStream: Backend stop successful", result);
+              logger.info("useMessageStream: Backend stop successful", result);
             },
             onError: (error) => {
-              console.warn(
+              logger.warn(
                 "useMessageStream: Error notifying backend to stop:",
                 error
               );
@@ -155,7 +156,7 @@ export function useMessageStream({
           }
         );
       } catch (error) {
-        console.warn("useMessageStream: Error calling stop endpoint:", error);
+        logger.warn("useMessageStream: Error calling stop endpoint:", error);
         // Continue with cleanup even if stop endpoint fails
       }
     }
@@ -163,7 +164,7 @@ export function useMessageStream({
     setIsConnected(false);
     setIsConnecting(false);
     setError(null);
-    console.log("useMessageStream: Disconnect complete");
+    logger.info("useMessageStream: Disconnect complete");
   }, [queueName, serverId, stopStreamingMutation]);
 
   const connect = useCallback(() => {
@@ -176,7 +177,7 @@ export function useMessageStream({
       !token ||
       now - lastConnectAttemptRef.current < CONNECT_COOLDOWN
     ) {
-      console.log("useMessageStream: Connect attempt blocked", {
+      logger.info("useMessageStream: Connect attempt blocked", {
         isConnecting: isConnectingRef.current,
         isConnected: isConnectedRef.current,
         hasQueueName: !!queueName,
@@ -188,7 +189,7 @@ export function useMessageStream({
       return;
     }
 
-    console.log("useMessageStream: Starting new connection", {
+    logger.info("useMessageStream: Starting new connection", {
       queueName,
       serverId,
     });
@@ -204,7 +205,7 @@ export function useMessageStream({
 
     // Set connection timeout
     // connectionTimeoutRef.current = setTimeout(() => {
-    //   console.log("useMessageStream: Connection timeout");
+    //   logger.info("useMessageStream: Connection timeout");
     //   setError("Connection timeout after 30 seconds");
     //   disconnect();
     // }, CONNECTION_TIMEOUT);
@@ -229,7 +230,7 @@ export function useMessageStream({
             response.ok &&
             response.headers.get("content-type")?.includes("text/event-stream")
           ) {
-            console.log("SSE connection opened");
+            logger.info("SSE connection opened");
 
             // Clear connection timeout on successful connection
             if (connectionTimeoutRef.current) {
@@ -248,11 +249,11 @@ export function useMessageStream({
           ) {
             // client-side errors are not retryable
             const errorText = await response.text();
-            console.error("Client error:", response.status, errorText);
+            logger.error("Client error:", response.status, errorText);
             setError(`Client error: ${response.status}`);
             throw new Error(`Client error: ${response.status}`);
           } else {
-            console.error("Connection failed:", response.status);
+            logger.error("Connection failed:", response.status);
             setError(`Connection failed: ${response.status}`);
             throw new Error(`Connection failed: ${response.status}`);
           }
@@ -280,11 +281,11 @@ export function useMessageStream({
               });
             }
           } catch (parseError) {
-            console.error("Error parsing SSE data:", parseError);
+            logger.error("Error parsing SSE data:", parseError);
           }
         },
         onerror: (error) => {
-          console.error("SSE connection error:", error);
+          logger.error("SSE connection error:", error);
           setError("Connection error occurred");
           setIsConnected(false);
           setIsConnecting(false);
@@ -292,27 +293,27 @@ export function useMessageStream({
           throw error; // Re-throw to let fetchEventSource handle it
         },
         onclose: () => {
-          console.log("SSE connection closed");
+          logger.info("SSE connection closed");
           setIsConnected(false);
           setIsConnecting(false);
         },
       }).catch((error) => {
         if (error.name !== "AbortError") {
-          console.error("Error creating SSE connection:", error);
+          logger.error("Error creating SSE connection:", error);
           setError("Failed to create connection");
         }
         setIsConnecting(false);
         setIsConnected(false);
       });
     } catch (connectError) {
-      console.error("Error creating SSE connection:", connectError);
+      logger.error("Error creating SSE connection:", connectError);
       setError("Failed to create connection");
       setIsConnecting(false);
     }
 
     // Set a timeout to abort the connection attempt if it takes too long
     // connectionTimeoutRef.current = setTimeout(() => {
-    //   console.warn("Connection attempt timed out");
+    //   logger.warn("Connection attempt timed out");
     //   disconnect();
     // }, CONNECTION_TIMEOUT);
   }, [queueName, serverId, count, token, disconnect]);
@@ -358,7 +359,7 @@ export function useMessageStream({
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (isConnectedRef.current || isConnectingRef.current) {
-        console.log("useMessageStream: Page unloading, sending stop signal");
+        logger.info("useMessageStream: Page unloading, sending stop signal");
         // Use fetch with keepalive for reliable cleanup on page unload
         if (queueName && serverId && token) {
           fetch(
@@ -372,7 +373,7 @@ export function useMessageStream({
               keepalive: true, // 🔑 CRITICAL: Ensures request continues even if page unloads
             }
           ).catch((error) => {
-            console.error(
+            logger.error(
               "useMessageStream: Error in beforeunload stop call:",
               error
             );

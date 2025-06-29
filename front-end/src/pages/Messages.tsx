@@ -12,6 +12,7 @@ import { useQueues } from "@/hooks/useApi";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useMessageHistoryAccess } from "@/hooks/useMessageHistory";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
+import logger from "../lib/logger";
 
 const MessageBrowser = () => {
   const { selectedServerId } = useServerContext();
@@ -54,7 +55,7 @@ const MessageBrowser = () => {
     setExpandedMessages(newExpanded);
   };
 
-  console.log("Selected Server ID:", selectedServerId);
+  logger.info("Selected Server ID:", selectedServerId);
 
   if (!selectedServerId) {
     return (

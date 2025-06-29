@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 import prisma from "../core/prisma";
 import { authenticate } from "../core/auth";
 import { sendInvitationEmail } from "../services/email/email.service";
+import logger from "../core/logger";
 import {
   validateUserInvitation,
   calculateMonthlyCostForUsers,
@@ -104,7 +105,7 @@ invitationController.get("/", authenticate, async (c) => {
       count: invitations.length,
     });
   } catch (error) {
-    console.error("Error fetching invitations:", error);
+    logger.error("Error fetching invitations:", error);
     return c.json({ error: "Failed to fetch invitations" }, 500);
   }
 });
@@ -270,7 +271,7 @@ invitationController.post(
         },
       });
     } catch (error) {
-      console.error("Error sending invitation:", error);
+      logger.error("Error sending invitation:", error);
       return c.json({ error: "Failed to send invitation" }, 500);
     }
   }
@@ -321,7 +322,7 @@ invitationController.delete("/:id", authenticate, async (c) => {
       message: "Invitation revoked successfully",
     });
   } catch (error) {
-    console.error("Error revoking invitation:", error);
+    logger.error("Error revoking invitation:", error);
     return c.json({ error: "Failed to revoke invitation" }, 500);
   }
 });
@@ -435,7 +436,7 @@ invitationController.post("/:token/accept", async (c) => {
       },
     });
   } catch (error) {
-    console.error("Error accepting invitation:", error);
+    logger.error("Error accepting invitation:", error);
     return c.json({ error: "Failed to accept invitation" }, 500);
   }
 });
@@ -493,7 +494,7 @@ invitationController.get("/:token", async (c) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching invitation details:", error);
+    logger.error("Error fetching invitation details:", error);
     return c.json({ error: "Failed to fetch invitation details" }, 500);
   }
 });

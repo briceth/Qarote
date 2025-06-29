@@ -5,6 +5,7 @@ import { authMiddleware } from "@/middlewares/auth";
 import prisma from "@/core/prisma";
 import { StripeService } from "@/services/stripe.service";
 import { sendUpgradeConfirmationEmail } from "@/services/email/email.service";
+import logger from "../core/logger";
 import {
   WorkspacePlan,
   SubscriptionStatus,
@@ -89,7 +90,7 @@ app.post(
 
       return c.json({ url: session.url });
     } catch (error) {
-      console.error("Error creating checkout session:", error);
+      logger.error("Error creating checkout session:", error);
       return c.json({ error: "Failed to create checkout session" }, 500);
     }
   }
@@ -119,7 +120,7 @@ app.post("/portal", authMiddleware, async (c) => {
 
     return c.json({ url: session.url });
   } catch (error) {
-    console.error("Error creating portal session:", error);
+    logger.error("Error creating portal session:", error);
     return c.json({ error: "Failed to create portal session" }, 500);
   }
 });
@@ -143,7 +144,7 @@ app.get("/subscription", authMiddleware, async (c) => {
 
     return c.json({ subscription });
   } catch (error) {
-    console.error("Error fetching subscription:", error);
+    logger.error("Error fetching subscription:", error);
     return c.json({ error: "Failed to fetch subscription" }, 500);
   }
 });
@@ -180,7 +181,7 @@ app.get("/payments", authMiddleware, async (c) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching payments:", error);
+    logger.error("Error fetching payments:", error);
     return c.json({ error: "Failed to fetch payments" }, 500);
   }
 });
@@ -210,7 +211,7 @@ app.post("/webhook", async (c) => {
 
     return c.json({ received: true });
   } catch (error) {
-    console.error("Webhook error:", error);
+    logger.error("Webhook error:", error);
     return c.json({ error: "Webhook processing failed" }, 400);
   }
 });
@@ -239,7 +240,7 @@ async function processStripeWebhook(event: any) {
       break;
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      logger.info(`Unhandled event type: ${event.type}`);
   }
 }
 
@@ -249,7 +250,7 @@ async function handleCheckoutSessionCompleted(session: any) {
   const billingInterval = session.metadata?.billingInterval;
 
   if (!workspaceId || !plan) {
-    console.error("Missing metadata in checkout session");
+    logger.error("Missing metadata in checkout session");
     return;
   }
 
@@ -286,9 +287,9 @@ async function handleCheckoutSessionCompleted(session: any) {
       });
     }
 
-    console.log(`Workspace ${workspaceId} upgraded to ${plan}`);
+    logger.info(`Workspace ${workspaceId} upgraded to ${plan}`);
   } catch (error) {
-    console.error("Error handling checkout session completed:", error);
+    logger.error("Error handling checkout session completed:", error);
   }
 }
 
@@ -301,7 +302,7 @@ async function handleSubscriptionChange(subscription: any) {
     });
 
     if (!workspace) {
-      console.error(`Workspace not found for customer ${customerId}`);
+      logger.error(`Workspace not found for customer ${customerId}`);
       return;
     }
 
@@ -310,7 +311,7 @@ async function handleSubscriptionChange(subscription: any) {
     const billingInterval = StripeService.getBillingInterval(stripePriceId);
 
     if (!plan || !billingInterval) {
-      console.error(
+      logger.error(
         `Could not map Stripe price ${stripePriceId} to workspace plan`
       );
       return;
@@ -353,11 +354,11 @@ async function handleSubscriptionChange(subscription: any) {
       });
     }
 
-    console.log(
+    logger.info(
       `Subscription updated for workspace ${workspace.id}: ${plan} (${subscription.status})`
     );
   } catch (error) {
-    console.error("Error handling subscription change:", error);
+    logger.error("Error handling subscription change:", error);
   }
 }
 
@@ -370,7 +371,7 @@ async function handleSubscriptionDeleted(subscription: any) {
     });
 
     if (!workspace) {
-      console.error(`Workspace not found for customer ${customerId}`);
+      logger.error(`Workspace not found for customer ${customerId}`);
       return;
     }
 
@@ -389,11 +390,11 @@ async function handleSubscriptionDeleted(subscription: any) {
       }),
     ]);
 
-    console.log(
+    logger.info(
       `Subscription canceled for workspace ${workspace.id}, downgraded to FREE`
     );
   } catch (error) {
-    console.error("Error handling subscription deletion:", error);
+    logger.error("Error handling subscription deletion:", error);
   }
 }
 
@@ -406,7 +407,7 @@ async function handlePaymentSucceeded(invoice: any) {
     });
 
     if (!workspace) {
-      console.error(`Workspace not found for customer ${customerId}`);
+      logger.error(`Workspace not found for customer ${customerId}`);
       return;
     }
 
@@ -435,11 +436,11 @@ async function handlePaymentSucceeded(invoice: any) {
       },
     });
 
-    console.log(
+    logger.info(
       `Payment recorded for workspace ${workspace.id}: $${invoice.amount_paid / 100}`
     );
   } catch (error) {
-    console.error("Error handling payment succeeded:", error);
+    logger.error("Error handling payment succeeded:", error);
   }
 }
 
@@ -452,7 +453,7 @@ async function handlePaymentFailed(invoice: any) {
     });
 
     if (!workspace) {
-      console.error(`Workspace not found for customer ${customerId}`);
+      logger.error(`Workspace not found for customer ${customerId}`);
       return;
     }
 
@@ -478,11 +479,11 @@ async function handlePaymentFailed(invoice: any) {
       },
     });
 
-    console.log(
+    logger.info(
       `Payment failed for workspace ${workspace.id}: $${invoice.amount_due / 100}`
     );
   } catch (error) {
-    console.error("Error handling payment failed:", error);
+    logger.error("Error handling payment failed:", error);
   }
 }
 

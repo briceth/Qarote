@@ -3,6 +3,7 @@ import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
 import { createErrorResponse } from "./shared";
 import { streamRegistry } from "../../core/DatabaseStreamRegistry";
+import logger from "../../core/logger";
 
 const adminController = new Hono();
 
@@ -56,7 +57,7 @@ adminController.get("/admin/streams", async (c) => {
       ),
     });
   } catch (error) {
-    console.error("Error fetching active streams:", error);
+    logger.error("Error fetching active streams:", error);
     return createErrorResponse(c, error, 500, "Failed to fetch active streams");
   }
 });
@@ -72,7 +73,7 @@ adminController.post("/streams/stop-all", async (c) => {
     const stoppedCount = await streamRegistry.stopUserStreams(user.id);
     const remainingStreams = await streamRegistry.getActiveStreamCount();
 
-    console.log(
+    logger.info(
       `Stopped all streams for user: ${user.id}, count: ${stoppedCount}`
     );
 
@@ -83,7 +84,7 @@ adminController.post("/streams/stop-all", async (c) => {
       remainingStreams,
     });
   } catch (error) {
-    console.error("Error stopping all user streams:", error);
+    logger.error("Error stopping all user streams:", error);
     return createErrorResponse(c, error, 500, "Failed to stop all streams");
   }
 });
@@ -102,7 +103,7 @@ adminController.get("/streams/health", async (c) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error fetching stream health:", error);
+    logger.error("Error fetching stream health:", error);
     return createErrorResponse(c, error, 500, "Failed to fetch stream health");
   }
 });

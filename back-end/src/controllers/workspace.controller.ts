@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
 import prisma from "../core/prisma";
+import logger from "../core/logger";
 import {
   authenticate,
   authorize,
@@ -40,7 +41,7 @@ workspaceController.get("/", authorize([UserRole.ADMIN]), async (c) => {
 
     return c.json({ workspaces });
   } catch (error) {
-    console.error("Error fetching workspaces:", error);
+    logger.error("Error fetching workspaces:", error);
     return c.json({ error: "Failed to fetch workspaces" }, 500);
   }
 });
@@ -68,7 +69,7 @@ workspaceController.get("/current", async (c) => {
 
     return c.json({ workspace });
   } catch (error) {
-    console.error(`Error fetching workspace ${user.workspaceId}:`, error);
+    logger.error(`Error fetching workspace ${user.workspaceId}:`, error);
     return c.json({ error: "Failed to fetch workspace" }, 500);
   }
 });
@@ -87,7 +88,7 @@ workspaceController.get("/current/monthly-message-count", async (c) => {
       currentYear: new Date().getFullYear(),
     });
   } catch (error) {
-    console.error(
+    logger.error(
       `Error fetching monthly message count for workspace ${user.workspaceId}:`,
       error
     );
@@ -127,7 +128,7 @@ workspaceController.get("/:id", async (c) => {
 
     return c.json({ workspace });
   } catch (error) {
-    console.error(`Error fetching workspace ${id}:`, error);
+    logger.error(`Error fetching workspace ${id}:`, error);
     return c.json({ error: "Failed to fetch workspace" }, 500);
   }
 });
@@ -147,7 +148,7 @@ workspaceController.post(
 
       return c.json({ workspace }, 201);
     } catch (error) {
-      console.error("Error creating workspace:", error);
+      logger.error("Error creating workspace:", error);
       return c.json({ error: "Failed to create workspace" }, 500);
     }
   }
@@ -187,7 +188,7 @@ workspaceController.put(
 
       return c.json({ workspace });
     } catch (error) {
-      console.error(`Error updating workspace ${id}:`, error);
+      logger.error(`Error updating workspace ${id}:`, error);
       return c.json({ error: "Failed to update workspace" }, 500);
     }
   }
@@ -214,7 +215,7 @@ workspaceController.delete("/:id", authorize([UserRole.ADMIN]), async (c) => {
 
     return c.json({ message: "Workspace deleted successfully" });
   } catch (error) {
-    console.error(`Error deleting workspace ${id}:`, error);
+    logger.error(`Error deleting workspace ${id}:`, error);
     return c.json({ error: "Failed to delete workspace" }, 500);
   }
 });
@@ -287,7 +288,7 @@ workspaceController.get("/:id/stats", checkWorkspaceAccess, async (c) => {
 
     return c.json({ stats });
   } catch (error) {
-    console.error(`Error fetching stats for workspace ${id}:`, error);
+    logger.error(`Error fetching stats for workspace ${id}:`, error);
     return c.json({ error: "Failed to fetch workspace statistics" }, 500);
   }
 });
@@ -317,7 +318,7 @@ workspaceController.get("/:id/privacy", checkWorkspaceAccess, async (c) => {
 
     return c.json({ privacy: workspace });
   } catch (error) {
-    console.error(
+    logger.error(
       `Error fetching privacy settings for workspace ${c.req.param("id")}:`,
       error
     );
@@ -391,7 +392,7 @@ workspaceController.put(
 
       return c.json({ privacy: updatedWorkspace });
     } catch (error) {
-      console.error(
+      logger.error(
         `Error updating privacy settings for workspace ${c.req.param("id")}:`,
         error
       );
@@ -497,7 +498,7 @@ workspaceController.get(
 
       return c.json(exportData);
     } catch (error) {
-      console.error(
+      logger.error(
         `Error exporting data for workspace ${c.req.param("id")}:`,
         error
       );
@@ -572,7 +573,7 @@ workspaceController.delete(
         deletedBy: c.get("user").id,
       });
     } catch (error) {
-      console.error(
+      logger.error(
         `Error deleting data for workspace ${c.req.param("id")}:`,
         error
       );
@@ -602,7 +603,7 @@ workspaceController.get("/current/plan-limits", async (c) => {
       limits: planLimits,
     });
   } catch (error) {
-    console.error("Error fetching plan limits:", error);
+    logger.error("Error fetching plan limits:", error);
     return c.json({ error: "Failed to fetch plan limits" }, 500);
   }
 });

@@ -3,6 +3,7 @@ import prisma from "../../core/prisma";
 import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
+import logger from "../../core/logger";
 import {
   validateBasicMemoryMetricsAccess,
   validateAdvancedMemoryMetricsAccess,
@@ -27,7 +28,7 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
   const user = c.get("user");
 
   try {
-    console.log(`Fetching memory details for node ${nodeName} on server ${id}`);
+    logger.info(`Fetching memory details for node ${nodeName} on server ${id}`);
 
     // Verify the server belongs to the user's workspace
     const server = await prisma.rabbitMQServer.findFirst({
@@ -38,9 +39,9 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
       include: { workspace: true },
     });
 
-    console.log(`Server found:`, server ? "Yes" : "No");
+    logger.info(`Server found:`, server ? "Yes" : "No");
     if (server) {
-      console.log(`Server workspace plan:`, server.workspace?.plan);
+      logger.info(`Server workspace plan:`, server.workspace?.plan);
     }
 
     if (!server) {
@@ -270,7 +271,7 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
       },
     });
   } catch (error) {
-    console.error(
+    logger.error(
       `Error fetching memory details for node ${nodeName} on server ${id}:`,
       error
     );

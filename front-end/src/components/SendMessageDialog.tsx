@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import logger from "../lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -178,7 +179,7 @@ export function SendMessageDialog({
       try {
         parsedHeaders = JSON.parse(headers);
       } catch (error) {
-        console.error("Invalid headers JSON:", error);
+        logger.error("Invalid headers JSON:", error);
         return;
       }
     }
@@ -225,7 +226,7 @@ export function SendMessageDialog({
         },
         {
           onSuccess: (data) => {
-            console.log("publishMutation data", data);
+            logger.info("publishMutation data", data);
             if (data.routed) {
               setRoutingError(null); // Clear any previous routing errors
               setOpen(false);
@@ -236,7 +237,7 @@ export function SendMessageDialog({
               // Reset form
               resetForm();
               // Call the success callback to refresh queue data
-              console.log(
+              logger.info(
                 "SendMessageDialog: Calling onSuccess callback for queue mode"
               );
               handleRefreshAfterSuccess();
@@ -312,7 +313,7 @@ export function SendMessageDialog({
               // Reset form
               resetForm();
               // Call the success callback to refresh queue data
-              console.log(
+              logger.info(
                 "SendMessageDialog: Calling onSuccess callback for exchange mode"
               );
               handleRefreshAfterSuccess();
@@ -428,7 +429,7 @@ export function SendMessageDialog({
 
   // Enhanced refresh function that invalidates multiple caches
   const handleRefreshAfterSuccess = async () => {
-    console.log(
+    logger.info(
       "SendMessageDialog: Refreshing data after successful message send, serverId:",
       serverId
     );
@@ -444,13 +445,13 @@ export function SendMessageDialog({
           queryKey: queryKeys.monthlyMessageCount,
         });
 
-        console.log("SendMessageDialog: Cache invalidation completed");
+        logger.info("SendMessageDialog: Cache invalidation completed");
       }
 
       // Call the original onSuccess callback if provided
       onSuccess?.();
     } catch (error) {
-      console.error("SendMessageDialog: Error during cache refresh:", error);
+      logger.error("SendMessageDialog: Error during cache refresh:", error);
       // Still call onSuccess even if cache refresh fails
       onSuccess?.();
     }

@@ -9,6 +9,7 @@ import { useAuth } from "./AuthContext";
 import { apiClient } from "@/lib/api";
 import type { Workspace } from "@/lib/api/workspaceClient";
 import { WorkspacePlan } from "@/lib/plans/planUtils";
+import logger from "../lib/logger";
 
 interface WorkspaceContextType {
   workspace: Workspace | null;
@@ -57,7 +58,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch workspace";
       setError(errorMessage);
-      console.error("Failed to fetch workspace:", err);
+      logger.error("Failed to fetch workspace:", err);
     } finally {
       setIsLoading(false);
     }

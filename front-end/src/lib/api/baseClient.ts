@@ -1,3 +1,4 @@
+import logger from "../logger";
 /**
  * Base API Client
  * Core HTTP client with authentication and error handling
@@ -48,7 +49,7 @@ export abstract class BaseApiClient {
           errorMessage = errorData.message || errorData.error || errorMessage;
         } catch (parseError) {
           // If we can't parse the error response, use the generic error
-          console.warn(
+          logger.warn(
             `Could not parse error response for ${endpoint}:`,
             parseError
           );
@@ -60,7 +61,7 @@ export abstract class BaseApiClient {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
+      logger.error(`API request failed for ${endpoint}:`, error);
       throw error;
     }
   }

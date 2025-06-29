@@ -5,6 +5,7 @@ import { getPlanLimits } from "../plan-validation.service";
 import { InvitationEmail } from "./templates/invitation-email";
 import { WelcomeEmail } from "./templates/welcome-email";
 import { UpgradeConfirmationEmail } from "./templates/upgrade-confirmation-email";
+import logger from "../../core/logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -69,20 +70,20 @@ export async function sendInvitationEmail(
     });
 
     if (error) {
-      console.error("Failed to send invitation email:", error);
+      logger.error("Failed to send invitation email:", error);
       return {
         success: false,
         error: error.message || "Failed to send email",
       };
     }
 
-    console.log("Invitation email sent successfully:", data?.id);
+    logger.info("Invitation email sent successfully:", data?.id);
     return {
       success: true,
       messageId: data?.id,
     };
   } catch (error) {
-    console.error("Error sending invitation email:", error);
+    logger.error("Error sending invitation email:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
@@ -126,7 +127,7 @@ export async function sendWelcomeEmail(params: {
     });
 
     if (error) {
-      console.error("Failed to send welcome email:", error);
+      logger.error("Failed to send welcome email:", error);
       return {
         success: false,
         error: error.message || "Failed to send email",
@@ -138,7 +139,7 @@ export async function sendWelcomeEmail(params: {
       messageId: data?.id,
     };
   } catch (error) {
-    console.error("Error sending welcome email:", error);
+    logger.error("Error sending welcome email:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
@@ -178,10 +179,10 @@ export async function sendUpgradeConfirmationEmail({
       html: emailHtml,
     });
 
-    console.log("Upgrade confirmation email sent:", result);
+    logger.info("Upgrade confirmation email sent:", result);
     return result;
   } catch (error) {
-    console.error("Failed to send upgrade confirmation email:", error);
+    logger.error("Failed to send upgrade confirmation email:", error);
     throw error;
   }
 }

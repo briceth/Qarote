@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import logger from "../../lib/logger";
 import {
   Card,
   CardContent,
@@ -162,7 +163,7 @@ export function FeedbackList({
       const response = await apiClient.getFeedback(filters);
       setFeedbackData(response);
     } catch (err) {
-      console.error("Failed to load feedback:", err);
+      logger.error("Failed to load feedback:", err);
       setError(err instanceof Error ? err.message : "Failed to load feedback");
     } finally {
       setLoading(false);

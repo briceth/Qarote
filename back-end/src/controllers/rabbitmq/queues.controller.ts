@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { authenticate } from "../../core/auth";
 import { planValidationMiddleware } from "../../middlewares/plan-validation";
 import { CreateQueueSchema } from "../../schemas/rabbitmq";
+import logger from "../../core/logger";
 import {
   createRabbitMQClient,
   createErrorResponse,
@@ -128,7 +129,7 @@ queuesController.get("/servers/:id/queues", async (c) => {
 
     return c.json(response);
   } catch (error) {
-    console.error(`Error fetching queues for server ${id}:`, error);
+    logger.error(`Error fetching queues for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch queues");
   }
 });
@@ -147,7 +148,7 @@ queuesController.get("/servers/:id/queues/:queueName", async (c) => {
     const queue = await client.getQueue(queueName);
     return c.json({ queue });
   } catch (error) {
-    console.error(`Error fetching queue ${queueName} for server ${id}:`, error);
+    logger.error(`Error fetching queue ${queueName} for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch queue");
   }
 });
@@ -172,7 +173,7 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
       queueName,
     });
   } catch (error) {
-    console.error(
+    logger.error(
       `Error fetching consumers for queue ${queueName} on server ${id}:`,
       error
     );
@@ -222,7 +223,7 @@ queuesController.post(
         getWorkspaceResourceCounts(server.workspaceId),
       ]);
 
-      console.log(
+      logger.info(
         `Queue creation validation: Plan=${plan}, Current queues=${resourceCounts.queues}, Server over limit=${server.isOverQueueLimit}`
       );
 
@@ -248,7 +249,7 @@ queuesController.post(
         queue: result,
       });
     } catch (error) {
-      console.error("Error creating queue:", error);
+      logger.error("Error creating queue:", error);
       return createErrorResponse(c, error, 500, "Failed to create queue");
     }
   }
@@ -275,7 +276,7 @@ queuesController.delete(
         purged: -1, // -1 indicates all messages were purged
       });
     } catch (error) {
-      console.error(
+      logger.error(
         `Error purging queue ${queueName} on server ${serverId}:`,
         error
       );

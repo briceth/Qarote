@@ -1,10 +1,11 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { logger } from "hono/logger";
+import { logger as honoLogger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
+import logger from "./core/logger";
 
 import serverController from "./controllers/server.controller";
 import rabbitmqController from "./controllers/rabbitmq";
@@ -30,7 +31,7 @@ const prisma = new PrismaClient();
 
 const app = new Hono();
 
-app.use(logger());
+app.use(honoLogger());
 app.use("*", corsMiddleware);
 app.use("*", prettyJSON());
 app.use("*", secureHeaders());
@@ -58,14 +59,14 @@ const host = process.env.HOST;
 async function startServer() {
   try {
     await prisma.$connect();
-    console.log("Connected to database");
+    logger.info("Connected to database");
 
     // Start the alert monitoring service
     // alertService.start();
 
     // Initialize periodic cache cleanup (every hour)
     // const cleanupInterval = TemporaryStorage.startPeriodicCleanup(60);
-    // console.log("Cache cleanup service started (runs every 60 minutes)");
+    // logger.info("Cache cleanup service started (runs every 60 minutes)");
 
     serve(
       {
@@ -74,18 +75,18 @@ async function startServer() {
         hostname: host,
       },
       (info) => {
-        console.log(`Server is running on http://${info.address}:${info.port}`);
+        logger.info(`Server is running on http://${info.address}:${info.port}`);
       }
     );
   } catch (error) {
-    console.error("Failed to start server:", error);
+    logger.error("Failed to start server:", error);
     await prisma.$disconnect();
     process.exit(1);
   }
 }
 
 process.on("SIGINT", async () => {
-  console.log("Shutting down server...");
+  logger.info("Shutting down server...");
   // alertService.stop();
   await prisma.$disconnect();
   await streamRegistry.cleanup();
@@ -93,7 +94,7 @@ process.on("SIGINT", async () => {
 });
 
 process.on("SIGTERM", async () => {
-  console.log("Shutting down server...");
+  logger.info("Shutting down server...");
   // alertService.stop();
   await prisma.$disconnect();
   await streamRegistry.cleanup();

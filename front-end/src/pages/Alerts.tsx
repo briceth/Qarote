@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import logger from "../lib/logger";
 import {
   Card,
   CardContent,
@@ -73,7 +74,7 @@ const AlertDashboard: React.FC = () => {
       setAlertRules(rulesResponse);
       setStats(statsResponse);
     } catch (error) {
-      console.error("Error loading alerts data:", error);
+      logger.error("Error loading alerts data:", error);
     } finally {
       setLoading(false);
     }
@@ -88,7 +89,7 @@ const AlertDashboard: React.FC = () => {
       await apiClient.acknowledgeAlert(alertId);
       loadData(); // Refresh data
     } catch (error) {
-      console.error("Error acknowledging alert:", error);
+      logger.error("Error acknowledging alert:", error);
     }
   };
 
@@ -97,7 +98,7 @@ const AlertDashboard: React.FC = () => {
       await apiClient.resolveAlert(alertId);
       loadData(); // Refresh data
     } catch (error) {
-      console.error("Error resolving alert:", error);
+      logger.error("Error resolving alert:", error);
     }
   };
 

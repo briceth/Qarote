@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
 import prisma from "../core/prisma";
 import { authenticate } from "../core/auth";
+import logger from "../core/logger";
 import {
   PlanValidationError,
   getPlanLimits,
@@ -127,7 +128,7 @@ messageHistoryController.get(
         );
       }
 
-      console.error("Error searching message history:", error);
+      logger.error("Error searching message history:", error);
       return c.json({ error: "Internal server error" }, 500);
     }
   }
@@ -224,7 +225,7 @@ messageHistoryController.get(
         );
       }
 
-      console.error("Error getting message history stats:", error);
+      logger.error("Error getting message history stats:", error);
       return c.json({ error: "Internal server error" }, 500);
     }
   }

@@ -1,4 +1,5 @@
 import { RabbitMQBaseClient } from "./BaseClient";
+import logger from "../logger";
 import type {
   RabbitMQMessage,
   MessageProperties,
@@ -18,19 +19,19 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
   async purgeQueue(queueName: string): Promise<PurgeQueueResult> {
     const encodedQueueName = encodeURIComponent(queueName);
     try {
-      console.log(`Purging queue: ${queueName} (encoded: ${encodedQueueName})`);
+      logger.info(`Purging queue: ${queueName} (encoded: ${encodedQueueName})`);
 
       await this.request(`/queues/${this.vhost}/${encodedQueueName}/contents`, {
         method: "DELETE",
       });
 
-      console.log(`Queue "${queueName}" purged successfully (204 No Content)`);
+      logger.info(`Queue "${queueName}" purged successfully (204 No Content)`);
 
       // RabbitMQ returns 204 No Content on successful purge
       // We can't determine exact count, so return a success indicator
       return { purged: -1 }; // -1 indicates successful purge without count
     } catch (error) {
-      console.error(`Error purging queue "${queueName}":`, error);
+      logger.error(`Error purging queue "${queueName}":`, error);
       throw error;
     }
   }
@@ -49,7 +50,7 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
     };
 
     try {
-      console.log(
+      logger.info(
         `Browsing messages from queue: ${queueName} (count: ${count})`
       );
 
@@ -58,14 +59,14 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
         body: JSON.stringify(payload),
       });
 
-      console.log(
+      logger.info(
         `Retrieved ${
           Array.isArray(result) ? result.length : 0
         } messages from queue: ${queueName}`
       );
       return Array.isArray(result) ? result : [];
     } catch (error) {
-      console.error(
+      logger.error(
         `Error fetching messages from queue "${queueName}":`,
         error
       );
@@ -115,7 +116,7 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
       payload_encoding: "string",
     };
 
-    console.log(
+    logger.info(
       "Publishing message with data:",
       JSON.stringify(publishData, null, 2)
     );
@@ -125,7 +126,7 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
       body: JSON.stringify(publishData),
     });
 
-    console.log(
+    logger.info(
       "Publish result from RabbitMQ:",
       JSON.stringify(result, null, 2)
     );
@@ -152,7 +153,7 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
       body: JSON.stringify(queueData),
     });
 
-    console.log("result from createQueue:", result);
+    logger.info("result from createQueue:", result);
 
     return { created: true };
   }

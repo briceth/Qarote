@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Download, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logger from "../../lib/logger";
 import {
   Card,
   CardContent,
@@ -84,7 +85,7 @@ export function DataActions({
         description: "Workspace data has been exported and downloaded",
       });
     } catch (error) {
-      console.error("Export failed:", error);
+      logger.error("Export failed:", error);
       toast({
         title: "Export Failed",
         description: "Failed to export workspace data",
@@ -113,7 +114,7 @@ export function DataActions({
         description: "All workspace data has been permanently deleted",
       });
     } catch (error) {
-      console.error("Delete failed:", error);
+      logger.error("Delete failed:", error);
       toast({
         title: "Delete Failed",
         description: "Failed to delete workspace data",

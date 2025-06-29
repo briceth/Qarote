@@ -1,5 +1,6 @@
 import { Context, Next } from "hono";
 import prisma from "../core/prisma";
+import logger from "../core/logger";
 import {
   PlanValidationError,
   PlanLimitExceededError,
@@ -115,7 +116,7 @@ export async function getMonthlyMessageCount(
 
     return messageCount?.count || 0;
   } catch (error) {
-    console.error("Error fetching monthly message count:", error);
+    logger.error("Error fetching monthly message count:", error);
     return 0;
   }
 }
@@ -152,7 +153,7 @@ export async function incrementMonthlyMessageCount(
 
     return messageCount.count;
   } catch (error) {
-    console.error("Error incrementing monthly message count:", error);
+    logger.error("Error incrementing monthly message count:", error);
     throw new Error("Failed to increment message count");
   }
 }

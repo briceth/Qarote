@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import logger from "../../lib/logger";
 import {
   Card,
   CardContent,
@@ -70,11 +71,11 @@ export function LiveMessagesTab({
 
   const handleToggleStreaming = () => {
     if (isStreamingMode) {
-      console.log("User stopping message stream");
+      logger.info("User stopping message stream");
       setIsStreamingMode(false);
       //   disconnect();
     } else {
-      console.log("User starting message stream");
+      logger.info("User starting message stream");
       setIsStreamingMode(true);
       clearStreamedMessages();
     }

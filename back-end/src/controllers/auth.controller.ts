@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import prisma from "../core/prisma";
+import logger from "../core/logger";
 import {
   hashPassword,
   comparePassword,
@@ -44,7 +45,7 @@ authController.post(
 
       // Create transaction to handle workspace creation and user registration
       const result = await prisma.$transaction(async (tx) => {
-        let workspaceId = null;
+        let workspaceId: string;
 
         // Create workspace if workspaceName is provided
         // TODO: workspaceName should be required
@@ -56,6 +57,10 @@ authController.post(
             },
           });
           workspaceId = workspace.id;
+        } else {
+          // For now, throw an error if no workspace name is provided
+          // In the future, we might want to handle this differently
+          throw new Error("Workspace name is required for registration");
         }
 
         // Create user
@@ -66,7 +71,7 @@ authController.post(
             firstName,
             lastName,
             workspaceId,
-            role: workspaceId ? UserRole.ADMIN : UserRole.USER, // If creating a workspace, user is admin (TODO: note sure)
+            role: UserRole.ADMIN, // User is admin of their workspace
             lastLogin: new Date(),
           },
           select: {
@@ -111,7 +116,7 @@ authController.post(
             });
           }
         } catch (emailError) {
-          console.error(
+          logger.error(
             "Failed to send welcome email during registration:",
             emailError
           );
@@ -128,7 +133,7 @@ authController.post(
         201
       );
     } catch (error) {
-      console.error("Registration error:", error);
+      logger.error("Registration error:", error);
       return c.json({ error: "Failed to register user" }, 500);
     }
   }
@@ -188,7 +193,7 @@ authController.post("/login", zValidator("json", LoginSchema), async (c) => {
 
     return c.json({ user: safeUser, token });
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error("Login error:", error);
     return c.json({ error: "Failed to log in" }, 500);
   }
 });
@@ -230,7 +235,7 @@ authController.get("/me", authenticate, async (c) => {
 
     return c.json({ user: userWithWorkspace });
   } catch (error) {
-    console.error("Get profile error:", error);
+    logger.error("Get profile error:", error);
     return c.json({ error: "Failed to retrieve user profile" }, 500);
   }
 });
@@ -277,7 +282,7 @@ authController.post(
           : {}),
       });
     } catch (error) {
-      console.error("Password reset request error:", error);
+      logger.error("Password reset request error:", error);
       return c.json({ error: "Failed to process password reset request" }, 500);
     }
   }
@@ -295,7 +300,7 @@ authController.post(
       // For this example, we'll just return a success message
       return c.json({ message: "Password has been reset successfully" });
     } catch (error) {
-      console.error("Password reset error:", error);
+      logger.error("Password reset error:", error);
       return c.json({ error: "Failed to reset password" }, 500);
     }
   }
@@ -345,7 +350,7 @@ authController.post(
 
       return c.json({ message: "Password updated successfully" });
     } catch (error) {
-      console.error("Password change error:", error);
+      logger.error("Password change error:", error);
       return c.json({ error: "Failed to change password" }, 500);
     }
   }
@@ -456,7 +461,7 @@ authController.post(
             plan: invitation.workspace.plan,
           });
         } catch (emailError) {
-          console.error(
+          logger.error(
             "Failed to send welcome email during invitation acceptance:",
             emailError
           );
@@ -483,7 +488,7 @@ authController.post(
         workspace: invitation.workspace,
       });
     } catch (error) {
-      console.error("Accept invitation error:", error);
+      logger.error("Accept invitation error:", error);
       if (error instanceof Error) {
         return c.json({ error: error.message }, 400);
       }

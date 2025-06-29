@@ -1,6 +1,7 @@
 import prisma from "../prisma";
 import { EncryptionService } from "./encryption";
 import { DataType, StorageMode, type PrivacySettings } from "./types";
+import logger from "../logger";
 
 /**
  * Privacy management for user data and consent
@@ -32,7 +33,7 @@ export class PrivacyManager {
 
       return isTemporaryAllowed || isHistoricalAllowed;
     } catch (error) {
-      console.error("Error checking data storage permission:", error);
+      logger.error("Error checking data storage permission:", error);
       return false; // Fail-safe: no storage
     }
   }
@@ -89,7 +90,7 @@ export class PrivacyManager {
         consentDate: workspace.consentDate || undefined,
       };
     } catch (error) {
-      console.error("Error getting privacy settings:", error);
+      logger.error("Error getting privacy settings:", error);
       // Return strictest defaults on error
       return {
         userId,
@@ -139,7 +140,7 @@ export class PrivacyManager {
 
       return true;
     } catch (error) {
-      console.error("Error updating consent:", error);
+      logger.error("Error updating consent:", error);
       return false;
     }
   }
@@ -168,14 +169,14 @@ export class PrivacyManager {
 
       // Here you would store the data in your chosen storage
       // This is a placeholder - implement based on your needs
-      console.log(`Storing ${dataType} data for user ${userId}`, {
+      logger.info(`Storing ${dataType} data for user ${userId}`, {
         encrypted: settings.encryptData,
         storageMode: settings.storageMode,
       });
 
       return true;
     } catch (error) {
-      console.error("Error storing data with privacy:", error);
+      logger.error("Error storing data with privacy:", error);
       return false;
     }
   }
@@ -204,12 +205,12 @@ export class PrivacyManager {
         // but delete all operational/sensitive data
       });
 
-      console.log(
+      logger.info(
         `Successfully deleted all operational data for user ${userId}`
       );
       return true;
     } catch (error) {
-      console.error("Error deleting user data:", error);
+      logger.error("Error deleting user data:", error);
       return false;
     }
   }
@@ -236,7 +237,7 @@ export class PrivacyManager {
         note: "This export includes all data we store about you. Most operational data is accessed in real-time and not stored.",
       };
     } catch (error) {
-      console.error("Error exporting user data:", error);
+      logger.error("Error exporting user data:", error);
       throw new Error("Failed to export user data");
     }
   }
@@ -251,14 +252,14 @@ export class PrivacyManager {
   ): Promise<void> {
     try {
       // Implement audit logging here
-      console.log(`Privacy action: ${action}`, {
+      logger.info(`Privacy action: ${action}`, {
         userId,
         action,
         details,
         timestamp: new Date(),
       });
     } catch (error: unknown) {
-      console.error("Error logging privacy action:", error);
+      logger.error("Error logging privacy action:", error);
     }
   }
 }

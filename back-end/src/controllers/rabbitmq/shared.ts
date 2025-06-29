@@ -3,6 +3,7 @@ import { RabbitMQServer, Workspace } from "@prisma/client";
 import { RabbitMQClient } from "../../core/rabbitmq/Client";
 import { EncryptionService } from "../../services/encryption.service";
 import { Context } from "hono";
+import logger from "../../core/logger";
 
 /**
  * Helper function to decrypt server credentials for RabbitMQ client
@@ -78,7 +79,7 @@ export function createErrorResponse(
   statusCode: 400 | 404 | 500 = 500,
   defaultMessage = "Unknown error occurred"
 ) {
-  console.error("Controller error:", error);
+  logger.error("Controller error:", error);
   return c.json(
     {
       error: defaultMessage,

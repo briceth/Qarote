@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/lib/api";
+import logger from "../lib/logger";
 
 interface AuthContextType {
   user: User | null;
@@ -40,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(storedToken);
         setUser(parsedUser);
       } catch (error) {
-        console.error("Failed to parse stored user data:", error);
+        logger.error("Failed to parse stored user data:", error);
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
       }

@@ -4,6 +4,7 @@ import prisma from "../core/prisma";
 import RabbitMQClient from "../core/rabbitmq";
 import { authenticate } from "../core/auth";
 import { EncryptionService } from "../services/encryption.service";
+import logger from "../core/logger";
 import {
   CreateServerSchema,
   UpdateServerSchema,
@@ -105,7 +106,7 @@ serverController.get("/", async (c) => {
 
     return c.json({ servers: transformedServers });
   } catch (error) {
-    console.error("Error fetching servers:", error);
+    logger.error("Error fetching servers:", error);
     return c.json({ error: "Failed to fetch servers" }, 500);
   }
 });
@@ -173,7 +174,7 @@ serverController.get("/:id", async (c) => {
 
     return c.json({ server: transformedServer });
   } catch (error) {
-    console.error(`Error fetching server ${id}:`, error);
+    logger.error(`Error fetching server ${id}:`, error);
     return c.json({ error: "Failed to fetch server" }, 500);
   }
 });
@@ -195,7 +196,7 @@ serverController.post(
 
       validateServerCreation(plan, resourceCounts.servers);
 
-      console.log("Creating server with data:", { ...data, password: "***" });
+      logger.info("Creating server with data:", { ...data, password: "***" });
 
       // Test connection before creating the server (use plain text for testing)
       const client = new RabbitMQClient({
@@ -226,7 +227,7 @@ serverController.post(
         // Check if this server exceeds the user's plan queue limit
         isOverLimit = isServerOverQueueLimit(plan, queueCount);
       } catch (queueError) {
-        console.warn(
+        logger.warn(
           "Could not fetch queues during server creation:",
           queueError
         );
@@ -282,7 +283,7 @@ serverController.post(
         201
       );
     } catch (error) {
-      console.error("Error creating server:", error);
+      logger.error("Error creating server:", error);
       return c.json(
         {
           error: "Failed to create server",
@@ -353,7 +354,7 @@ serverController.put(
         },
       });
     } catch (error) {
-      console.error(`Error updating server ${id}:`, error);
+      logger.error(`Error updating server ${id}:`, error);
       return c.json(
         {
           error: "Failed to update server",
@@ -389,7 +390,7 @@ serverController.delete("/:id", async (c) => {
 
     return c.json({ message: "Server deleted successfully" });
   } catch (error) {
-    console.error(`Error deleting server ${id}:`, error);
+    logger.error(`Error deleting server ${id}:`, error);
     return c.json({ error: "Failed to delete server" }, 500);
   }
 });
@@ -400,11 +401,11 @@ serverController.post(
   zValidator("json", RabbitMQCredentialsSchema),
   async (c) => {
     const credentials = c.req.valid("json");
-    console.log("Testing connection with credentials:", credentials);
+    logger.info("Testing connection with credentials:", credentials);
 
     try {
       const client = new RabbitMQClient(credentials);
-      console.log("Created RabbitMQ client:", client);
+      logger.info("Created RabbitMQ client:", client);
       const overview = await client.getOverview();
 
       return c.json({
@@ -414,7 +415,7 @@ serverController.post(
         cluster_name: overview.cluster_name,
       });
     } catch (error) {
-      console.error("Connection test failed:", error);
+      logger.error("Connection test failed:", error);
       return c.json(
         {
           success: false,
@@ -455,7 +456,7 @@ serverController.put("/:id/warning-shown", async (c) => {
 
     return c.json({ message: "Warning status updated successfully" });
   } catch (error) {
-    console.error(`Error updating warning status for server ${id}:`, error);
+    logger.error(`Error updating warning status for server ${id}:`, error);
     return c.json({ error: "Failed to update warning status" }, 500);
   }
 });

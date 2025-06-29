@@ -1,6 +1,7 @@
 import prisma from "../prisma";
 import { Prisma } from "@prisma/client";
 import type { CacheStats, CleanupResult } from "./types";
+import logger from "../logger";
 
 /**
  * PostgreSQL-based temporary storage for non-persistent data with TTL
@@ -19,7 +20,7 @@ export class TemporaryStorage {
         },
       });
     } catch (error) {
-      console.error("Error cleaning up expired cache entries:", error);
+      logger.error("Error cleaning up expired cache entries:", error);
     }
   }
 
@@ -50,7 +51,7 @@ export class TemporaryStorage {
         setImmediate(() => this.cleanupExpired());
       }
     } catch (error) {
-      console.error("Error setting cache value:", error);
+      logger.error("Error setting cache value:", error);
       throw new Error("Failed to store temporary data");
     }
   }
@@ -76,7 +77,7 @@ export class TemporaryStorage {
 
       return cached.value;
     } catch (error) {
-      console.error("Error getting cache value:", error);
+      logger.error("Error getting cache value:", error);
       return null;
     }
   }
@@ -173,7 +174,7 @@ export class TemporaryStorage {
         oldestEntry: stats.oldest_entry,
       };
     } catch (error) {
-      console.error("Error getting cache stats:", error);
+      logger.error("Error getting cache stats:", error);
       return {
         totalKeys: 0,
         memoryUsage: "0KB",
@@ -196,7 +197,7 @@ export class TemporaryStorage {
 
       return { deletedCount: result.count };
     } catch (error) {
-      console.error("Error during manual cleanup:", error);
+      logger.error("Error during manual cleanup:", error);
       return { deletedCount: 0 };
     }
   }
@@ -215,7 +216,7 @@ export class TemporaryStorage {
 
       return result.count > 0;
     } catch (error) {
-      console.error("Error setting TTL:", error);
+      logger.error("Error setting TTL:", error);
       return false;
     }
   }
@@ -240,12 +241,12 @@ export class TemporaryStorage {
       try {
         const result = await this.cleanup();
         if (result.deletedCount > 0) {
-          console.log(
+          logger.info(
             `Cache cleanup: removed ${result.deletedCount} expired entries`
           );
         }
       } catch (error) {
-        console.error("Periodic cache cleanup failed:", error);
+        logger.error("Periodic cache cleanup failed:", error);
       }
     };
 
