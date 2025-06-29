@@ -1,4 +1,5 @@
 import { Context, Next } from "hono";
+import { isDevelopment, config } from "@/config";
 
 /**
  * Alerts Feature Flag
@@ -13,10 +14,8 @@ import { Context, Next } from "hono";
  * @returns true if alerts are enabled, false otherwise
  */
 export const isAlertsEnabled = (): boolean => {
-  const nodeEnv = process.env.NODE_ENV || "development";
-
   // Enable alerts only in development
-  return nodeEnv === "development";
+  return isDevelopment();
 };
 
 /**
@@ -24,7 +23,7 @@ export const isAlertsEnabled = (): boolean => {
  * @returns current environment name
  */
 export const getCurrentEnvironment = (): string => {
-  return process.env.NODE_ENV || "development";
+  return config.NODE_ENV;
 };
 
 /**

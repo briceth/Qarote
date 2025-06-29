@@ -1,7 +1,8 @@
 import { cors } from "hono/cors";
+import { corsConfig } from "@/config";
 
 export const corsMiddleware = cors({
-  origin: process.env.CORS_ORIGIN || "*",
+  origin: corsConfig.origin,
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"],
   exposeHeaders: ["Content-Length"],

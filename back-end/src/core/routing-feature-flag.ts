@@ -1,4 +1,5 @@
 import { Context, Next } from "hono";
+import { isDevelopment, config } from "@/config";
 
 /**
  * Routing Feature Flag
@@ -13,10 +14,8 @@ import { Context, Next } from "hono";
  * @returns true if routing is enabled, false otherwise
  */
 export const isRoutingEnabled = (): boolean => {
-  const nodeEnv = process.env.NODE_ENV || "development";
-
   // Enable routing only in development
-  return nodeEnv === "development";
+  return isDevelopment();
 };
 
 /**
@@ -24,7 +23,7 @@ export const isRoutingEnabled = (): boolean => {
  * @returns current environment name
  */
 export const getCurrentEnvironment = (): string => {
-  return process.env.NODE_ENV || "development";
+  return config.NODE_ENV;
 };
 
 /**

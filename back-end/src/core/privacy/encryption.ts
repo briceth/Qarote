@@ -1,12 +1,13 @@
 import crypto from "crypto";
 import { logger } from "../logger";
+import { authConfig } from "@/config";
 
 /**
  * Encryption utilities for sensitive data
  */
 export class EncryptionService {
   private static readonly ENCRYPTION_ALGORITHM = "aes-256-gcm";
-  private static readonly ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+  private static readonly ENCRYPTION_KEY = authConfig.encryptionKey;
 
   /**
    * Encrypt sensitive data

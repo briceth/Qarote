@@ -2,28 +2,29 @@ import Stripe from "stripe";
 import { WorkspacePlan } from "@prisma/client";
 import { logger } from "@/core/logger";
 import { Sentry, setSentryContext } from "@/core/sentry";
+import { stripeConfig } from "@/config";
 
-if (!process.env.STRIPE_SECRET_KEY) {
+if (!stripeConfig.secretKey) {
   throw new Error("STRIPE_SECRET_KEY environment variable is required");
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: "2025-02-24.acacia",
 });
 
 // Stripe Price IDs for each plan (these would be created in Stripe Dashboard)
 export const STRIPE_PRICE_IDS = {
   [WorkspacePlan.FREELANCE]: {
-    monthly: process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID,
-    yearly: process.env.STRIPE_FREELANCE_YEARLY_PRICE_ID,
+    monthly: stripeConfig.priceIds.freelance.monthly,
+    yearly: stripeConfig.priceIds.freelance.yearly,
   },
   [WorkspacePlan.STARTUP]: {
-    monthly: process.env.STRIPE_STARTUP_MONTHLY_PRICE_ID,
-    yearly: process.env.STRIPE_STARTUP_YEARLY_PRICE_ID,
+    monthly: stripeConfig.priceIds.startup.monthly,
+    yearly: stripeConfig.priceIds.startup.yearly,
   },
   [WorkspacePlan.BUSINESS]: {
-    monthly: process.env.STRIPE_BUSINESS_MONTHLY_PRICE_ID,
-    yearly: process.env.STRIPE_BUSINESS_YEARLY_PRICE_ID,
+    monthly: stripeConfig.priceIds.business.monthly,
+    yearly: stripeConfig.priceIds.business.yearly,
   },
 } as const;
 
@@ -425,7 +426,7 @@ export class StripeService {
 
   static async constructWebhookEvent(payload: string, signature: string) {
     try {
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      const webhookSecret = stripeConfig.webhookSecret;
       if (!webhookSecret) {
         throw new Error(
           "STRIPE_WEBHOOK_SECRET environment variable is required"

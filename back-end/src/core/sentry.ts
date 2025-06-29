@@ -1,27 +1,28 @@
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import { logger } from "./logger";
+import { sentryConfig } from "@/config";
 
 export function initSentry() {
   // Only initialize Sentry in production or when explicitly enabled
-  if (process.env.NODE_ENV !== "production" && !process.env.SENTRY_ENABLED) {
+  if (!sentryConfig.enabled && sentryConfig.environment !== "production") {
     return;
   }
 
-  if (!process.env.SENTRY_DSN) {
+  if (!sentryConfig.dsn) {
     logger.warn("Sentry DSN not provided - monitoring disabled");
     return;
   }
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV,
+    dsn: sentryConfig.dsn,
+    environment: sentryConfig.environment,
 
     // Performance Monitoring
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    tracesSampleRate: sentryConfig.tracesSampleRate,
 
     // Profiling
-    profilesSampleRate: process.env.NODE_ENV === "production" ? 0.05 : 1.0,
+    profilesSampleRate: sentryConfig.profilesSampleRate,
 
     integrations: [
       nodeProfilingIntegration(),
@@ -50,9 +51,7 @@ export function initSentry() {
     },
 
     // Set release information
-    release:
-      process.env.SENTRY_RELEASE ||
-      `rabbit-scout-backend@${process.env.npm_package_version || "unknown"}`,
+    release: sentryConfig.release,
 
     // Configure tags
     initialScope: {

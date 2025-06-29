@@ -13,6 +13,7 @@ import {
   getWorkspaceResourceCounts,
   planValidationMiddleware,
 } from "@/middlewares/plan-validation";
+import { isDevelopment } from "@/config";
 import { EncryptionService } from "@/services/encryption.service";
 
 const userController = new Hono();
@@ -326,9 +327,7 @@ userController.post(
             role: invitation.role,
             expiresAt: invitation.expiresAt,
             // Only return token in development for testing
-            ...(process.env.NODE_ENV === "development"
-              ? { token: invitation.token }
-              : {}),
+            ...(isDevelopment() ? { token: invitation.token } : {}),
           },
         },
         201

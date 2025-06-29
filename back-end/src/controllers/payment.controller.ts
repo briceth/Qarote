@@ -15,6 +15,7 @@ import {
   createCheckoutSessionSchema,
   stripeWebhookSchema,
 } from "@/schemas/payment";
+import { emailConfig } from "@/config";
 
 const app = new Hono();
 
@@ -70,8 +71,8 @@ app.post(
         billingInterval,
         successUrl:
           successUrl ||
-          `${process.env.FRONTEND_URL}/profile?tab=plans&success=true`,
-        cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/plans`,
+          `${emailConfig.frontendUrl}/profile?tab=plans&success=true`,
+        cancelUrl: cancelUrl || `${emailConfig.frontendUrl}/plans`,
         customerEmail: user.email,
       });
 
@@ -102,7 +103,7 @@ app.post("/portal", authMiddleware, async (c) => {
   try {
     const session = await StripeService.createPortalSession(
       workspace.stripeCustomerId,
-      `${process.env.FRONTEND_URL}/profile?tab=billing`
+      `${emailConfig.frontendUrl}/profile?tab=billing`
     );
 
     return c.json({ url: session.url });

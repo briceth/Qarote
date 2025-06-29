@@ -3,9 +3,7 @@ import { sign, verify } from "hono/jwt";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 import { prisma } from "./prisma";
-
-// Environment variables
-const JWT_SECRET = process.env.JWT_SECRET!;
+import { authConfig } from "@/config";
 
 // JWT Token interfaces
 interface JWTPayload {
@@ -60,13 +58,13 @@ export const generateToken = async (user: {
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // Default 7 days expiry
   };
 
-  return sign(payload, JWT_SECRET);
+  return sign(payload, authConfig.jwtSecret);
 };
 
 // Token verification
 export const verifyToken = async (token: string): Promise<JWTPayload> => {
   try {
-    return (await verify(token, JWT_SECRET)) as JWTPayload;
+    return (await verify(token, authConfig.jwtSecret)) as JWTPayload;
   } catch (error) {
     throw new Error(
       `Invalid token: ${

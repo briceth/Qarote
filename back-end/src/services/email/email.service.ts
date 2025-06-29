@@ -26,8 +26,9 @@ import { getPlanLimits } from "../plan-validation.service";
 import { InvitationEmail } from "./templates/invitation-email";
 import { WelcomeEmail } from "./templates/welcome-email";
 import { UpgradeConfirmationEmail } from "./templates/upgrade-confirmation-email";
+import { emailConfig } from "@/config";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(emailConfig.resendApiKey);
 
 export interface SendInvitationEmailParams {
   to: string;
@@ -68,7 +69,7 @@ export async function sendInvitationEmail(
     });
 
     // Validate email service configuration
-    if (!process.env.RESEND_API_KEY) {
+    if (!emailConfig.resendApiKey) {
       throw new Error("RESEND_API_KEY environment variable is not set");
     }
 
@@ -84,13 +85,13 @@ export async function sendInvitationEmail(
       invitationToken,
       plan,
       userCostPerMonth,
-      frontendUrl: process.env.FRONTEND_URL!,
+      frontendUrl: emailConfig.frontendUrl,
     });
     const emailHtml = await render(email);
 
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.FROM_EMAIL!,
+      from: emailConfig.fromEmail,
       to,
       subject: `You're invited to join ${workspaceName} on RabbitScout`,
       html: emailHtml,
@@ -184,11 +185,11 @@ export async function sendWelcomeEmail(params: {
       plan,
     });
 
-    if (!process.env.RESEND_API_KEY) {
+    if (!emailConfig.resendApiKey) {
       throw new Error("RESEND_API_KEY environment variable is not set");
     }
 
-    const frontendUrl = process.env.FRONTEND_URL!;
+    const frontendUrl = emailConfig.frontendUrl;
 
     // Render the React email template
     const emailHtml = await render(
@@ -201,7 +202,7 @@ export async function sendWelcomeEmail(params: {
     );
 
     const { data, error } = await resend.emails.send({
-      from: process.env.FROM_EMAIL!,
+      from: emailConfig.fromEmail,
       to,
       subject: `Welcome to RabbitScout, ${name}!`,
       html: emailHtml,
@@ -311,7 +312,7 @@ export async function sendUpgradeConfirmationEmail({
     );
 
     const result = await resend.emails.send({
-      from: process.env.FROM_EMAIL || "noreply@rabbitscout.com",
+      from: emailConfig.fromEmail,
       to,
       subject: `Welcome to ${plan} Plan - Upgrade Confirmed!`,
       html: emailHtml,

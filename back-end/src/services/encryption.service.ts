@@ -1,13 +1,11 @@
 import crypto from "crypto";
 import { logger } from "@/core/logger";
-
-// Use environment variable for encryption key in production
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
+import { authConfig } from "@/config";
 
 const ALGORITHM = "aes-256-cbc";
 
 export class EncryptionService {
-  private static key = crypto.scryptSync(ENCRYPTION_KEY, "salt", 32);
+  private static key = crypto.scryptSync(authConfig.encryptionKey, "salt", 32);
 
   static encrypt(text: string): string {
     if (!text) return text;

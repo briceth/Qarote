@@ -21,6 +21,7 @@ import {
 } from "@/schemas/auth";
 import { sendWelcomeEmail } from "@/services/email/email.service";
 import { EncryptionService } from "@/services/encryption.service";
+import { isDevelopment } from "@/config";
 
 const authController = new Hono();
 
@@ -285,9 +286,7 @@ authController.post(
         message:
           "If your email is registered, you will receive a password reset link",
         // Only return token in development for testing
-        ...(process.env.NODE_ENV === "development"
-          ? { token: resetToken }
-          : {}),
+        ...(isDevelopment() ? { token: resetToken } : {}),
       });
     } catch (error) {
       logger.error("Password reset request error:", error);

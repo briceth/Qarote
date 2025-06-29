@@ -1,7 +1,3 @@
-// Initialize environment variables first
-import dotenv from "dotenv";
-dotenv.config();
-
 // Initialize Sentry before importing anything else
 import { initSentry } from "./core/sentry";
 initSentry();
@@ -13,6 +9,7 @@ import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { PrismaClient } from "@prisma/client";
 import { logger } from "./core/logger";
+import { serverConfig } from "@/config";
 
 import serverController from "./controllers/server.controller";
 import rabbitmqController from "./controllers/rabbitmq";
@@ -58,8 +55,7 @@ app.get("/livez", (c) =>
   c.json({ status: "ok", message: "RabbitMQ Dashboard API" })
 );
 
-const port = parseInt(process.env.PORT!);
-const host = process.env.HOST;
+const { port, host } = serverConfig;
 
 async function startServer() {
   try {

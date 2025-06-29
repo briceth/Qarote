@@ -1,4 +1,5 @@
 import { Context, Next } from "hono";
+import { isDevelopment, config } from "@/config";
 
 /**
  * Logs Feature Flag
@@ -13,10 +14,8 @@ import { Context, Next } from "hono";
  * @returns true if logs are enabled, false otherwise
  */
 export const isLogsEnabled = (): boolean => {
-  const nodeEnv = process.env.NODE_ENV || "development";
-
   // Enable logs only in development
-  return nodeEnv === "development";
+  return isDevelopment();
 };
 
 /**
@@ -24,7 +23,7 @@ export const isLogsEnabled = (): boolean => {
  * @returns current environment name
  */
 export const getCurrentEnvironment = (): string => {
-  return process.env.NODE_ENV || "development";
+  return config.NODE_ENV;
 };
 
 /**
