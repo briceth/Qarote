@@ -174,8 +174,8 @@ model User {
   lastLogin      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  workspaceId    String?
-  workspace      Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  workspaceId    String
+  workspace      Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   invitations    Invitation[] @relation("InvitedUser")
   invitedBy      Invitation[] @relation("InvitingUser")
   alerts         Alert[]

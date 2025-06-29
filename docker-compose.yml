@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    build:
+      context: ./docker/postgresql
+      dockerfile: Dockerfile
     container_name: rabbit_dashboard_postgres
     restart: unless-stopped
     environment:

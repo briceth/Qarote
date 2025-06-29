@@ -49,10 +49,6 @@ workspaceController.get("/", authorize([UserRole.ADMIN]), async (c) => {
 workspaceController.get("/current", async (c) => {
   const user = c.get("user");
 
-  if (!user.workspaceId) {
-    return c.json({ error: "You are not associated with any workspace" }, 404);
-  }
-
   try {
     const workspace = await prisma.workspace.findUnique({
       where: { id: user.workspaceId },
@@ -80,10 +76,6 @@ workspaceController.get("/current", async (c) => {
 // Get current workspace monthly message count
 workspaceController.get("/current/monthly-message-count", async (c) => {
   const user = c.get("user");
-
-  if (!user.workspaceId) {
-    return c.json({ error: "You are not associated with any workspace" }, 404);
-  }
 
   try {
     const monthlyMessageCount = await getMonthlyMessageCount(user.workspaceId);
@@ -592,10 +584,6 @@ workspaceController.delete(
 // Get current plan limits
 workspaceController.get("/current/plan-limits", async (c) => {
   const user = c.get("user");
-
-  if (!user.workspaceId) {
-    return c.json({ error: "You are not associated with any workspace" }, 404);
-  }
 
   try {
     const workspace = await prisma.workspace.findUnique({

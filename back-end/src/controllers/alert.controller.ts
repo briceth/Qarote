@@ -23,7 +23,7 @@ app.get("/rules", async (c) => {
 
   const alertRules = await prisma.alertRule.findMany({
     where: {
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
     },
     include: {
       server: {
@@ -69,7 +69,7 @@ app.get("/rules/:id", async (c) => {
   const alertRule = await prisma.alertRule.findFirst({
     where: {
       id: alertRuleId,
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
     },
     include: {
       server: {
@@ -117,7 +117,7 @@ app.post("/rules", zValidator("json", createAlertRuleSchema), async (c) => {
   const server = await prisma.rabbitMQServer.findFirst({
     where: {
       id: data.serverId,
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
     },
   });
 
@@ -128,7 +128,7 @@ app.post("/rules", zValidator("json", createAlertRuleSchema), async (c) => {
   const alertRule = await prisma.alertRule.create({
     data: {
       ...data,
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
       createdById: user.id,
     },
     include: {
@@ -163,7 +163,7 @@ app.put("/rules/:id", zValidator("json", updateAlertRuleSchema), async (c) => {
   const existingRule = await prisma.alertRule.findFirst({
     where: {
       id: alertRuleId,
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
     },
   });
 
@@ -176,7 +176,7 @@ app.put("/rules/:id", zValidator("json", updateAlertRuleSchema), async (c) => {
     const server = await prisma.rabbitMQServer.findFirst({
       where: {
         id: data.serverId,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
     });
 
@@ -219,7 +219,7 @@ app.delete("/rules/:id", async (c) => {
   const existingRule = await prisma.alertRule.findFirst({
     where: {
       id: alertRuleId,
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
     },
   });
 
@@ -246,7 +246,7 @@ app.get("/", zValidator("query", alertQuerySchema), async (c) => {
   } = c.req.valid("query");
 
   const where: Prisma.AlertWhereInput = {
-    workspaceId: user.workspaceId!,
+    workspaceId: user.workspaceId,
   };
 
   if (status) {
@@ -315,7 +315,7 @@ app.get("/:id", async (c) => {
   const alert = await prisma.alert.findFirst({
     where: {
       id: alertId,
-      workspaceId: user.workspaceId!,
+      workspaceId: user.workspaceId,
     },
     include: {
       alertRule: {
@@ -360,7 +360,7 @@ app.post(
     const existingAlert = await prisma.alert.findFirst({
       where: {
         id: alertId,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
     });
 
@@ -419,7 +419,7 @@ app.post(
     const existingAlert = await prisma.alert.findFirst({
       where: {
         id: alertId,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
     });
 
@@ -474,36 +474,36 @@ app.get("/stats/summary", async (c) => {
     recentAlerts,
   ] = await Promise.all([
     prisma.alert.count({
-      where: { workspaceId: user.workspaceId! },
+      where: { workspaceId: user.workspaceId },
     }),
     prisma.alert.count({
       where: {
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
         status: "ACTIVE",
       },
     }),
     prisma.alert.count({
       where: {
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
         status: "ACKNOWLEDGED",
       },
     }),
     prisma.alert.count({
       where: {
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
         status: "RESOLVED",
       },
     }),
     prisma.alert.count({
       where: {
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
         severity: "CRITICAL",
         status: { in: ["ACTIVE", "ACKNOWLEDGED"] },
       },
     }),
     prisma.alert.findMany({
       where: {
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
         createdAt: {
           gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
         },

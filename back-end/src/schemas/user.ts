@@ -8,7 +8,7 @@ export const CreateUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   role: z.nativeEnum(UserRole).default(UserRole.USER),
-  workspaceId: z.string().uuid("Invalid workspace ID").optional(),
+  workspaceId: z.string().uuid("Invalid workspace ID"),
   isActive: z.boolean().default(true),
 });
 
@@ -18,7 +18,7 @@ export const UpdateUserSchema = z.object({
   lastName: z.string().min(1, "Last name is required").optional(),
   role: z.nativeEnum(UserRole).optional(),
   isActive: z.boolean().optional(),
-  workspaceId: z.string().uuid("Invalid workspace ID").nullable().optional(),
+  workspaceId: z.string().uuid("Invalid workspace ID").optional(),
 });
 
 // Schema for updating user profile (by the user themselves)

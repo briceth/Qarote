@@ -53,10 +53,9 @@ serverController.get("/", async (c) => {
     const user = c.get("user");
 
     // Only return servers that belong to the user's workspace
-    // If user has no workspace, they can only see servers with no workspace (personal servers)
     const servers = await prisma.rabbitMQServer.findMany({
       where: {
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
       select: {
         id: true,
@@ -121,7 +120,7 @@ serverController.get("/:id", async (c) => {
       where: {
         id,
         // Ensure the server belongs to the user's workspace
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
       select: {
         id: true,
@@ -189,14 +188,12 @@ serverController.post(
 
     try {
       // Validate plan restrictions for server creation
-      if (user.workspaceId) {
-        const [plan, resourceCounts] = await Promise.all([
-          getWorkspacePlan(user.workspaceId),
-          getWorkspaceResourceCounts(user.workspaceId),
-        ]);
+      const [plan, resourceCounts] = await Promise.all([
+        getWorkspacePlan(user.workspaceId),
+        getWorkspaceResourceCounts(user.workspaceId),
+      ]);
 
-        validateServerCreation(plan, resourceCounts.servers);
-      }
+      validateServerCreation(plan, resourceCounts.servers);
 
       console.log("Creating server with data:", { ...data, password: "***" });
 
@@ -216,10 +213,7 @@ serverController.post(
       const majorMinorVersion = extractMajorMinorVersion(rabbitMqVersion);
 
       // Validate RabbitMQ version against plan restrictions
-      if (user.workspaceId) {
-        const plan = await getWorkspacePlan(user.workspaceId);
-        validateRabbitMqVersion(plan, rabbitMqVersion);
-      }
+      validateRabbitMqVersion(plan, rabbitMqVersion);
 
       // Check queue count for over-limit detection
       let queueCount = 0;
@@ -230,10 +224,7 @@ serverController.post(
         queueCount = queues.length;
 
         // Check if this server exceeds the user's plan queue limit
-        if (user.workspaceId) {
-          const plan = await getWorkspacePlan(user.workspaceId);
-          isOverLimit = isServerOverQueueLimit(plan, queueCount);
-        }
+        isOverLimit = isServerOverQueueLimit(plan, queueCount);
       } catch (queueError) {
         console.warn(
           "Could not fetch queues during server creation:",
@@ -317,7 +308,7 @@ serverController.put(
       const existingServer = await prisma.rabbitMQServer.findUnique({
         where: {
           id,
-          workspaceId: user.workspaceId!,
+          workspaceId: user.workspaceId,
         },
       });
 
@@ -384,7 +375,7 @@ serverController.delete("/:id", async (c) => {
     const existingServer = await prisma.rabbitMQServer.findUnique({
       where: {
         id,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
     });
 
@@ -446,7 +437,7 @@ serverController.put("/:id/warning-shown", async (c) => {
     const existingServer = await prisma.rabbitMQServer.findUnique({
       where: {
         id,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
     });
 

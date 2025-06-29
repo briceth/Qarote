@@ -445,13 +445,6 @@ userController.put(
     const data = c.req.valid("json");
     const user = c.get("user") as SafeUser;
 
-    if (!user.workspaceId) {
-      return c.json(
-        { error: "You are not associated with any workspace" },
-        404
-      );
-    }
-
     // Only admin users can update workspace info
     if (user.role !== UserRole.ADMIN) {
       return c.json(
@@ -498,10 +491,6 @@ userController.put(
 // Get workspace users (admin only)
 userController.get("/profile/workspace/users", async (c) => {
   const user = c.get("user") as SafeUser;
-
-  if (!user.workspaceId) {
-    return c.json({ error: "You are not associated with any workspace" }, 404);
-  }
 
   // Only admin users can view workspace users
   if (user.role !== UserRole.ADMIN) {
