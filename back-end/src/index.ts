@@ -16,6 +16,7 @@ import logsController from "./controllers/logs.controller";
 import routingController from "./controllers/routing.controller";
 import feedbackController from "./controllers/feedback.controller";
 import invitationController from "./controllers/invitation.controller";
+import { messageHistoryController } from "./controllers/message-history.controller";
 
 import { corsMiddleware } from "./middlewares/cors";
 // import { alertService } from "./services/alert.service";
@@ -43,6 +44,7 @@ app.route("/api/logs", logsController);
 app.route("/api/routing", routingController);
 app.route("/api/feedback", feedbackController);
 app.route("/api/invitations", invitationController);
+app.route("/api/message-history", messageHistoryController);
 
 app.get("/livez", (c) =>
   c.json({ status: "ok", message: "RabbitMQ Dashboard API" })

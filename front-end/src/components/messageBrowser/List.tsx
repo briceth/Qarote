@@ -24,9 +24,9 @@ interface MessageListProps {
   onToggleExpanded: (index: number) => void;
   formatPayload: (payload: string, encoding?: string) => string;
   getPayloadType: (payload: string, encoding?: string) => string;
-  searchTerm: string;
+  searchTerm?: string;
   selectedQueue: string;
-  onClearSearch: () => void;
+  onClearSearch?: () => void;
 }
 
 export const MessageList = ({
@@ -67,10 +67,10 @@ export const MessageList = ({
         {searchTerm
           ? "No messages match your search criteria."
           : selectedQueue === "all"
-          ? "No messages found in any queue."
-          : `No messages found in queue "${selectedQueue}".`}
+            ? "No messages found in any queue."
+            : `No messages found in queue "${selectedQueue}".`}
       </p>
-      {searchTerm && (
+      {searchTerm && onClearSearch && (
         <Button variant="outline" onClick={onClearSearch}>
           Clear Search
         </Button>
@@ -111,8 +111,8 @@ export const MessageList = ({
         {isLoadingMessages
           ? renderLoadingState()
           : filteredMessages.length > 0
-          ? renderMessagesList()
-          : renderEmptyState()}
+            ? renderMessagesList()
+            : renderEmptyState()}
       </CardContent>
     </Card>
   );

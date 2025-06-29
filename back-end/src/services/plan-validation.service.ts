@@ -23,6 +23,11 @@ export interface PlanLimits {
   canViewMemoryOptimization: boolean;
   // RabbitMQ Version Support
   supportedRabbitMqVersions: string[]; // Supported major.minor versions (e.g., ["3.12", "3.13", "4.0", "4.1"])
+  // Message History Features
+  canAccessMessageHistory: boolean;
+  availableRetentionPeriods: number[]; // Available retention periods in days
+  maxMessageHistoryStorage: number; // Maximum storage in GB
+  canConfigureRetention: boolean;
 }
 
 export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
@@ -48,6 +53,11 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canViewMemoryOptimization: false,
     // RabbitMQ Version Support - FREE users can only connect to 3.12 LTS
     supportedRabbitMqVersions: ["3.12"],
+    // Message History Features - FREE users only get live messages
+    canAccessMessageHistory: false,
+    availableRetentionPeriods: [],
+    maxMessageHistoryStorage: 0,
+    canConfigureRetention: false,
   },
   [WorkspacePlan.FREELANCE]: {
     canAddQueue: true,
@@ -72,6 +82,11 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canViewMemoryOptimization: false,
     // RabbitMQ Version Support - FREELANCE users can only connect to 3.12 LTS
     supportedRabbitMqVersions: ["3.12"],
+    // Message History Features - FREELANCE plan has limited access (1 day only)
+    canAccessMessageHistory: true,
+    availableRetentionPeriods: [1], // Only 1 day retention, no choice
+    maxMessageHistoryStorage: 1, // 1 GB max storage
+    canConfigureRetention: false, // Cannot configure retention settings
   },
   [WorkspacePlan.STARTUP]: {
     canAddQueue: true,
@@ -96,6 +111,11 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canViewMemoryOptimization: true,
     // RabbitMQ Version Support - STARTUP users can connect to all LTS versions
     supportedRabbitMqVersions: ["3.12", "3.13", "4.0", "4.1"],
+    // Message History Features - STARTUP plan has extended access (1, 7, 30 days)
+    canAccessMessageHistory: true,
+    availableRetentionPeriods: [1, 7, 30], // 1 day, 7 days, and 30 days retention options
+    maxMessageHistoryStorage: 5, // 5 GB max storage
+    canConfigureRetention: true, // Can configure retention settings
   },
   [WorkspacePlan.BUSINESS]: {
     canAddQueue: true,
@@ -120,6 +140,11 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canViewMemoryOptimization: true,
     // RabbitMQ Version Support - BUSINESS users can connect to all LTS versions
     supportedRabbitMqVersions: ["3.12", "3.13", "4.0", "4.1"],
+    // Message History Features - BUSINESS plan has full access (1, 7, 30, 90, 180, 365 days)
+    canAccessMessageHistory: true,
+    availableRetentionPeriods: [1, 7, 30, 90, 180, 365], // 1 day up to 1 year retention options
+    maxMessageHistoryStorage: 20, // 20 GB max storage
+    canConfigureRetention: true, // Can configure retention settings
   },
 };
 

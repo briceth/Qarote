@@ -87,7 +87,6 @@ export function useMessageStream({
   const visibilityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const CONNECT_COOLDOWN = 5000; // 5 seconds cooldown between connection attempts
   const CONNECTION_TIMEOUT = 30000; // 30 seconds timeout for connection
-  const VISIBILITY_DISCONNECT_DELAY = 60000; // 1 minute delay before disconnecting when page is hidden
 
   // Update refs when state changes
   useEffect(() => {

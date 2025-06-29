@@ -96,6 +96,12 @@ enum StreamStatus {
   STOPPED
 }
 
+enum CaptureMethod {
+  FIREHOSE
+  TRACING
+  SHOVEL
+}
+
 model Workspace {
   id           String         @id @default(uuid())
   name         String
@@ -111,15 +117,18 @@ model Workspace {
   consentGiven    Boolean     @default(false)
   consentDate     DateTime?
   
-  users        User[]
-  servers      RabbitMQServer[]
-  alertRules   AlertRule[]
-  alerts       Alert[]
-  feedback     Feedback[]
-  monthlyMessageCounts MonthlyMessageCount[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  invitations  Invitation[]
+  users                    User[]
+  servers                  RabbitMQServer[]
+  alertRules               AlertRule[]
+  alerts                   Alert[]
+  feedback                 Feedback[]
+  monthlyMessageCounts     MonthlyMessageCount[]
+  capturedMessages         CapturedMessage[]
+  retentionPolicy          UserRetentionPolicy?
+  messageCaptureConfigs    MessageCaptureConfig[]
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  invitations              Invitation[]
 }
 
 model User {
@@ -183,12 +192,14 @@ model RabbitMQServer {
   queueCountAtConnect Int?        // Number of queues when server was connected
   overLimitWarningShown Boolean   @default(false) // True if warning has been shown to user
   
-  workspaceId         String?
-  workspace           Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  Queues              Queue[]
-  alertRules          AlertRule[]
+  workspaceId             String?
+  workspace               Workspace?           @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  Queues                  Queue[]
+  alertRules              AlertRule[]
+  capturedMessages        CapturedMessage[]
+  messageCaptureConfigs   MessageCaptureConfig[]
 }
 
 model Queue {
@@ -359,4 +370,112 @@ model ActiveStream {
   @@index([lastHeartbeat], name: "active_stream_heartbeat_idx")
   @@index([userId, serverId, queueName], name: "active_stream_composite_idx") // For fast lookups
   @@map("active_streams")
+}
+
+model CapturedMessage {
+  id                  BigInt    @id @default(autoincrement())
+  workspaceId         String
+  serverId            String
+  queueName           String
+  vhost               String    @default("/")
+  
+  // Message content
+  payload             String
+  payloadEncoding     String    @default("string") // 'string', 'base64', 'json'
+  payloadSize         Int
+  
+  // Message properties (stored as JSON for flexibility)
+  properties          Json?
+  headers             Json?
+  routingKey          String?
+  exchangeName        String?
+  deliveryMode        Int?
+  priority            Int?
+  correlationId       String?
+  replyTo             String?
+  messageId           String?
+  appId               String?
+  contentType         String?
+  contentEncoding     String?
+  expiration          String?
+  
+  // Message state
+  redelivered         Boolean   @default(false)
+  deliveryTag         BigInt?
+  consumerTag         String?
+  
+  // Timestamps
+  messageTimestamp    DateTime? // From message properties
+  publishedAt         DateTime  @default(now())
+  consumedAt          DateTime  @default(now())
+  capturedAt          DateTime  @default(now())
+  
+  // Partitioning key
+  partitionDate       DateTime  @default(now()) @db.Date
+  
+  // Relations
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  server              RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  
+  // Indexes for high-performance querying
+  @@index([workspaceId, serverId, queueName, consumedAt(sort: Desc)], name: "captured_messages_workspace_server_queue_idx")
+  @@index([workspaceId, consumedAt(sort: Desc)], name: "captured_messages_workspace_time_idx")
+  @@index([exchangeName, routingKey], name: "captured_messages_exchange_routing_idx")
+  @@index([correlationId], name: "captured_messages_correlation_idx")
+  @@index([messageId], name: "captured_messages_message_id_idx")
+  @@index([partitionDate], name: "captured_messages_partition_idx")
+  @@map("captured_messages")
+}
+
+model UserRetentionPolicy {
+  id                    String    @id @default(uuid())
+  workspaceId           String    @unique
+  retentionDays         Int       @default(1)
+  maxMessageSizeMb      Int       @default(10)
+  maxStorageGb          Int       @default(1)
+  autoCleanup           Boolean   @default(true)
+  compressOldMessages   Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@index([workspaceId], name: "user_retention_workspace_idx")
+  @@index([autoCleanup, updatedAt], name: "user_retention_cleanup_idx")
+  @@map("user_retention_policies")
+}
+
+model MessageCaptureConfig {
+  id                  String        @id @default(uuid())
+  workspaceId         String
+  serverId            String
+  enabled             Boolean       @default(false)
+  captureMethod       CaptureMethod @default(FIREHOSE)
+  
+  // Filtering options
+  queuePatterns       String[]      @default(["*"])
+  excludeQueues       String[]      @default([])
+  minMessageSize      Int           @default(0)
+  maxMessageSize      Int           @default(10485760) // 10MB
+  
+  // Capture settings
+  sampleRate          Decimal       @default(1.0) @db.Decimal(3,2)
+  capturePayload      Boolean       @default(true)
+  captureHeaders      Boolean       @default(true)
+  captureProperties   Boolean       @default(true)
+  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  
+  // Relations
+  workspace           Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  server              RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([workspaceId, serverId], name: "capture_config_workspace_server_unique")
+  @@index([workspaceId], name: "capture_config_workspace_idx")
+  @@index([serverId], name: "capture_config_server_idx")
+  @@index([enabled], name: "capture_config_enabled_idx")
+  @@map("message_capture_config")
 }
