@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
+import { z } from "zod/v4";
 import prisma from "../core/prisma";
 import { authenticate, authorize, SafeUser } from "../core/auth";
 import { isSuperAdmin } from "../core/superAdmin";
@@ -333,18 +333,27 @@ feedbackController.get(
       // Convert arrays to objects for easier frontend consumption
       const stats = {
         total,
-        byType: byType.reduce((acc, item) => {
-          acc[item.type] = item._count.type;
-          return acc;
-        }, {} as Record<string, number>),
-        byStatus: byStatus.reduce((acc, item) => {
-          acc[item.status] = item._count.status;
-          return acc;
-        }, {} as Record<string, number>),
-        byPriority: byPriority.reduce((acc, item) => {
-          acc[item.priority] = item._count.priority;
-          return acc;
-        }, {} as Record<string, number>),
+        byType: byType.reduce(
+          (acc, item) => {
+            acc[item.type] = item._count.type;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
+        byStatus: byStatus.reduce(
+          (acc, item) => {
+            acc[item.status] = item._count.status;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
+        byPriority: byPriority.reduce(
+          (acc, item) => {
+            acc[item.priority] = item._count.priority;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
       };
 
       return c.json({ stats });

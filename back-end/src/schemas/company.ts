@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // Schema for creating a workspace
 export const CreateWorkspaceSchema = z.object({

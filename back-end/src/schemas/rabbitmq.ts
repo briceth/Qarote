@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 // import isValidHostname from "is-valid-hostname";
 
 const HostSchema = z

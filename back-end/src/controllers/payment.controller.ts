@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { authMiddleware } from "@/middlewares/auth";
 import prisma from "@/core/prisma";
 import { StripeService } from "@/services/stripe.service";
