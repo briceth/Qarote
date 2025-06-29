@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { authenticate } from "../core/auth";
-import { requireLogsEnabled } from "../core/logs-feature-flag";
+import { authenticate } from "@/core/auth";
+import { requireLogsEnabled } from "@/core/logs-feature-flag";
 
 const app = new Hono();
 

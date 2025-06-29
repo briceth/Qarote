@@ -1,11 +1,11 @@
-import logger from "../logger";
+import { logger } from "../logger";
 import type {
   RabbitMQOverview,
   RabbitMQConnection,
   RabbitMQChannel,
   RabbitMQNode,
   EnhancedMetrics,
-} from "../../types/rabbitmq";
+} from "@/types/rabbitmq";
 
 /**
  * Metrics calculation utilities for RabbitMQ

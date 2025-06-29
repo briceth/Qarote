@@ -1,10 +1,10 @@
 import { Context, Next } from "hono";
-import prisma from "../core/prisma";
-import logger from "../core/logger";
+import { prisma } from "@/core/prisma";
+import { logger } from "@/core/logger";
 import {
   PlanValidationError,
   PlanLimitExceededError,
-} from "../services/plan-validation.service";
+} from "@/services/plan-validation.service";
 
 interface Variables {
   user: {

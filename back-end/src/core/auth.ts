@@ -1,9 +1,8 @@
-import { randomBytes } from "node:crypto";
 import { Context } from "hono";
 import { sign, verify } from "hono/jwt";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
-import prisma from "./prisma";
+import { prisma } from "./prisma";
 
 // Environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "secret-key-change-in-production";

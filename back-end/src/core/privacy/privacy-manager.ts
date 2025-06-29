@@ -1,7 +1,7 @@
-import prisma from "../prisma";
+import { prisma } from "../prisma";
 import { EncryptionService } from "./encryption";
 import { DataType, StorageMode, type PrivacySettings } from "./types";
-import logger from "../logger";
+import { logger } from "../logger";
 
 /**
  * Privacy management for user data and consent

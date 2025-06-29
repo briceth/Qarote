@@ -15,4 +15,4 @@ export interface Server {
   sslClientKeyPath?: string | null;
 }
 
-export default prisma;
+export { prisma };

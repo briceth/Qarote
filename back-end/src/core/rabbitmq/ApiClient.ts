@@ -8,7 +8,7 @@ import type {
   RabbitMQExchange,
   RabbitMQBinding,
   RabbitMQConsumer,
-} from "../../types/rabbitmq";
+} from "@/types/rabbitmq";
 
 /**
  * RabbitMQ API methods for data retrieval

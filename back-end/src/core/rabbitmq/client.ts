@@ -1,7 +1,4 @@
-import type {
-  RabbitMQCredentials,
-  EnhancedMetrics,
-} from "../../types/rabbitmq";
+import type { RabbitMQCredentials, EnhancedMetrics } from "@/types/rabbitmq";
 import type {
   RabbitMQMessage,
   MessageProperties,
@@ -16,7 +13,8 @@ import type {
 import { RabbitMQApiClient } from "./ApiClient";
 import { RabbitMQQueueClient } from "./QueueClient";
 import { RabbitMQMetricsCalculator } from "./MetricsCalculator";
-import logger from "../logger";
+import { logger } from "../logger";
+import { captureRabbitMQError } from "../sentry";
 
 /**
  * Main RabbitMQ client that combines all functionality
@@ -95,6 +93,15 @@ export class RabbitMQClient extends RabbitMQApiClient {
       );
     } catch (error) {
       logger.error("Error fetching comprehensive metrics:", error);
+
+      // Capture RabbitMQ error in Sentry
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getMetrics",
+          serverId: this.baseUrl,
+        });
+      }
+
       throw error;
     }
   }

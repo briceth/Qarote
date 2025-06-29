@@ -1,11 +1,11 @@
 import { WorkspacePlan } from "@prisma/client";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
+import { logger } from "@/core/logger";
 import { getPlanLimits } from "../plan-validation.service";
 import { InvitationEmail } from "./templates/invitation-email";
 import { WelcomeEmail } from "./templates/welcome-email";
 import { UpgradeConfirmationEmail } from "./templates/upgrade-confirmation-email";
-import logger from "../../core/logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

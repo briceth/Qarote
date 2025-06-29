@@ -2,18 +2,18 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
 import { streamSSE } from "hono/streaming";
-import prisma from "../../core/prisma";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
-import { createRabbitMQClient, createErrorResponse } from "./shared";
-import { validateMessageSending } from "../../services/plan-validation.service";
-import logger from "../../core/logger";
+import { prisma } from "@/core/prisma";
+import { authenticate } from "@/core/auth";
+import { logger } from "@/core/logger";
+import { streamRegistry } from "@/core/DatabaseStreamRegistry";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import {
   getWorkspacePlan,
   getMonthlyMessageCount,
   incrementMonthlyMessageCount,
-} from "../../middlewares/plan-validation";
-import { streamRegistry } from "../../core/DatabaseStreamRegistry";
+} from "@/middlewares/plan-validation";
+import { validateMessageSending } from "@/services/plan-validation.service";
+import { createRabbitMQClient, createErrorResponse } from "./shared";
 
 const messagesController = new Hono();
 

@@ -56,7 +56,7 @@ npx ts-node scripts/migrate-server-encryption.ts
 ### Encryption Service
 
 ```typescript
-import { EncryptionService } from "../services/encryption.service";
+import { EncryptionService } from "@/services/encryption.service";
 
 // Encrypt sensitive data
 const encrypted = EncryptionService.encrypt("sensitive-data");

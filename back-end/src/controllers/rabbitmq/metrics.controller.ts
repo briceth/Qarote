@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import prisma from "../../core/prisma";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
+import { prisma } from "@/core/prisma";
+import { authenticate } from "@/core/auth";
+import { logger } from "@/core/logger";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
-import logger from "../../core/logger";
 
 const metricsController = new Hono();
 

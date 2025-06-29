@@ -12,6 +12,7 @@ import PublicRoute from "@/components/PublicRoute";
 import { PageLoader } from "@/components/PageLoader";
 import { ConsentBanner } from "@/components/PrivacyNotice";
 import { Layout } from "@/components/Layout";
+import { SentryErrorBoundary, withSentryProfiling } from "@/lib/sentry";
 
 // Lazy load all pages
 const Index = lazy(() => import("./pages/Index"));
@@ -37,7 +38,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const AppCore = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <WorkspaceProvider>
@@ -253,6 +254,31 @@ const App = () => (
       </WorkspaceProvider>
     </AuthProvider>
   </QueryClientProvider>
+);
+
+// Wrap the app with Sentry error boundary and profiling
+const App = withSentryProfiling(
+  SentryErrorBoundary(AppCore, {
+    fallback: ({ error, resetError }) => (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 p-8">
+          <h1 className="text-2xl font-bold text-destructive">
+            Something went wrong
+          </h1>
+          <p className="text-muted-foreground">
+            An unexpected error occurred. Our team has been notified.
+          </p>
+          <button
+            onClick={resetError}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    ),
+    showDialog: false,
+  })
 );
 
 export default App;

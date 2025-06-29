@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
-import prisma from "../core/prisma";
-import { authenticate } from "../core/auth";
-import logger from "../core/logger";
+import { prisma } from "@/core/prisma";
+import { authenticate } from "@/core/auth";
+import { logger } from "@/core/logger";
 import {
   PlanValidationError,
   getPlanLimits,
-} from "../services/plan-validation.service";
+} from "@/services/plan-validation.service";
 
 const messageHistoryController = new Hono();
 

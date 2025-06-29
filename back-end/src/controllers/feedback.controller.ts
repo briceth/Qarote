@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
-import prisma from "../core/prisma";
-import { authenticate, authorize, SafeUser } from "../core/auth";
-import { isSuperAdmin } from "../core/superAdmin";
+import { prisma } from "@/core/prisma";
+import { authenticate, authorize, SafeUser } from "@/core/auth";
+import { isSuperAdmin } from "@/core/superAdmin";
 import { UserRole } from "@prisma/client";
-import logger from "../core/logger";
+import { logger } from "@/core/logger";
 
 const feedbackController = new Hono();
 

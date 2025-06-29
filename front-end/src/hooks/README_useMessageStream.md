@@ -486,7 +486,7 @@ try {
 
 ## Related Documentation
 
-- [SSE Stream Registry Architecture](../core/SSE_STREAM_REGISTRY.md) - Backend stream management
+- [SSE Stream Registry Architecture](@/core/SSE_STREAM_REGISTRY.md) - Backend stream management
 - [RabbitMQ Controller](../controllers/rabbitmq.controller.ts) - Backend SSE endpoints
 - [useApi Hook](./useApi.ts) - API mutation hooks including `useStopMessageStreaming`
 

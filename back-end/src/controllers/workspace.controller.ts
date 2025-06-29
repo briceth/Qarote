@@ -1,24 +1,19 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
-import prisma from "../core/prisma";
-import logger from "../core/logger";
-import {
-  authenticate,
-  authorize,
-  checkWorkspaceAccess,
-  SafeUser,
-} from "../core/auth";
+import { UserRole } from "@prisma/client";
+import { prisma } from "@/core/prisma";
+import { logger } from "@/core/logger";
+import { authenticate, authorize, checkWorkspaceAccess } from "@/core/auth";
 import {
   CreateWorkspaceSchema,
   UpdateWorkspaceSchema,
-} from "../schemas/workspace";
-import { UserRole } from "@prisma/client";
+} from "@/schemas/workspace";
 import {
   validateDataExport,
   getPlanLimits,
-} from "../services/plan-validation.service";
-import { getMonthlyMessageCount } from "../middlewares/plan-validation";
+} from "@/services/plan-validation.service";
+import { getMonthlyMessageCount } from "@/middlewares/plan-validation";
 
 const workspaceController = new Hono();
 

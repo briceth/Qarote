@@ -1,18 +1,18 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import prisma from "../core/prisma";
-import { authenticate, authorize, SafeUser } from "../core/auth";
-import { UpdateUserSchema, UpdateProfileSchema } from "../schemas/user";
-import { UpdateWorkspaceSchema } from "../schemas/workspace";
-import { InviteUserSchema } from "../schemas/auth";
+import { prisma } from "@/core/prisma";
+import { authenticate, authorize, SafeUser } from "@/core/auth";
+import { UpdateUserSchema, UpdateProfileSchema } from "@/schemas/user";
+import { UpdateWorkspaceSchema } from "@/schemas/workspace";
+import { InviteUserSchema } from "@/schemas/auth";
 import { UserRole } from "@prisma/client";
-import { validateUserInvitation } from "../services/plan-validation.service";
-import logger from "../core/logger";
+import { validateUserInvitation } from "@/services/plan-validation.service";
+import { logger } from "@/core/logger";
 import {
   getWorkspacePlan,
   getWorkspaceResourceCounts,
   planValidationMiddleware,
-} from "../middlewares/plan-validation";
+} from "@/middlewares/plan-validation";
 import { EncryptionService } from "@/services/encryption.service";
 
 const userController = new Hono();

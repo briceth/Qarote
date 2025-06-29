@@ -1,5 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
-import logger from "../core/logger";
+import { logger } from "@/core/logger";
 
 export interface PlanLimits {
   canAddQueue: boolean;

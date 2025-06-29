@@ -1,5 +1,5 @@
-import type { RabbitMQCredentials, SSLConfig } from "../../types/rabbitmq";
-import logger from "../logger";
+import type { RabbitMQCredentials, SSLConfig } from "@/types/rabbitmq";
+import { logger } from "../logger";
 
 /**
  * Base RabbitMQ client with connection management and request handling

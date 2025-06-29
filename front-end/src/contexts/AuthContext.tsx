@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/lib/api";
+import { setSentryUser } from "@/lib/sentry";
 import logger from "../lib/logger";
 
 interface AuthContextType {
@@ -40,6 +41,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const parsedUser = JSON.parse(storedUser);
         setToken(storedToken);
         setUser(parsedUser);
+
+        // Set Sentry user context when restoring auth
+        setSentryUser({
+          id: parsedUser.id,
+          workspaceId: parsedUser.workspaceId,
+          email: parsedUser.email,
+        });
       } catch (error) {
         logger.error("Failed to parse stored user data:", error);
         localStorage.removeItem("auth_token");
@@ -54,6 +62,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(newUser);
     localStorage.setItem("auth_token", newToken);
     localStorage.setItem("auth_user", JSON.stringify(newUser));
+
+    // Set Sentry user context on login
+    setSentryUser({
+      id: newUser.id,
+      workspaceId: newUser.workspaceId,
+      email: newUser.email,
+    });
   };
 
   const logout = () => {

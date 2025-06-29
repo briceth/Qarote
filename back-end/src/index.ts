@@ -1,11 +1,18 @@
+// Initialize environment variables first
+import dotenv from "dotenv";
+dotenv.config();
+
+// Initialize Sentry before importing anything else
+import { initSentry } from "./core/sentry";
+initSentry();
+
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { logger as honoLogger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { PrismaClient } from "@prisma/client";
-import dotenv from "dotenv";
-import logger from "./core/logger";
+import { logger } from "./core/logger";
 
 import serverController from "./controllers/server.controller";
 import rabbitmqController from "./controllers/rabbitmq";
@@ -24,8 +31,6 @@ import { corsMiddleware } from "./middlewares/cors";
 // import { alertService } from "./services/alert.service";
 // import { TemporaryStorage } from "./core/privacy";
 import { streamRegistry } from "./core/DatabaseStreamRegistry";
-
-dotenv.config();
 
 const prisma = new PrismaClient();
 

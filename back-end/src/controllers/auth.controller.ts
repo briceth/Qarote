@@ -1,14 +1,16 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import prisma from "../core/prisma";
-import logger from "../core/logger";
+import { InvitationStatus, UserRole } from "@prisma/client";
+import { prisma } from "@/core/prisma";
+import { logger } from "@/core/logger";
+import { setSentryUser } from "@/core/sentry";
 import {
   hashPassword,
   comparePassword,
   generateToken,
   authenticate,
   SafeUser,
-} from "../core/auth";
+} from "@/core/auth";
 import {
   RegisterUserSchema,
   LoginSchema,
@@ -16,9 +18,8 @@ import {
   PasswordResetSchema,
   PasswordChangeSchema,
   AcceptInvitationSchema,
-} from "../schemas/auth";
-import { InvitationStatus, UserRole } from "@prisma/client";
-import { sendWelcomeEmail } from "../services/email/email.service";
+} from "@/schemas/auth";
+import { sendWelcomeEmail } from "@/services/email/email.service";
 import { EncryptionService } from "@/services/encryption.service";
 
 const authController = new Hono();
@@ -190,6 +191,13 @@ authController.post("/login", zValidator("json", LoginSchema), async (c) => {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
+
+    // Set Sentry user context
+    setSentryUser({
+      id: user.id,
+      workspaceId: user.workspaceId,
+      email: user.email,
+    });
 
     return c.json({ user: safeUser, token });
   } catch (error) {

@@ -1,4 +1,5 @@
 import logger from "../logger";
+import { captureAPIError } from "../sentry";
 /**
  * Base API Client
  * Core HTTP client with authentication and error handling
@@ -62,6 +63,16 @@ export abstract class BaseApiClient {
       return data;
     } catch (error) {
       logger.error(`API request failed for ${endpoint}:`, error);
+
+      // Capture API error in Sentry
+      if (error instanceof Error) {
+        captureAPIError(error, {
+          endpoint,
+          method: options?.method || "GET",
+          response: error.message,
+        });
+      }
+
       throw error;
     }
   }

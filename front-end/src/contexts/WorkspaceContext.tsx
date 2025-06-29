@@ -9,6 +9,7 @@ import { useAuth } from "./AuthContext";
 import { apiClient } from "@/lib/api";
 import type { Workspace } from "@/lib/api/workspaceClient";
 import { WorkspacePlan } from "@/lib/plans/planUtils";
+import { setSentryContext } from "@/lib/sentry";
 import logger from "../lib/logger";
 
 interface WorkspaceContextType {
@@ -54,6 +55,14 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
     try {
       const response = await apiClient.getCurrentWorkspace();
       setWorkspace(response.workspace);
+
+      // Set Sentry workspace context
+      setSentryContext("workspace", {
+        id: response.workspace.id,
+        name: response.workspace.name,
+        plan: response.workspace.plan,
+        createdAt: response.workspace.createdAt,
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch workspace";

@@ -1,5 +1,5 @@
 import { Context, Next } from "hono";
-import { authenticate as coreAuthenticate } from "../core/auth";
+import { authenticate as coreAuthenticate } from "@/core/auth";
 
 // Re-export the core authenticate function as middleware
 export const authMiddleware = coreAuthenticate;

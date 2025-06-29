@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
+import { authenticate } from "@/core/auth";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { logger } from "@/core/logger";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
-import logger from "../../core/logger";
 
 const infrastructureController = new Hono();
 

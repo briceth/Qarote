@@ -1,5 +1,5 @@
-import prisma from "./prisma";
-import logger from "./logger";
+import { prisma } from "./prisma";
+import { logger } from "./logger";
 
 interface StreamInfo {
   id: string;

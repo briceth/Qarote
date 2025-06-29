@@ -60,13 +60,13 @@ import { PrivacyManager, DataType, StorageMode } from "./privacy";
 
 ```typescript
 // All these imports still work:
-import { PrivacyManager, DataType, StorageMode } from "../core/privacy";
-import { TemporaryStorage } from "../core/privacy";
-import { EncryptionService } from "../core/privacy";
+import { PrivacyManager, DataType, StorageMode } from "@/core/privacy";
+import { TemporaryStorage } from "@/core/privacy";
+import { EncryptionService } from "@/core/privacy";
 
 // Or import specific modules:
-import { PrivacyManager } from "../core/privacy/privacy-manager";
-import { EncryptionService } from "../core/privacy/encryption";
+import { PrivacyManager } from "@/core/privacy/privacy-manager";
+import { EncryptionService } from "@/core/privacy/encryption";
 ```
 
 ## 📊 Line Count Summary

@@ -1,18 +1,18 @@
+import { randomBytes } from "node:crypto";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod/v4";
-import prisma from "../core/prisma";
-import { authenticate } from "../core/auth";
-import { sendInvitationEmail } from "../services/email/email.service";
-import logger from "../core/logger";
+import { prisma } from "@/core/prisma";
+import { authenticate } from "@/core/auth";
+import { sendInvitationEmail } from "@/services/email/email.service";
+import { logger } from "@/core/logger";
 import {
   validateUserInvitation,
   calculateMonthlyCostForUsers,
   getUserLimitText,
   getInvitationLimitText,
   PlanValidationError,
-} from "../services/plan-validation.service";
-import { randomBytes } from "node:crypto";
+} from "@/services/plan-validation.service";
 
 const invitationController = new Hono();
 

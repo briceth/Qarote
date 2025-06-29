@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
+import { authenticate } from "@/core/auth";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { streamRegistry } from "@/core/DatabaseStreamRegistry";
+import { logger } from "@/core/logger";
 import { createErrorResponse } from "./shared";
-import { streamRegistry } from "../../core/DatabaseStreamRegistry";
-import logger from "../../core/logger";
 
 const adminController = new Hono();
 

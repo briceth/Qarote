@@ -1,9 +1,9 @@
-import prisma, { Server } from "../../core/prisma";
-import { RabbitMQServer, Workspace } from "@prisma/client";
-import { RabbitMQClient } from "../../core/rabbitmq/Client";
-import { EncryptionService } from "../../services/encryption.service";
 import { Context } from "hono";
-import logger from "../../core/logger";
+import { RabbitMQServer, Workspace } from "@prisma/client";
+import { prisma } from "@/core/prisma";
+import { RabbitMQClient } from "@/core/rabbitmq/Client";
+import { EncryptionService } from "@/services/encryption.service";
+import { logger } from "@/core/logger";
 
 /**
  * Helper function to decrypt server credentials for RabbitMQ client

@@ -1,24 +1,24 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
-import { CreateQueueSchema } from "../../schemas/rabbitmq";
-import logger from "../../core/logger";
+import { authenticate } from "@/core/auth";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { CreateQueueSchema } from "@/schemas/rabbitmq";
+import { logger } from "@/core/logger";
+import { prisma } from "@/core/prisma";
+import {
+  validateQueueCreationOnServer,
+  getOverLimitWarningMessage,
+  getUpgradeRecommendationForOverLimit,
+} from "@/services/plan-validation.service";
+import {
+  getWorkspacePlan,
+  getWorkspaceResourceCounts,
+} from "@/middlewares/plan-validation";
 import {
   createRabbitMQClient,
   createErrorResponse,
   verifyServerAccess,
 } from "./shared";
-import prisma from "../../core/prisma";
-import {
-  validateQueueCreationOnServer,
-  getOverLimitWarningMessage,
-  getUpgradeRecommendationForOverLimit,
-} from "../../services/plan-validation.service";
-import {
-  getWorkspacePlan,
-  getWorkspaceResourceCounts,
-} from "../../middlewares/plan-validation";
 
 const queuesController = new Hono();
 

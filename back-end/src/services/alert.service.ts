@@ -1,13 +1,11 @@
-import prisma from "../core/prisma";
-import logger from "../core/logger";
+import { prisma } from "@/core/prisma";
+import { logger } from "@/core/logger";
 import {
   AlertType,
   ComparisonOperator,
-  AlertSeverity,
   AlertRule,
   RabbitMQServer,
   Workspace,
-  User,
 } from "@prisma/client";
 
 interface MetricValue {

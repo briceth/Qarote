@@ -1,18 +1,18 @@
 import { Hono } from "hono";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
-import logger from "../../core/logger";
+import { authenticate } from "@/core/auth";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { logger } from "@/core/logger";
+import { RabbitMQOverview } from "@/types/rabbitmq";
+import {
+  getOverLimitWarningMessage,
+  getUpgradeRecommendationForOverLimit,
+} from "@/services/plan-validation.service";
 import {
   createRabbitMQClient,
   createErrorResponse,
   WarningInfo,
   verifyServerAccess,
 } from "./shared";
-import { RabbitMQOverview } from "../../types/rabbitmq";
-import {
-  getOverLimitWarningMessage,
-  getUpgradeRecommendationForOverLimit,
-} from "../../services/plan-validation.service";
 
 const overviewController = new Hono();
 

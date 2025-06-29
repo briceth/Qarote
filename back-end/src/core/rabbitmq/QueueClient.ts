@@ -1,5 +1,6 @@
 import { RabbitMQBaseClient } from "./BaseClient";
-import logger from "../logger";
+import { logger } from "../logger";
+import { captureRabbitMQError, captureMessageProcessingError } from "../sentry";
 import type {
   RabbitMQMessage,
   MessageProperties,
@@ -32,6 +33,16 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
       return { purged: -1 }; // -1 indicates successful purge without count
     } catch (error) {
       logger.error(`Error purging queue "${queueName}":`, error);
+
+      // Capture RabbitMQ error in Sentry
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "purgeQueue",
+          queueName,
+          serverId: this.baseUrl,
+        });
+      }
+
       throw error;
     }
   }
@@ -66,10 +77,17 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
       );
       return Array.isArray(result) ? result : [];
     } catch (error) {
-      logger.error(
-        `Error fetching messages from queue "${queueName}":`,
-        error
-      );
+      logger.error(`Error fetching messages from queue "${queueName}":`, error);
+
+      // Capture message processing error in Sentry
+      if (error instanceof Error) {
+        captureMessageProcessingError(error, {
+          operation: "getMessages",
+          queueName,
+          serverId: this.baseUrl,
+        });
+      }
+
       throw error;
     }
   }

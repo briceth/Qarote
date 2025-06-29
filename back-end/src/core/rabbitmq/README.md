@@ -75,7 +75,7 @@ import { RabbitMQClient } from "./core/rabbitmq";
 ### Basic Usage (Same as before)
 
 ```typescript
-import RabbitMQClient from "../core/rabbitmq";
+import RabbitMQClient from "@/core/rabbitmq";
 
 const client = new RabbitMQClient(credentials);
 const queues = await client.getQueues();
@@ -89,7 +89,7 @@ import {
   RabbitMQApiClient,
   RabbitMQQueueClient,
   RabbitMQMetricsCalculator,
-} from "../core/rabbitmq";
+} from "@/core/rabbitmq";
 
 // Use specialized clients for specific operations
 const apiClient = new RabbitMQApiClient(credentials);
@@ -120,20 +120,20 @@ const metrics = await RabbitMQMetricsCalculator.calculateEnhancedMetrics(
 ### For API Operations Only
 
 ```typescript
-import { RabbitMQApiClient } from "../core/rabbitmq";
+import { RabbitMQApiClient } from "@/core/rabbitmq";
 const api = new RabbitMQApiClient(credentials);
 ```
 
 ### For Queue Operations Only
 
 ```typescript
-import { RabbitMQQueueClient } from "../core/rabbitmq";
+import { RabbitMQQueueClient } from "@/core/rabbitmq";
 const queue = new RabbitMQQueueClient(credentials);
 ```
 
 ### For Metrics Calculations Only
 
 ```typescript
-import { RabbitMQMetricsCalculator } from "../core/rabbitmq";
+import { RabbitMQMetricsCalculator } from "@/core/rabbitmq";
 const metrics = RabbitMQMetricsCalculator.calculateDiskUsage(nodes);
 ```

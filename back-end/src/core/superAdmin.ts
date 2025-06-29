@@ -3,7 +3,7 @@
  * Handles creator/super admin access control
  */
 
-import type { SafeUser } from "../core/auth";
+import type { SafeUser } from "@/core/auth";
 
 // Super admin email - REPLACE THIS WITH YOUR ACTUAL EMAIL ADDRESS
 const SUPER_ADMIN_EMAIL = "tessierhuort@gmail.com"; // ⚠️ UPDATE THIS!

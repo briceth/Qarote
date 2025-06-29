@@ -1,16 +1,16 @@
 import { Hono } from "hono";
-import prisma from "../../core/prisma";
-import { authenticate } from "../../core/auth";
-import { planValidationMiddleware } from "../../middlewares/plan-validation";
-import { createRabbitMQClient, createErrorResponse } from "./shared";
-import logger from "../../core/logger";
+import { prisma } from "@/core/prisma";
+import { authenticate } from "@/core/auth";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { logger } from "@/core/logger";
 import {
   validateBasicMemoryMetricsAccess,
   validateAdvancedMemoryMetricsAccess,
   validateExpertMemoryMetricsAccess,
   validateMemoryTrendsAccess,
   validateMemoryOptimizationAccess,
-} from "../../services/plan-validation.service";
+} from "@/services/plan-validation.service";
+import { createRabbitMQClient, createErrorResponse } from "./shared";
 
 const memoryController = new Hono();
 

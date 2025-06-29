@@ -1,7 +1,7 @@
-import prisma from "../prisma";
+import { prisma } from "../prisma";
 import { Prisma } from "@prisma/client";
 import type { CacheStats, CleanupResult } from "./types";
-import logger from "../logger";
+import { logger } from "../logger";
 
 /**
  * PostgreSQL-based temporary storage for non-persistent data with TTL

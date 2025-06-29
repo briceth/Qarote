@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import logger from "../core/logger";
+import { logger } from "@/core/logger";
 
 // Use environment variable for encryption key in production
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
