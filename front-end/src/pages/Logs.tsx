@@ -198,7 +198,7 @@ const Logs = () => {
           workspacePlan={workspacePlan}
           feature="Logs Activity Tracking"
           featureDescription="Gain insights into user actions and system events with detailed activity logs."
-          requiredPlan="Freelance or higher"
+          requiredPlan="Developer or higher"
         >
           <main className="flex-1 overflow-auto">
             {/* Hero Header */}

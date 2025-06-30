@@ -15,7 +15,7 @@ import {
 interface WelcomeEmailProps {
   name: string;
   workspaceName: string;
-  plan: "FREE" | "FREELANCE" | "STARTUP" | "BUSINESS";
+  plan: "FREE" | "DEVELOPER" | "STARTUP" | "BUSINESS";
   frontendUrl: string;
 }
 
@@ -27,7 +27,7 @@ export const WelcomeEmail = ({
 }: WelcomeEmailProps) => {
   const planDisplayName = {
     FREE: "Free",
-    FREELANCE: "Freelance",
+    DEVELOPER: "Developer",
     STARTUP: "Startup",
     BUSINESS: "Business",
   }[plan];

@@ -82,7 +82,7 @@ export function QueueHeader({
             title={
               workspacePlan === "FREE"
                 ? "Upgrade to send messages"
-                : workspacePlan === "FREELANCE"
+                : workspacePlan === "DEVELOPER"
                   ? `You've reached your monthly message limit (${monthlyMessageCount}/100). Upgrade to send more messages.`
                   : workspacePlan === "STARTUP"
                     ? `You've reached your monthly message limit (${monthlyMessageCount}/1000). Upgrade to send more messages.`
@@ -95,7 +95,7 @@ export function QueueHeader({
               className={`ml-1 px-2 py-0.5 text-white text-xs rounded-full font-bold ${
                 workspacePlan === "FREE"
                   ? "bg-orange-500"
-                  : workspacePlan === "FREELANCE"
+                  : workspacePlan === "DEVELOPER"
                     ? "bg-blue-500"
                     : workspacePlan === "STARTUP"
                       ? "bg-purple-500"
@@ -104,7 +104,7 @@ export function QueueHeader({
             >
               {workspacePlan === "FREE"
                 ? "Pro"
-                : workspacePlan === "FREELANCE"
+                : workspacePlan === "DEVELOPER"
                   ? `${monthlyMessageCount}/100`
                   : workspacePlan === "STARTUP"
                     ? `${monthlyMessageCount}/1000`

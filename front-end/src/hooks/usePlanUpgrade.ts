@@ -131,7 +131,7 @@ export const usePlanFeatures = () => {
   const shouldShowUpgradePrompt = (requiredPlan: WorkspacePlan) => {
     const planHierarchy = {
       [WorkspacePlan.FREE]: 0,
-      [WorkspacePlan.FREELANCE]: 1,
+      [WorkspacePlan.DEVELOPER]: 1,
       [WorkspacePlan.STARTUP]: 2,
       [WorkspacePlan.BUSINESS]: 3,
     };

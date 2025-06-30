@@ -35,7 +35,7 @@ export const AddQueueButton = ({
           badgeColor: "bg-orange-500",
           title: "Upgrade to add queues",
         };
-      case "FREELANCE":
+      case "DEVELOPER":
         return {
           text: "Add Queue",
           badge: `${queueCount}/10`,

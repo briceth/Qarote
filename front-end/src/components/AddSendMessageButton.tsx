@@ -38,7 +38,7 @@ export const AddSendMessageButton = ({
           badgeColor: "bg-orange-500",
           title: "Upgrade to send messages",
         };
-      case "FREELANCE":
+      case "DEVELOPER":
         return {
           text: "Send Message",
           badge: `${monthlyMessageCount}/100`,

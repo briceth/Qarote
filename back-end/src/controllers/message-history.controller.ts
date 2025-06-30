@@ -55,7 +55,7 @@ messageHistoryController.get(
         throw new PlanValidationError(
           "Message History",
           userData.workspace.plan,
-          "FREELANCE or higher"
+          "DEVELOPER or higher"
         );
       }
 
@@ -136,7 +136,7 @@ messageHistoryController.get(
         throw new PlanValidationError(
           "Message History",
           userData.workspace.plan,
-          "FREELANCE or higher"
+          "DEVELOPER or higher"
         );
       }
 

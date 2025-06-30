@@ -26,7 +26,7 @@ const PlanUpgradeModal: React.FC<PlanUpgradeModalProps> = ({
 
   const plans = [
     {
-      plan: WorkspacePlan.FREELANCE,
+      plan: WorkspacePlan.DEVELOPER,
       price: "$49",
       period: "month",
       popular: false,

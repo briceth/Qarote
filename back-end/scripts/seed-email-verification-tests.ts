@@ -47,7 +47,7 @@ const EMAIL_VERIFICATION_SCENARIOS: EmailVerificationScenario[] = [
   },
   {
     name: "Old Signup - Unverified",
-    plan: WorkspacePlan.FREELANCE,
+    plan: WorkspacePlan.DEVELOPER,
     description: "User signed up but never verified email",
     email: "unverified.old@test.com",
     password: "password123",
@@ -108,9 +108,9 @@ const EMAIL_VERIFICATION_SCENARIOS: EmailVerificationScenario[] = [
     tokenExpired: true,
   },
   {
-    name: "Multiple Pending - Freelancer",
-    plan: WorkspacePlan.FREELANCE,
-    description: "Freelancer who tried multiple email changes",
+    name: "Multiple Pending - Developer",
+    plan: WorkspacePlan.DEVELOPER,
+    description: "Developer who tried multiple email changes",
     email: "multiple.pending@test.com",
     password: "password123",
     firstName: "Multiple",

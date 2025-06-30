@@ -133,7 +133,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # RabbitMQ 3.12 LTS - Available for all plans (FREE, FREELANCE, STARTUP, BUSINESS)
+  # RabbitMQ 3.12 LTS - Available for all plans (FREE, DEVELOPER, STARTUP, BUSINESS)
   rabbitmq-3-12:
     image: rabbitmq:3.12-management-alpine
     container_name: rabbit_dashboard_rabbitmq_3_12

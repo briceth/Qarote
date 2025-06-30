@@ -60,7 +60,7 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     maxMessageHistoryStorage: 0,
     canConfigureRetention: false,
   },
-  [WorkspacePlan.FREELANCE]: {
+  [WorkspacePlan.DEVELOPER]: {
     canAddQueue: true,
     canSendMessages: true,
     canAddServer: true,
@@ -81,9 +81,9 @@ export const PLAN_LIMITS: Record<WorkspacePlan, PlanLimits> = {
     canViewExpertMemoryMetrics: false,
     canViewMemoryTrends: false,
     canViewMemoryOptimization: false,
-    // RabbitMQ Version Support - FREELANCE users can only connect to 3.12 LTS
+    // RabbitMQ Version Support - DEVELOPER users can only connect to 3.12 LTS
     supportedRabbitMqVersions: ["3.12"],
-    // Message History Features - FREELANCE plan has limited access (1 day only)
+    // Message History Features - DEVELOPER plan has limited access (1 day only)
     canAccessMessageHistory: true,
     availableRetentionPeriods: [1], // Only 1 day retention, no choice
     maxMessageHistoryStorage: 1, // 1 GB max storage
@@ -207,7 +207,7 @@ export function validateQueueCreation(
     throw new PlanValidationError(
       "Queue creation",
       plan,
-      "Freelance, Startup, or Business",
+      "Developer, Startup, or Business",
       currentQueueCount,
       limits.maxQueues
     );
@@ -233,7 +233,7 @@ export function validateServerCreation(
     throw new PlanValidationError(
       "Server creation",
       plan,
-      "Freelance, Startup, or Business",
+      "Developer, Startup, or Business",
       currentServerCount,
       limits.maxServers
     );
@@ -263,7 +263,7 @@ export function validateMessageSending(
     throw new PlanValidationError(
       "Message sending",
       plan,
-      "Freelance, Startup, or Business",
+      "Developer, Startup, or Business",
       currentMonthlyMessages,
       limits.maxMessagesPerMonth || 0
     );
@@ -293,7 +293,7 @@ export function validateUserInvitation(
     throw new PlanValidationError(
       "User invitation",
       plan,
-      "Freelance, Startup, or Business",
+      "Developer, Startup, or Business",
       currentUserCount,
       limits.maxUsers || 0
     );
@@ -332,7 +332,7 @@ export function validateDataExport(plan: WorkspacePlan): void {
     throw new PlanValidationError(
       "Data export",
       plan,
-      "Freelance, Startup, or Business",
+      "Developer, Startup, or Business",
       0,
       0
     );
@@ -500,7 +500,7 @@ export function validateRabbitMqVersion(
     throw new PlanValidationError(
       `RabbitMQ version ${majorMinorVersion}`,
       plan,
-      plan === WorkspacePlan.FREE || plan === WorkspacePlan.FREELANCE
+      plan === WorkspacePlan.FREE || plan === WorkspacePlan.DEVELOPER
         ? "Startup or Business"
         : "a higher plan",
       undefined,
@@ -569,7 +569,7 @@ export function getUpgradeRecommendationForOverLimit(
 ): { recommendedPlan: WorkspacePlan | null; message: string } {
   // Find the lowest plan that can accommodate the queue count
   const plans = [
-    WorkspacePlan.FREELANCE,
+    WorkspacePlan.DEVELOPER,
     WorkspacePlan.STARTUP,
     WorkspacePlan.BUSINESS,
   ];

@@ -25,7 +25,7 @@ tsx scripts/seed-test-data.ts --type=email
 **1. Main User Scenarios (`seed-test-users.ts`)**
 
 - Solo Developer (FREE): 1 user, 1 server, 1 queue
-- Freelancer Studio (FREELANCE): 2 users, 2 servers, 8 queues
+- Developer Studio (DEVELOPER): 2 users, 2 servers, 8 queues
 - TechStart Inc (STARTUP): 5 users, 6 servers, 35 queues
 - Enterprise Corp (BUSINESS): 11 users, 25 servers, 150 queues
 
@@ -50,7 +50,7 @@ All test users use password: `password123`
 **Quick Access:**
 
 - `free@test.com` - FREE plan user
-- `freelancer@test.com` - FREELANCE plan user
+- `developer@test.com` - DEVELOPER plan user
 - `admin@techstart.com` - STARTUP team admin
 - `admin@enterprise.com` - BUSINESS enterprise admin
 - `unverified.fresh@test.com` - Needs email verification

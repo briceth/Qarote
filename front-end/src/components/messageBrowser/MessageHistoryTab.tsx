@@ -164,7 +164,7 @@ export function MessageHistoryTab({
             <div>
               <strong>Message History is a Premium Feature</strong>
               <p className="text-sm text-gray-600 mt-1">
-                Upgrade to Freelance plan or higher to access historical message
+                Upgrade to Developer plan or higher to access historical message
                 data with advanced search capabilities.
               </p>
             </div>

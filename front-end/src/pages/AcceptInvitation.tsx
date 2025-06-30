@@ -165,7 +165,7 @@ const AcceptInvitation = () => {
   const planDisplayName =
     {
       FREE: "Free",
-      FREELANCE: "Freelance",
+      DEVELOPER: "Developer",
       STARTUP: "Startup",
       BUSINESS: "Business",
     }[invitation?.workspace.plan as string] || invitation?.workspace.plan;

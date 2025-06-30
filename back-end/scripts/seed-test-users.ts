@@ -1,10 +1,13 @@
 #!/usr/bin/env bun
 /**
- * Seed Test Users for Different Plan Types
+ * Seed Test Users for Different Plan        email: "developer@test.com",
+        password: "password123",
+        firstName: "Alex",
+        lastName: "Developer",es
  *
  * This script creates realistic test scenarios for each plan type:
  * - FREE: Single user, basic workspace
- * - FREELANCE: Single user with more resources
+ * - DEVELOPER: Single user with more resources
  * - STARTUP: Small team scenario
  * - BUSINESS: Large team with full features
  */
@@ -52,10 +55,10 @@ const TEST_SCENARIOS: TestScenario[] = [
     queueCount: 1, // At the limit
   },
   {
-    workspaceName: "Freelancer Studio",
-    plan: WorkspacePlan.FREELANCE,
-    contactEmail: "freelancer@test.com",
-    description: "Solo freelancer with multiple projects",
+    workspaceName: "Developer Studio",
+    plan: WorkspacePlan.DEVELOPER,
+    contactEmail: "developer@test.com",
+    description: "Solo developer with multiple projects",
     users: [
       {
         email: "freelancer@test.com",
@@ -65,7 +68,7 @@ const TEST_SCENARIOS: TestScenario[] = [
         role: UserRole.ADMIN,
       },
       {
-        email: "freelancer.assistant@test.com",
+        email: "developer.assistant@test.com",
         password: "password123",
         firstName: "Sam",
         lastName: "Assistant",
@@ -229,20 +232,20 @@ const EDGE_CASE_SCENARIOS: TestScenario[] = [
     queueCount: 1, // At limit
   },
   {
-    workspaceName: "FREELANCE - Near Limits",
-    plan: WorkspacePlan.FREELANCE,
-    contactEmail: "freelance.limits@test.com",
-    description: "FREELANCE user near limits to test UX warnings",
+    workspaceName: "DEVELOPER - Near Limits",
+    plan: WorkspacePlan.DEVELOPER,
+    contactEmail: "developer.limits@test.com",
+    description: "DEVELOPER user near limits to test UX warnings",
     users: [
       {
-        email: "freelance.limits@test.com",
+        email: "developer.limits@test.com",
         password: "password123",
         firstName: "Near",
         lastName: "Limit",
         role: UserRole.ADMIN,
       },
       {
-        email: "freelance.user2@test.com",
+        email: "developer.user2@test.com",
         password: "password123",
         firstName: "Second",
         lastName: "User",
@@ -416,7 +419,7 @@ async function seedTestUsers(): Promise<void> {
     logger.info("   - Try creating a second queue (should be blocked)");
     logger.info("   - Test upgrade prompts and messaging");
 
-    logger.info("\n2. FREELANCE Plan Tests:");
+    logger.info("\n2. DEVELOPER Plan Tests:");
     logger.info("   - Try creating beyond limits (2 servers, 10 queues)");
     logger.info("   - Test user invitation (max 2 users)");
     logger.info("   - Test message sending limits");

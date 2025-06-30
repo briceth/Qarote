@@ -17,7 +17,7 @@ interface InvitationEmailProps {
   inviterEmail: string;
   workspaceName: string;
   invitationToken: string;
-  plan: "FREE" | "FREELANCE" | "STARTUP" | "BUSINESS";
+  plan: "FREE" | "DEVELOPER" | "STARTUP" | "BUSINESS";
   userCostPerMonth?: number;
   frontendUrl: string;
 }
@@ -35,7 +35,7 @@ export const InvitationEmail = ({
 
   const planDisplayName = {
     FREE: "Free",
-    FREELANCE: "Freelance",
+    DEVELOPER: "Developer",
     STARTUP: "Startup",
     BUSINESS: "Business",
   }[plan];

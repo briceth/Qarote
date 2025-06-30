@@ -39,7 +39,7 @@ export const RabbitMqVersionInfo = ({
   const supportedVersions = limits.supportedRabbitMqVersions;
   const allVersions = ["3.12", "3.13", "4.0", "4.1"];
 
-  const isRestrictedPlan = plan === "FREE" || plan === "FREELANCE";
+  const isRestrictedPlan = plan === "FREE" || plan === "DEVELOPER";
 
   return (
     <div className={className}>

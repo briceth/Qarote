@@ -42,7 +42,7 @@ async function cleanDatabase(): Promise<void> {
         OR: [
           { name: { contains: "Test" } },
           { name: { contains: "FREE" } },
-          { name: { contains: "FREELANCE" } },
+          { name: { contains: "DEVELOPER" } },
           { name: { contains: "STARTUP" } },
           { name: { contains: "BUSINESS" } },
           { contactEmail: { endsWith: "@test.com" } },

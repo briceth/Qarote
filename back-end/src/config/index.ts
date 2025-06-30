@@ -36,8 +36,8 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
   // Stripe Price IDs
-  STRIPE_FREELANCE_MONTHLY_PRICE_ID: z.string().optional(),
-  STRIPE_FREELANCE_YEARLY_PRICE_ID: z.string().optional(),
+  STRIPE_DEVELOPER_MONTHLY_PRICE_ID: z.string().optional(),
+  STRIPE_DEVELOPER_YEARLY_PRICE_ID: z.string().optional(),
   STRIPE_STARTUP_MONTHLY_PRICE_ID: z.string().optional(),
   STRIPE_STARTUP_YEARLY_PRICE_ID: z.string().optional(),
   STRIPE_BUSINESS_MONTHLY_PRICE_ID: z.string().optional(),
@@ -116,9 +116,9 @@ export const stripeConfig = {
   secretKey: config.STRIPE_SECRET_KEY,
   webhookSecret: config.STRIPE_WEBHOOK_SECRET,
   priceIds: {
-    freelance: {
-      monthly: config.STRIPE_FREELANCE_MONTHLY_PRICE_ID,
-      yearly: config.STRIPE_FREELANCE_YEARLY_PRICE_ID,
+    developer: {
+      monthly: config.STRIPE_DEVELOPER_MONTHLY_PRICE_ID,
+      yearly: config.STRIPE_DEVELOPER_YEARLY_PRICE_ID,
     },
     startup: {
       monthly: config.STRIPE_STARTUP_MONTHLY_PRICE_ID,

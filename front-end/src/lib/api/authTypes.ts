@@ -53,7 +53,7 @@ export interface Workspace {
   name: string;
   contactEmail?: string;
   logoUrl?: string;
-  plan: "FREE" | "FREELANCE" | "STARTUP" | "BUSINESS";
+  plan: "FREE" | "DEVELOPER" | "STARTUP" | "BUSINESS";
   storageMode: string;
   retentionDays: number;
   encryptData: boolean;

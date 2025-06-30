@@ -57,39 +57,39 @@ const LIMIT_TEST_SCENARIOS: LimitTestScenario[] = [
     expectOverLimit: true,
   },
 
-  // FREELANCE Plan Scenarios
+  // DEVELOPER Plan Scenarios
   {
-    name: "FREELANCE - Exact Limits",
-    plan: WorkspacePlan.FREELANCE,
-    description: "User at exact FREELANCE plan limits",
-    email: "freelance.exact@test.com",
+    name: "DEVELOPER - Exact Limits",
+    plan: WorkspacePlan.DEVELOPER,
+    description: "User at exact DEVELOPER plan limits",
+    email: "developer.exact@test.com",
     password: "password123",
     firstName: "Exact",
-    lastName: "Freelance",
+    lastName: "Developer",
     targetServerCount: 2, // Limit is 2
     targetQueueCount: 10, // Limit is 10
     targetUserCount: 2, // Limit is 2
   },
   {
-    name: "FREELANCE - Near Limits",
-    plan: WorkspacePlan.FREELANCE,
-    description: "User near FREELANCE plan limits",
-    email: "freelance.near@test.com",
+    name: "DEVELOPER - Near Limits",
+    plan: WorkspacePlan.DEVELOPER,
+    description: "User near DEVELOPER plan limits",
+    email: "developer.near@test.com",
     password: "password123",
     firstName: "Near",
-    lastName: "Freelance",
+    lastName: "Developer",
     targetServerCount: 1, // 1 below limit
     targetQueueCount: 9, // 1 below limit
     targetUserCount: 1, // 1 below limit
   },
   {
-    name: "FREELANCE - Over Limits (Legacy)",
-    plan: WorkspacePlan.FREELANCE,
-    description: "FREELANCE user with legacy over-limit resources",
-    email: "freelance.over@test.com",
+    name: "DEVELOPER - Over Limits (Legacy)",
+    plan: WorkspacePlan.DEVELOPER,
+    description: "DEVELOPER user with legacy over-limit resources",
+    email: "developer.over@test.com",
     password: "password123",
     firstName: "Over",
-    lastName: "Freelance",
+    lastName: "Developer",
     targetServerCount: 4, // Over limit
     targetQueueCount: 15, // Over limit
     targetUserCount: 2,

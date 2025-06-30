@@ -1,8 +1,15 @@
-import { z } from "zod/v4";
+import { z } from "zod";
+
+export const workspacePlanEnum = z.enum([
+  "FREE",
+  "DEVELOPER",
+  "STARTUP",
+  "BUSINESS",
+]);
 
 export const WorkspacePlanSchema = z.enum([
   "FREE",
-  "FREELANCE",
+  "DEVELOPER",
   "STARTUP",
   "BUSINESS",
 ]);
@@ -11,7 +18,7 @@ export const WorkspacePlanSchema = z.enum([
 export const CreateWorkspaceSchema = z.object({
   name: z.string().min(1, "Workspace name is required"),
   contactEmail: z.string().email("Invalid email address").optional(),
-  logoUrl: z.url("Invalid URL").optional(),
+  logoUrl: z.string().url("Invalid URL").optional(),
   plan: WorkspacePlanSchema.default("FREE"),
 });
 
@@ -19,7 +26,7 @@ export const CreateWorkspaceSchema = z.object({
 export const UpdateWorkspaceSchema = z.object({
   name: z.string().min(1, "Workspace name is required").optional(),
   contactEmail: z.string().email("Invalid email address").optional(),
-  logoUrl: z.url("Invalid URL").optional(),
+  logoUrl: z.string().url("Invalid URL").optional(),
   plan: WorkspacePlanSchema.optional(),
 });
 

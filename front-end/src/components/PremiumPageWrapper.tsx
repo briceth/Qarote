@@ -21,7 +21,7 @@ const PremiumPageWrapper: React.FC<PremiumPageWrapperProps> = ({
   workspacePlan,
   feature,
   featureDescription,
-  requiredPlan = "Freelance or higher",
+  requiredPlan = "Developer or higher",
 }) => {
   const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
   const hasAccess = canUserAccessRouting(workspacePlan);

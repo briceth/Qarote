@@ -24,7 +24,7 @@ enum InvitationStatus {
 
 enum WorkspacePlan {
   FREE
-  FREELANCE
+  DEVELOPER
   STARTUP
   BUSINESS
 }

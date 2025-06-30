@@ -418,7 +418,7 @@ workspaceController.get(
             code: "PLAN_RESTRICTION",
             feature: "Data export",
             currentPlan: workspace.plan,
-            requiredPlans: ["FREELANCE", "STARTUP", "BUSINESS"],
+            requiredPlans: ["DEVELOPER", "STARTUP", "BUSINESS"],
           },
           402
         );

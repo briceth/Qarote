@@ -37,7 +37,7 @@ export const PlansSummaryTab: React.FC<PlansSummaryTabProps> = ({
       bgColor: "bg-gray-50",
       benefits: ["1 RabbitMQ server", "Basic monitoring", "Community support"],
     },
-    [WorkspacePlan.FREELANCE]: {
+    [WorkspacePlan.DEVELOPER]: {
       icon: <Zap className="w-5 h-5" />,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -262,7 +262,7 @@ export const PlansSummaryTab: React.FC<PlansSummaryTabProps> = ({
 function getNextPlan(currentPlan: WorkspacePlan): WorkspacePlan | null {
   const planOrder = [
     WorkspacePlan.FREE,
-    WorkspacePlan.FREELANCE,
+    WorkspacePlan.DEVELOPER,
     WorkspacePlan.STARTUP,
     WorkspacePlan.BUSINESS,
   ];

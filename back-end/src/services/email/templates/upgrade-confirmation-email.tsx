@@ -23,8 +23,8 @@ interface UpgradeConfirmationEmailProps {
 
 const getPlanDisplayName = (plan: WorkspacePlan) => {
   switch (plan) {
-    case WorkspacePlan.FREELANCE:
-      return "Freelance";
+    case WorkspacePlan.DEVELOPER:
+      return "Developer";
     case WorkspacePlan.STARTUP:
       return "Startup";
     case WorkspacePlan.BUSINESS:
@@ -36,7 +36,7 @@ const getPlanDisplayName = (plan: WorkspacePlan) => {
 
 const getPlanFeatures = (plan: WorkspacePlan) => {
   switch (plan) {
-    case WorkspacePlan.FREELANCE:
+    case WorkspacePlan.DEVELOPER:
       return [
         "3 RabbitMQ servers",
         "25 message queues",

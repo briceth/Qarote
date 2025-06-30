@@ -175,7 +175,7 @@ const AlertDashboard: React.FC = () => {
           workspacePlan={workspacePlan}
           feature="Alerts Dashboard"
           featureDescription="Monitor and manage RabbitMQ alerts with real-time statistics, rules, and actions."
-          requiredPlan="Freelance or higher"
+          requiredPlan="Developer or higher"
         >
           <main className="flex-1 p-6 overflow-auto">
             <div className="max-w-7xl mx-auto space-y-6">

@@ -30,10 +30,10 @@ export function PlanRestrictions({
         return {
           title: "Queue creation is not available on the Free plan",
           description:
-            "Upgrade to Freelance, Startup, or Business plan to create and manage custom queues.",
+            "Upgrade to Developer, Startup, or Business plan to create and manage custom queues.",
           buttonColor: "bg-orange-500 hover:bg-orange-600",
         };
-      case "FREELANCE":
+      case "DEVELOPER":
         return {
           title: `You've reached your queue limit (${queueCount}/10)`,
           description:
@@ -68,10 +68,10 @@ export function PlanRestrictions({
         return {
           title: "Message sending is not available on the Free plan",
           description:
-            "Upgrade to send messages to queues. Freelance: 100/month, Startup: 1,000/month, Business: unlimited.",
+            "Upgrade to send messages to queues. Developer: 100/month, Startup: 1,000/month, Business: unlimited.",
           buttonColor: "bg-red-500 hover:bg-red-600",
         };
-      case "FREELANCE":
+      case "DEVELOPER":
         return {
           title: `You've reached your monthly message limit (${monthlyMessageCount}/100)`,
           description:
@@ -129,7 +129,7 @@ export function PlanRestrictions({
           className={`p-4 border rounded-lg relative ${
             workspacePlan === "FREE"
               ? "bg-red-50 border-red-200"
-              : workspacePlan === "FREELANCE"
+              : workspacePlan === "DEVELOPER"
                 ? "bg-blue-50 border-blue-200"
                 : workspacePlan === "STARTUP"
                   ? "bg-purple-50 border-purple-200"
@@ -141,7 +141,7 @@ export function PlanRestrictions({
             className={`absolute top-2 right-2 p-1 rounded-full transition-colors ${
               workspacePlan === "FREE"
                 ? "hover:bg-red-100"
-                : workspacePlan === "FREELANCE"
+                : workspacePlan === "DEVELOPER"
                   ? "hover:bg-blue-100"
                   : workspacePlan === "STARTUP"
                     ? "hover:bg-purple-100"
@@ -153,7 +153,7 @@ export function PlanRestrictions({
               className={`w-4 h-4 ${
                 workspacePlan === "FREE"
                   ? "text-red-600"
-                  : workspacePlan === "FREELANCE"
+                  : workspacePlan === "DEVELOPER"
                     ? "text-blue-600"
                     : workspacePlan === "STARTUP"
                       ? "text-purple-600"
@@ -166,7 +166,7 @@ export function PlanRestrictions({
               className={`w-5 h-5 ${
                 workspacePlan === "FREE"
                   ? "text-red-500"
-                  : workspacePlan === "FREELANCE"
+                  : workspacePlan === "DEVELOPER"
                     ? "text-blue-500"
                     : workspacePlan === "STARTUP"
                       ? "text-purple-500"
@@ -178,7 +178,7 @@ export function PlanRestrictions({
                 className={`font-medium ${
                   workspacePlan === "FREE"
                     ? "text-red-900"
-                    : workspacePlan === "FREELANCE"
+                    : workspacePlan === "DEVELOPER"
                       ? "text-blue-900"
                       : workspacePlan === "STARTUP"
                         ? "text-purple-900"
@@ -191,7 +191,7 @@ export function PlanRestrictions({
                 className={`text-sm mt-1 ${
                   workspacePlan === "FREE"
                     ? "text-red-700"
-                    : workspacePlan === "FREELANCE"
+                    : workspacePlan === "DEVELOPER"
                       ? "text-blue-700"
                       : workspacePlan === "STARTUP"
                         ? "text-purple-700"

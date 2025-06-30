@@ -1,6 +1,6 @@
 export enum WorkspacePlan {
   FREE = "FREE",
-  FREELANCE = "FREELANCE",
+  DEVELOPER = "DEVELOPER",
   STARTUP = "STARTUP",
   BUSINESS = "BUSINESS",
 }
@@ -47,7 +47,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     canViewMemoryTrends: false,
     canViewMemoryOptimization: false,
   },
-  [WorkspacePlan.FREELANCE]: {
+  [WorkspacePlan.DEVELOPER]: {
     canAddQueue: true,
     canSendMessages: true,
     canAddServer: true,
@@ -234,8 +234,8 @@ export function getPlanDisplayName(plan: WorkspacePlan): string {
   switch (plan) {
     case WorkspacePlan.FREE:
       return "Free";
-    case WorkspacePlan.FREELANCE:
-      return "Freelance";
+    case WorkspacePlan.DEVELOPER:
+      return "Developer";
     case WorkspacePlan.STARTUP:
       return "Startup";
     case WorkspacePlan.BUSINESS:
@@ -249,7 +249,7 @@ export function getPlanColor(plan: WorkspacePlan): string {
   switch (plan) {
     case WorkspacePlan.FREE:
       return "text-white bg-gray-600";
-    case WorkspacePlan.FREELANCE:
+    case WorkspacePlan.DEVELOPER:
       return "text-white bg-blue-600";
     case WorkspacePlan.STARTUP:
       return "text-white bg-green-600";

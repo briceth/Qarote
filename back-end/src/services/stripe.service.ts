@@ -14,9 +14,9 @@ export const stripe = new Stripe(stripeConfig.secretKey, {
 
 // Stripe Price IDs for each plan (these would be created in Stripe Dashboard)
 export const STRIPE_PRICE_IDS = {
-  [WorkspacePlan.FREELANCE]: {
-    monthly: stripeConfig.priceIds.freelance.monthly,
-    yearly: stripeConfig.priceIds.freelance.yearly,
+  [WorkspacePlan.DEVELOPER]: {
+    monthly: stripeConfig.priceIds.developer.monthly,
+    yearly: stripeConfig.priceIds.developer.yearly,
   },
   [WorkspacePlan.STARTUP]: {
     monthly: stripeConfig.priceIds.startup.monthly,
@@ -29,7 +29,7 @@ export const STRIPE_PRICE_IDS = {
 } as const;
 
 export const PLAN_PRICING = {
-  [WorkspacePlan.FREELANCE]: {
+  [WorkspacePlan.DEVELOPER]: {
     monthly: 4900, // $49.00 in cents
     yearly: 3900, // $39.00 in cents
   },

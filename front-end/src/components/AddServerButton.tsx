@@ -34,7 +34,7 @@ export const AddServerButton = ({
           badgeColor: "bg-orange-500",
           title: "Upgrade to add servers",
         };
-      case "FREELANCE":
+      case "DEVELOPER":
         return {
           text: "Add Server",
           badge: `${serverCount}/2`,

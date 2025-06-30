@@ -443,7 +443,7 @@ export const RoutingVisualization: React.FC = () => {
           workspacePlan={workspacePlan}
           feature="Message Routing"
           featureDescription="is a powerful feature that helps you configure and monitor complex message routing patterns between exchanges and queues."
-          requiredPlan="Freelance or higher"
+          requiredPlan="Developer or higher"
           preserveLayout={true}
         >
           <main className="flex-1 flex flex-col overflow-hidden">

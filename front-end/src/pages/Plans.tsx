@@ -56,8 +56,8 @@ const PlanCard: React.FC<PlanCardProps> = ({
       bgColor: "bg-gray-50",
       borderColor: "border-gray-200",
     },
-    [WorkspacePlan.FREELANCE]: {
-      name: "Freelance",
+    [WorkspacePlan.DEVELOPER]: {
+      name: "Developer",
       description: "For solo developers and small projects",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -307,13 +307,13 @@ export const PlansPage: React.FC<PlansPageProps> = ({
   const planPricing = {
     monthly: {
       [WorkspacePlan.FREE]: { price: "Free", originalPrice: undefined },
-      [WorkspacePlan.FREELANCE]: { price: "$49", originalPrice: undefined },
+      [WorkspacePlan.DEVELOPER]: { price: "$49", originalPrice: undefined },
       [WorkspacePlan.STARTUP]: { price: "$99", originalPrice: undefined },
       [WorkspacePlan.BUSINESS]: { price: "$249", originalPrice: undefined },
     },
     yearly: {
       [WorkspacePlan.FREE]: { price: "Free", originalPrice: undefined },
-      [WorkspacePlan.FREELANCE]: { price: "$39", originalPrice: "$49" },
+      [WorkspacePlan.DEVELOPER]: { price: "$39", originalPrice: "$49" },
       [WorkspacePlan.STARTUP]: { price: "$79", originalPrice: "$99" },
       [WorkspacePlan.BUSINESS]: { price: "$199", originalPrice: "$249" },
     },
@@ -463,8 +463,8 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Free",
                           color: "text-gray-600",
                         },
-                        [WorkspacePlan.FREELANCE]: {
-                          name: "Freelance",
+                        [WorkspacePlan.DEVELOPER]: {
+                          name: "Developer",
                           color: "text-blue-600",
                         },
                         [WorkspacePlan.STARTUP]: {
@@ -513,7 +513,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "RabbitMQ Servers",
                           values: {
                             [WorkspacePlan.FREE]: "1 server",
-                            [WorkspacePlan.FREELANCE]: "Up to 3 servers",
+                            [WorkspacePlan.DEVELOPER]: "Up to 3 servers",
                             [WorkspacePlan.STARTUP]: "Up to 10 servers",
                             [WorkspacePlan.BUSINESS]: "Unlimited servers",
                           },
@@ -522,7 +522,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Message Queues",
                           values: {
                             [WorkspacePlan.FREE]: "Up to 5 queues",
-                            [WorkspacePlan.FREELANCE]: "Up to 25 queues",
+                            [WorkspacePlan.DEVELOPER]: "Up to 25 queues",
                             [WorkspacePlan.STARTUP]: "Up to 100 queues",
                             [WorkspacePlan.BUSINESS]: "Unlimited queues",
                           },
@@ -531,7 +531,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Monthly Messages",
                           values: {
                             [WorkspacePlan.FREE]: "10K messages",
-                            [WorkspacePlan.FREELANCE]: "100K messages",
+                            [WorkspacePlan.DEVELOPER]: "100K messages",
                             [WorkspacePlan.STARTUP]: "1M messages",
                             [WorkspacePlan.BUSINESS]: "Unlimited messages",
                           },
@@ -540,7 +540,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Team Members",
                           values: {
                             [WorkspacePlan.FREE]: "1 member",
-                            [WorkspacePlan.FREELANCE]: "Up to 3 members",
+                            [WorkspacePlan.DEVELOPER]: "Up to 3 members",
                             [WorkspacePlan.STARTUP]: "Up to 10 members",
                             [WorkspacePlan.BUSINESS]: "Unlimited members",
                           },
@@ -554,7 +554,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Basic Memory Metrics",
                           values: {
                             [WorkspacePlan.FREE]: true,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -563,7 +563,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Advanced Memory Analysis",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -572,7 +572,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Expert Memory Diagnostics",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -581,7 +581,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Memory Trends & History",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -590,7 +590,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Memory Optimization Tips",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: false,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -599,7 +599,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Advanced Metrics Dashboard",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -613,7 +613,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Message Routing",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -622,7 +622,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Data Export",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -631,7 +631,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Smart Alerts & Notifications",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -640,7 +640,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "API Access",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: "Basic API",
+                            [WorkspacePlan.DEVELOPER]: "Basic API",
                             [WorkspacePlan.STARTUP]: "Full API",
                             [WorkspacePlan.BUSINESS]: "Full API + Webhooks",
                           },
@@ -649,7 +649,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Custom Integrations",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: false,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -663,7 +663,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "SSL/TLS Encryption",
                           values: {
                             [WorkspacePlan.FREE]: true,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -672,7 +672,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Role-based Access Control",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -681,7 +681,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Audit Logs",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: false,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -690,7 +690,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "SOC 2 Compliance",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: false,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -704,7 +704,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Community Support",
                           values: {
                             [WorkspacePlan.FREE]: true,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -713,7 +713,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Email Support",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: true,
+                            [WorkspacePlan.DEVELOPER]: true,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -722,7 +722,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Priority Support",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: true,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -731,7 +731,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Phone Support",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: false,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -740,7 +740,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                           name: "Dedicated Account Manager",
                           values: {
                             [WorkspacePlan.FREE]: false,
-                            [WorkspacePlan.FREELANCE]: false,
+                            [WorkspacePlan.DEVELOPER]: false,
                             [WorkspacePlan.STARTUP]: false,
                             [WorkspacePlan.BUSINESS]: true,
                           },
@@ -985,7 +985,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 onClick={() =>
-                  onUpgrade(WorkspacePlan.FREELANCE, billingPeriod)
+                  onUpgrade(WorkspacePlan.DEVELOPER, billingPeriod)
                 }
                 className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3"
               >
