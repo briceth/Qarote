@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import logger from "../lib/logger";
+import logger from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Settings,
-  Plus,
   Edit,
   Trash2,
   Server as ServerIcon,
@@ -73,15 +72,6 @@ export function ServerManagement({ trigger }: ServerManagementProps) {
           {/* Add Server Button */}
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Your Servers</h3>
-            <AddServerForm
-              onServerAdded={handleServerAction}
-              trigger={
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Server
-                </Button>
-              }
-            />
           </div>
 
           {/* Server List */}

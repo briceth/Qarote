@@ -54,7 +54,7 @@ export const ServerDetails = ({ form }: ServerDetailsProps) => {
           name="port"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Port</FormLabel>
+              <FormLabel>Management Plugin Port</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -65,6 +65,9 @@ export const ServerDetails = ({ form }: ServerDetailsProps) => {
                   }
                 />
               </FormControl>
+              <div className="text-xs text-muted-foreground mt-1">
+                Default: 15672 (not the AMQP port 5672)
+              </div>
               <FormMessage />
             </FormItem>
           )}

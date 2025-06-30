@@ -38,7 +38,7 @@ export const useAddServerForm = ({
     return {
       name: "",
       host: "",
-      port: 15672,
+      port: 15672, // RabbitMQ Management Plugin default port
       username: "guest",
       password: "guest",
       vhost: "/",

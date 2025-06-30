@@ -273,7 +273,7 @@ export const AddServerForm = ({
           <DialogDescription>
             {mode === "edit"
               ? "Update the connection details for your RabbitMQ server."
-              : "Connect to your RabbitMQ server by providing the connection details below."}
+              : "Connect to your RabbitMQ server via the Management API. Ensure the Management plugin is enabled and use its port (default: 15672)."}
           </DialogDescription>
         </DialogHeader>
 

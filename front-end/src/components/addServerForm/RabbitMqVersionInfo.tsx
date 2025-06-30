@@ -10,6 +10,7 @@ import {
   ArrowUpCircle,
   ChevronDown,
   ChevronUp,
+  X,
 } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import type { PlanLimitsResponse } from "@/lib/api/workspaceClient";
@@ -22,6 +23,8 @@ export const RabbitMqVersionInfo = ({
   className,
 }: RabbitMqVersionInfoProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isManagementAlertDismissed, setIsManagementAlertDismissed] =
+    useState(false);
 
   const { data: planLimits, isLoading } = useQuery<PlanLimitsResponse>({
     queryKey: ["plan-limits"],
@@ -40,6 +43,41 @@ export const RabbitMqVersionInfo = ({
 
   return (
     <div className={className}>
+      {/* Management Plugin Requirement Notice */}
+      {!isManagementAlertDismissed && (
+        <Alert className="mb-4 border-blue-200 bg-blue-50 relative">
+          <InfoIcon className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800 pr-8">
+            <div className="font-medium mb-1">
+              RabbitMQ Management Plugin Required
+            </div>
+            <p className="text-sm">
+              Ensure the <strong>RabbitMQ Management Plugin</strong> is enabled
+              for API access. The port field above should be the Management
+              plugin port (default: 15672), not the AMQP broker port (5672).
+            </p>
+            <p className="text-xs mt-2 opacity-90">
+              To enable:{" "}
+              <span className="bg-blue-100 px-1 py-0.5 rounded text-xs font-mono">
+                rabbitmq-plugins enable rabbitmq_management
+              </span>
+            </p>
+          </AlertDescription>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsManagementAlertDismissed(true)}
+            className="absolute top-2 right-6 h-5 w-5 p-0"
+          >
+            <X
+              className="h-3 w-3 cursor-pointer"
+              onClick={() => setIsManagementAlertDismissed(true)}
+            />
+          </Button>
+        </Alert>
+      )}
+
+      {/* Version Support Information */}
       <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertDescription>
