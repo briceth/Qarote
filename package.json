@@ -28,11 +28,5 @@
     "seed:alerts:cleanup": "tsx scripts/seed-alerts.ts cleanup",
     "generate:test-messages": "npx tsx scripts/generate-test-messages.ts",
     "test:server-management": "node scripts/test-server-management.js"
-  },
-  "devDependencies": {
-    "@types/amqplib": "^0.10.7",
-    "amqplib": "^0.10.8",
-    "@prisma/client": "^5.0.0",
-    "prisma": "^5.0.0"
   }
 }

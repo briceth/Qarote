@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { authenticate } from "@/core/auth";
-import { requireRoutingEnabled } from "@/core/routing-feature-flag";
+import { requireRoutingEnabled } from "@/core/feature-flag/routing-feature-flag";
 
 const app = new Hono();
 

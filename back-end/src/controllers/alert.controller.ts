@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "@/core/prisma";
 import { authenticate } from "@/core/auth";
-import { requireAlertsEnabled } from "@/core/alerts-feature-flag";
+import { requireAlertsEnabled } from "@/core/feature-flag/alerts-feature-flag";
 import { zValidator } from "@hono/zod-validator";
 import { Prisma } from "@prisma/client";
 import {

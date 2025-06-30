@@ -12,6 +12,7 @@ import {
   Text,
 } from "@react-email/components";
 import { WorkspacePlan } from "@prisma/client";
+import { emailConfig } from "@/config";
 
 interface UpgradeConfirmationEmailProps {
   userName: string;
@@ -78,7 +79,7 @@ export const UpgradeConfirmationEmail = ({
 }: UpgradeConfirmationEmailProps) => {
   const planName = getPlanDisplayName(plan);
   const features = getPlanFeatures(plan);
-  const baseUrl = process.env.FRONTEND_URL || "https://app.rabbitscout.com";
+  const baseUrl = emailConfig.frontendUrl;
 
   return (
     <Html>
