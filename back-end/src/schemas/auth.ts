@@ -8,6 +8,7 @@ export const RegisterUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   workspaceName: z.string().optional(),
+  acceptTerms: z.boolean().optional().default(false),
 });
 
 // Schema for user login

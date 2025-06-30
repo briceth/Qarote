@@ -7,8 +7,11 @@ export const signUpSchema = z
     lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Please enter a valid email address"),
     workspaceName: z.string().min(1, "Workspace name is required"),
-    password: z.string().min(6, "Password must be at least 6 characters long"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
     confirmPassword: z.string(),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: "You must accept the Terms of Service and Privacy Policy",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

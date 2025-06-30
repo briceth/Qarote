@@ -30,7 +30,7 @@ authController.post(
   "/register",
   zValidator("json", RegisterUserSchema),
   async (c) => {
-    const { email, password, firstName, lastName, workspaceName } =
+    const { email, password, firstName, lastName, workspaceName, acceptTerms } =
       c.req.valid("json");
 
     try {
@@ -56,6 +56,8 @@ authController.post(
             data: {
               name: workspaceName,
               contactEmail: email,
+              consentGiven: acceptTerms || false,
+              consentDate: acceptTerms ? new Date() : null,
             },
           });
           workspaceId = workspace.id;

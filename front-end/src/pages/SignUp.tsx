@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -43,6 +44,7 @@ const SignUp: React.FC = () => {
       workspaceName: "",
       password: "",
       confirmPassword: "",
+      acceptTerms: false,
     },
   });
 
@@ -60,6 +62,7 @@ const SignUp: React.FC = () => {
       firstName: data.firstName,
       lastName: data.lastName,
       workspaceName: data.workspaceName,
+      acceptTerms: data.acceptTerms,
     };
 
     registerMutation.mutate(userData);
@@ -214,6 +217,46 @@ const SignUp: React.FC = () => {
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="acceptTerms"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={registerMutation.isPending}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-normal">
+                          I agree to the{" "}
+                          <Link
+                            to="/terms-of-service"
+                            className="font-medium text-blue-600 hover:text-blue-500 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Terms of Service
+                          </Link>{" "}
+                          and the{" "}
+                          <Link
+                            to="/privacy-policy"
+                            className="font-medium text-blue-600 hover:text-blue-500 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Privacy Policy
+                          </Link>
+                          .
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
                     </FormItem>
                   )}
                 />
