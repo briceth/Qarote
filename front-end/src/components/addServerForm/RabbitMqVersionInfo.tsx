@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { apiClient } from "@/lib/api";
-import type { PlanLimitsResponse } from "@/lib/api/workspaceClient";
+import type { CurrentPlanResponse } from "@/lib/api/planClient";
 
 interface RabbitMqVersionInfoProps {
   className?: string;
@@ -26,20 +26,19 @@ export const RabbitMqVersionInfo = ({
   const [isManagementAlertDismissed, setIsManagementAlertDismissed] =
     useState(false);
 
-  const { data: planLimits, isLoading } = useQuery<PlanLimitsResponse>({
-    queryKey: ["plan-limits"],
-    queryFn: () => apiClient.getCurrentPlanLimits(),
+  const { data: planData, isLoading } = useQuery<CurrentPlanResponse>({
+    queryKey: ["current-plan"],
+    queryFn: () => apiClient.getCurrentPlan(),
   });
 
-  if (isLoading || !planLimits) {
+  if (isLoading || !planData) {
     return null;
   }
-
-  const { plan, limits } = planLimits;
-  const supportedVersions = limits.supportedRabbitMqVersions;
+  const { planFeatures, workspace } = planData;
+  const supportedVersions = planFeatures.supportedRabbitMqVersions;
   const allVersions = ["3.12", "3.13", "4.0", "4.1"];
-
-  const isRestrictedPlan = plan === "FREE" || plan === "DEVELOPER";
+  const isRestrictedPlan =
+    workspace.plan === "FREE" || workspace.plan === "DEVELOPER";
 
   return (
     <div className={className}>
@@ -83,7 +82,7 @@ export const RabbitMqVersionInfo = ({
         <AlertDescription>
           <div className="flex items-center justify-between mb-2">
             <div className="font-medium">
-              RabbitMQ Version Support ({plan} Plan)
+              RabbitMQ Version Support ({workspace.plan} Plan)
             </div>
             <Button
               variant="ghost"

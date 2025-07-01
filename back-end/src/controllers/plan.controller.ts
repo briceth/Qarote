@@ -162,26 +162,4 @@ planController.get("/current", async (c) => {
   }
 });
 
-// Get specific plan features (ADMIN ONLY - sensitive plan details)
-planController.get("/:plan", authorize([UserRole.ADMIN]), async (c) => {
-  const planParam = c.req.param("plan").toUpperCase() as WorkspacePlan;
-
-  // Validate plan parameter
-  if (!Object.values(WorkspacePlan).includes(planParam)) {
-    return c.json({ error: "Invalid plan specified" }, 400);
-  }
-
-  try {
-    const planFeatures = getUnifiedPlanFeatures(planParam);
-
-    return c.json({
-      plan: planParam,
-      ...planFeatures,
-    });
-  } catch (error) {
-    logger.error(`Error fetching plan ${planParam}:`, error);
-    return c.json({ error: "Failed to fetch plan information" }, 500);
-  }
-});
-
 export { planController };

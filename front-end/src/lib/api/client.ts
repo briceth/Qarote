@@ -300,10 +300,6 @@ class ApiClient {
     return this.workspaceClient.getCurrentWorkspace();
   }
 
-  async getCurrentPlanLimits() {
-    return this.workspaceClient.getCurrentPlanLimits();
-  }
-
   async getCurrentWorkspaceMonthlyMessageCount() {
     return this.workspaceClient.getCurrentWorkspaceMonthlyMessageCount();
   }
@@ -401,10 +397,6 @@ class ApiClient {
 
   async getCurrentPlan() {
     return this.planClient.getCurrentPlan();
-  }
-
-  async getPlan(plan: Parameters<PlanApiClient["getPlan"]>[0]) {
-    return this.planClient.getPlan(plan);
   }
 
   // Payment methods

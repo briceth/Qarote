@@ -552,29 +552,4 @@ workspaceController.delete(
 );
 
 // Get current plan limits (ALL USERS)
-workspaceController.get("/current/plan-limits", async (c) => {
-  const user = c.get("user");
-
-  try {
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: user.workspaceId },
-      select: { plan: true },
-    });
-
-    if (!workspace) {
-      return c.json({ error: "Workspace not found" }, 404);
-    }
-
-    const planLimits = getPlanLimits(workspace.plan);
-
-    return c.json({
-      plan: workspace.plan,
-      limits: planLimits,
-    });
-  } catch (error) {
-    logger.error("Error fetching plan limits:", error);
-    return c.json({ error: "Failed to fetch plan limits" }, 500);
-  }
-});
-
 export default workspaceController;

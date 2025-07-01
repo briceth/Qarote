@@ -30,6 +30,9 @@ export interface PlanFeatures {
   maxUsers?: number;
   maxMessagesPerMonth?: number;
 
+  // RabbitMQ Version Support
+  supportedRabbitMqVersions: string[];
+
   // Display information
   displayName: string;
   description: string;
@@ -85,34 +88,6 @@ export interface AllPlansResponse {
   >;
 }
 
-export interface SpecificPlanResponse {
-  plan: WorkspacePlan;
-  // All plan features will be spread here
-  displayName: string;
-  description: string;
-  color: string;
-  monthlyPrice: number;
-  yearlyPrice: number;
-  featureDescriptions: string[];
-  canAddQueue: boolean;
-  canSendMessages: boolean;
-  canAddServer: boolean;
-  canExportData: boolean;
-  canAccessRouting: boolean;
-  hasAdvancedMetrics: boolean;
-  hasAdvancedAlerts: boolean;
-  hasPrioritySupport: boolean;
-  canViewBasicMemoryMetrics: boolean;
-  canViewAdvancedMemoryMetrics: boolean;
-  canViewExpertMemoryMetrics: boolean;
-  canViewMemoryTrends: boolean;
-  canViewMemoryOptimization: boolean;
-  maxServers?: number;
-  maxQueues?: number;
-  maxUsers?: number;
-  maxMessagesPerMonth?: number;
-}
-
 export class PlanApiClient extends BaseApiClient {
   /**
    * Get all available plans with their features
@@ -126,12 +101,5 @@ export class PlanApiClient extends BaseApiClient {
    */
   async getCurrentPlan(): Promise<CurrentPlanResponse> {
     return this.request<CurrentPlanResponse>("/plans/current");
-  }
-
-  /**
-   * Get specific plan features
-   */
-  async getPlan(plan: WorkspacePlan): Promise<SpecificPlanResponse> {
-    return this.request<SpecificPlanResponse>(`/plans/${plan}`);
   }
 }
