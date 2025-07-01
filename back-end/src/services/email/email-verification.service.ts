@@ -256,7 +256,7 @@ export class EmailVerificationService {
         emailToVerify,
         token,
         type,
-        user.firstName!
+        user.firstName
       );
 
       if (!emailResult.success) {

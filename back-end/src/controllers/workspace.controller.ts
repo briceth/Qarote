@@ -20,7 +20,7 @@ const workspaceController = new Hono();
 // All routes in this controller require authentication
 workspaceController.use("*", authenticate);
 
-// Get all workspaces (admin only)
+// Get all workspaces (ADMIN ONLY)
 workspaceController.get("/", authorize([UserRole.ADMIN]), async (c) => {
   try {
     const workspaces = await prisma.workspace.findMany({
@@ -41,7 +41,7 @@ workspaceController.get("/", authorize([UserRole.ADMIN]), async (c) => {
   }
 });
 
-// Get user's current workspace
+// Get user's current workspace (ALL USERS)
 workspaceController.get("/current", async (c) => {
   const user = c.get("user");
 
@@ -69,7 +69,7 @@ workspaceController.get("/current", async (c) => {
   }
 });
 
-// Get current workspace monthly message count
+// Get current workspace monthly message count (ALL USERS)
 workspaceController.get("/current/monthly-message-count", async (c) => {
   const user = c.get("user");
 
@@ -91,7 +91,7 @@ workspaceController.get("/current/monthly-message-count", async (c) => {
   }
 });
 
-// Get a specific workspace by ID
+// Get a specific workspace by ID (ALL USERS)
 workspaceController.get("/:id", async (c) => {
   const id = c.req.param("id");
   const user = c.get("user");
@@ -128,7 +128,7 @@ workspaceController.get("/:id", async (c) => {
   }
 });
 
-// Create a new workspace (admin only)
+// Create a new workspace (ADMIN ONLY)
 workspaceController.post(
   "/",
   authorize([UserRole.ADMIN]),
@@ -149,33 +149,18 @@ workspaceController.post(
   }
 );
 
-// Update a workspace
+// Update a workspace (ADMIN ONLY)
 workspaceController.put(
   "/:id",
+  authorize([UserRole.ADMIN]),
+  checkWorkspaceAccess,
   zValidator("json", UpdateWorkspaceSchema),
   async (c) => {
     const id = c.req.param("id");
     const data = c.req.valid("json");
     const user = c.get("user");
 
-    // Only allow workspace users or admins to update workspace details
-    if (user.role !== UserRole.ADMIN && user.workspaceId !== id) {
-      return c.json(
-        { error: "Forbidden", message: "Cannot update this workspace" },
-        403
-      );
-    }
-
     try {
-      // Check if workspace exists
-      const existingWorkspace = await prisma.workspace.findUnique({
-        where: { id },
-      });
-
-      if (!existingWorkspace) {
-        return c.json({ error: "Workspace not found" }, 404);
-      }
-
       const workspace = await prisma.workspace.update({
         where: { id },
         data,
@@ -189,31 +174,27 @@ workspaceController.put(
   }
 );
 
-// Delete a workspace (admin only)
-workspaceController.delete("/:id", authorize([UserRole.ADMIN]), async (c) => {
-  const id = c.req.param("id");
+// Delete a workspace (ADMIN ONLY)
+workspaceController.delete(
+  "/:id",
+  authorize([UserRole.ADMIN]),
+  checkWorkspaceAccess,
+  async (c) => {
+    const id = c.req.param("id");
 
-  try {
-    // Check if workspace exists
-    const existingWorkspace = await prisma.workspace.findUnique({
-      where: { id },
-    });
+    try {
+      // Delete workspace (this will also delete all related records due to cascade)
+      await prisma.workspace.delete({
+        where: { id },
+      });
 
-    if (!existingWorkspace) {
-      return c.json({ error: "Workspace not found" }, 404);
+      return c.json({ message: "Workspace deleted successfully" });
+    } catch (error) {
+      logger.error(`Error deleting workspace ${id}:`, error);
+      return c.json({ error: "Failed to delete workspace" }, 500);
     }
-
-    // Delete workspace (this will also delete all related records due to cascade)
-    await prisma.workspace.delete({
-      where: { id },
-    });
-
-    return c.json({ message: "Workspace deleted successfully" });
-  } catch (error) {
-    logger.error(`Error deleting workspace ${id}:`, error);
-    return c.json({ error: "Failed to delete workspace" }, 500);
   }
-});
+);
 
 // Get workspace statistics
 workspaceController.get("/:id/stats", checkWorkspaceAccess, async (c) => {
@@ -321,16 +302,16 @@ workspaceController.get("/:id/privacy", checkWorkspaceAccess, async (c) => {
   }
 });
 
-// Update workspace privacy settings (admin only)
+// Update workspace privacy settings (ADMIN ONLY)
 workspaceController.put(
   "/:id/privacy",
   authorize([UserRole.ADMIN]),
+  checkWorkspaceAccess,
   zValidator("json", updateWorkspacePrivacySchema),
   async (c) => {
     try {
       const id = c.req.param("id");
       const data = c.req.valid("json");
-      const user = c.get("user");
 
       // Verify workspace exists and user has access
       const workspace = await prisma.workspace.findUnique({
@@ -387,10 +368,11 @@ workspaceController.put(
   }
 );
 
-// Export all workspace data (admin only)
+// Export all workspace data (ADMIN ONLY)
 workspaceController.get(
   "/:id/export",
   authorize([UserRole.ADMIN]),
+  checkWorkspaceAccess,
   async (c) => {
     try {
       const id = c.req.param("id");
@@ -493,10 +475,11 @@ workspaceController.get(
   }
 );
 
-// Delete all workspace data (admin only)
+// Delete all workspace data (ADMIN ONLY)
 workspaceController.delete(
   "/:id/data",
   authorize([UserRole.ADMIN]),
+  checkWorkspaceAccess,
   async (c) => {
     try {
       const id = c.req.param("id");
@@ -568,7 +551,7 @@ workspaceController.delete(
   }
 );
 
-// Get current plan limits
+// Get current plan limits (ALL USERS)
 workspaceController.get("/current/plan-limits", async (c) => {
   const user = c.get("user");
 

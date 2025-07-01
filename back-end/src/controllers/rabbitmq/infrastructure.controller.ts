@@ -19,7 +19,7 @@ infrastructureController.get("/servers/:id/nodes", async (c) => {
   const user = c.get("user");
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const nodes = await client.getNodes();
     return c.json({ nodes });
   } catch (error) {
@@ -37,7 +37,7 @@ infrastructureController.get("/servers/:id/exchanges", async (c) => {
   const user = c.get("user");
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const exchanges = await client.getExchanges();
     return c.json({ exchanges });
   } catch (error) {
@@ -55,7 +55,7 @@ infrastructureController.get("/servers/:id/connections", async (c) => {
   const user = c.get("user");
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const connections = await client.getConnections();
     return c.json({ connections });
   } catch (error) {
@@ -73,7 +73,7 @@ infrastructureController.get("/servers/:id/channels", async (c) => {
   const user = c.get("user");
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const channels = await client.getChannels();
     return c.json({ channels });
   } catch (error) {

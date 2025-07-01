@@ -29,7 +29,7 @@ app.post(
       c.req.valid("json");
     const user = c.get("user");
 
-    if (!user?.workspaceId) {
+    if (!user.workspaceId) {
       return c.json({ error: "User workspace not found" }, 404);
     }
 

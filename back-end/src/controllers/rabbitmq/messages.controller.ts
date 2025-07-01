@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { streamSSE } from "hono/streaming";
 import { prisma } from "@/core/prisma";
-import { authenticate } from "@/core/auth";
+import { authenticate, authorize } from "@/core/auth";
+import { UserRole } from "@prisma/client";
 import { logger } from "@/core/logger";
 import { streamRegistry } from "@/core/DatabaseStreamRegistry";
 import { planValidationMiddleware } from "@/middlewares/plan-validation";
@@ -22,11 +23,12 @@ messagesController.use("*", authenticate);
 messagesController.use("*", planValidationMiddleware());
 
 /**
- * Send message to queue for a specific server (with plan validation)
+ * Send message to queue for a specific server (ADMIN ONLY - sensitive operation)
  * POST /servers/:serverId/queues/:queueName/messages
  */
 messagesController.post(
   "/servers/:serverId/queues/:queueName/messages",
+  authorize([UserRole.ADMIN]),
   zValidator("json", publishMessageToQueueSchema),
   async (c) => {
     const serverId = c.req.param("serverId");
@@ -39,7 +41,7 @@ messagesController.post(
       const server = await prisma.rabbitMQServer.findUnique({
         where: {
           id: serverId,
-          workspaceId: user.workspaceId!,
+          workspaceId: user.workspaceId,
         },
         select: { workspaceId: true },
       });
@@ -64,7 +66,7 @@ messagesController.post(
       validateMessageSending(plan, monthlyMessageCount);
 
       // Send the message via RabbitMQ API
-      const client = await createRabbitMQClient(serverId, user.workspaceId!);
+      const client = await createRabbitMQClient(serverId, user.workspaceId);
 
       // Use the provided exchange and routing key, or defaults for direct queue publishing
       const targetExchange = exchange || ""; // Empty string means default exchange
@@ -184,7 +186,7 @@ messagesController.post(
 );
 
 /**
- * Browse messages from a specific queue (with SSE support)
+ * Browse messages from a specific queue (with SSE support) (ALL USERS)
  * GET /servers/:serverId/queues/:queueName/messages/browse
  */
 messagesController.get(
@@ -197,7 +199,7 @@ messagesController.get(
 
     try {
       // Verify the server belongs to the user's workspace
-      await createRabbitMQClient(serverId, user.workspaceId!);
+      await createRabbitMQClient(serverId, user.workspaceId);
 
       // Set proper SSE headers
       c.header("Content-Type", "text/event-stream");
@@ -306,7 +308,7 @@ messagesController.get(
             // Create client for this iteration
             const client = await createRabbitMQClient(
               serverId,
-              user.workspaceId!
+              user.workspaceId
             );
 
             // Get current queue info to check for new messages
@@ -455,7 +457,7 @@ messagesController.get(
 );
 
 /**
- * Stop streaming messages from a specific queue
+ * Stop streaming messages from a specific queue (ALL USERS)
  * POST /servers/:serverId/queues/:queueName/messages/browse/stop
  */
 messagesController.post(
@@ -467,7 +469,7 @@ messagesController.post(
 
     try {
       // Verify the server belongs to the user's workspace
-      await createRabbitMQClient(serverId, user.workspaceId!);
+      await createRabbitMQClient(serverId, user.workspaceId);
 
       // Find and stop streams for this specific user/server/queue combination
       const userStreams = await streamRegistry.getUserStreams(user.id);

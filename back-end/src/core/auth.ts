@@ -20,8 +20,8 @@ interface JWTPayload {
 export interface SafeUser {
   id: string;
   email: string;
-  firstName: string | null;
-  lastName: string | null;
+  firstName: string;
+  lastName: string;
   role: UserRole;
   workspaceId: string;
   isActive: boolean;

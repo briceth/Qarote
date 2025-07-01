@@ -12,7 +12,7 @@ metricsController.use("*", authenticate);
 metricsController.use("*", planValidationMiddleware());
 
 /**
- * Get metrics for a specific server
+ * Get metrics for a specific server (ALL USERS)
  * GET /servers/:id/metrics
  */
 metricsController.get("/servers/:id/metrics", async (c) => {
@@ -20,27 +20,15 @@ metricsController.get("/servers/:id/metrics", async (c) => {
   const user = c.get("user");
 
   try {
-    // Verify the server belongs to the user's workspace
-    const server = await prisma.rabbitMQServer.findFirst({
-      where: {
-        id,
-        workspaceId: user.workspaceId!,
-      },
-    });
-
-    if (!server) {
-      return c.json({ error: "Server not found or access denied" }, 404);
-    }
-
     // Create RabbitMQ client to fetch enhanced metrics
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
 
     // Get enhanced metrics (system-level metrics including CPU, memory, disk usage)
     const enhancedMetrics = await client.getMetrics();
 
     return c.json({
       serverId: id,
-      serverName: server.name,
+      // serverName: server.name,
       metrics: enhancedMetrics,
     });
   } catch (error) {
@@ -50,7 +38,7 @@ metricsController.get("/servers/:id/metrics", async (c) => {
 });
 
 /**
- * Get timeseries metrics for a specific server
+ * Get timeseries metrics for a specific server (ALL USERS)
  * GET /servers/:id/metrics/timeseries
  */
 metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
@@ -63,7 +51,7 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
     const server = await prisma.rabbitMQServer.findFirst({
       where: {
         id,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
     });
 
@@ -175,7 +163,7 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
 
     return c.json({
       serverId: id,
-      serverName: server.name,
+      // serverName: server.name,
       timeRange,
       startTime: startTime.toISOString(),
       endTime: new Date().toISOString(),

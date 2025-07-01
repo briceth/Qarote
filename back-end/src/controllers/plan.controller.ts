@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import { authenticate } from "@/core/auth";
+import { authenticate, authorize } from "@/core/auth";
+import { UserRole } from "@prisma/client";
 import { PLAN_FEATURES, getUnifiedPlanFeatures } from "@/services/plan.service";
 import { WorkspacePlan } from "@prisma/client";
 import { prisma } from "@/core/prisma";
@@ -10,8 +11,8 @@ const planController = new Hono();
 // Apply authentication middleware
 planController.use("*", authenticate);
 
-// Get all available plans with their features
-planController.get("/", async (c) => {
+// Get all available plans with their features (ADMIN ONLY - sensitive pricing data)
+planController.get("/", authorize([UserRole.ADMIN]), async (c) => {
   try {
     const allPlans = Object.entries(PLAN_FEATURES).map(
       ([planKey, features]) => ({
@@ -27,7 +28,7 @@ planController.get("/", async (c) => {
   }
 });
 
-// Get current user's plan features and usage
+// Get current user's plan features and usage (USER - can only see their own workspace plan)
 planController.get("/current", async (c) => {
   const user = c.get("user");
 
@@ -47,6 +48,14 @@ planController.get("/current", async (c) => {
 
     if (!workspace) {
       return c.json({ error: "Workspace not found" }, 404);
+    }
+
+    // Security check: Ensure user can only access their own workspace
+    if (workspace.id !== user.workspaceId) {
+      return c.json(
+        { error: "Access denied: Cannot access other workspace data" },
+        403
+      );
     }
 
     // Get queue count
@@ -153,8 +162,8 @@ planController.get("/current", async (c) => {
   }
 });
 
-// Get specific plan features
-planController.get("/:plan", async (c) => {
+// Get specific plan features (ADMIN ONLY - sensitive plan details)
+planController.get("/:plan", authorize([UserRole.ADMIN]), async (c) => {
   const planParam = c.req.param("plan").toUpperCase() as WorkspacePlan;
 
   // Validate plan parameter

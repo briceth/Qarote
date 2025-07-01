@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { prisma } from "@/core/prisma";
-import { authenticate } from "@/core/auth";
+import { authenticate, authorize } from "@/core/auth";
+import { UserRole } from "@prisma/client";
 import { sendInvitationEmail } from "@/services/email/email.service";
 import { logger } from "@/core/logger";
 import { inviteUserSchema } from "@/schemas/invitation";
@@ -18,20 +19,10 @@ const invitationController = new Hono();
 
 // Helper function to get user display name
 const getUserDisplayName = (user: {
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
+  firstName: string;
+  lastName: string;
 }): string => {
-  if (user.firstName && user.lastName) {
-    return `${user.firstName} ${user.lastName}`;
-  }
-  if (user.firstName) {
-    return user.firstName;
-  }
-  if (user.lastName) {
-    return user.lastName;
-  }
-  return user.email;
+  return `${user.firstName} ${user.lastName}`;
 };
 
 /**
@@ -40,7 +31,7 @@ const getUserDisplayName = (user: {
 invitationController.get("/", authenticate, async (c) => {
   try {
     const user = c.get("user");
-    if (!user?.workspaceId) {
+    if (!user.workspaceId) {
       return c.json(
         { error: "User not authenticated or not in workspace" },
         401
@@ -96,23 +87,23 @@ invitationController.get("/", authenticate, async (c) => {
 });
 
 /**
- * POST /invitations - Send a user invitation (requires auth)
+ * POST /invitations - Send a user invitation (requires auth) (ADMIN ONLY)
  */
 invitationController.post(
   "/",
-  authenticate,
+  authorize([UserRole.ADMIN]),
   zValidator("json", inviteUserSchema),
   async (c) => {
     try {
       const user = c.get("user");
-      if (!user?.workspaceId) {
+      if (!user.workspaceId) {
         return c.json(
           { error: "User not authenticated or not in workspace" },
           401
         );
       }
 
-      const { email, role, message } = c.req.valid("json");
+      const { email, role } = c.req.valid("json");
 
       // Get workspace with plan information
       const workspace = await prisma.workspace.findUnique({
@@ -263,54 +254,59 @@ invitationController.post(
 );
 
 /**
- * DELETE /invitations/:id - Cancel/revoke an invitation (requires auth)
+ * DELETE /invitations/:id - Cancel/revoke an invitation (ADMIN ONLY)
  */
-invitationController.delete("/:id", authenticate, async (c) => {
-  try {
-    const user = c.get("user");
-    if (!user?.workspaceId) {
-      return c.json(
-        { error: "User not authenticated or not in workspace" },
-        401
-      );
+invitationController.delete(
+  "/:id",
+  authenticate,
+  authorize([UserRole.ADMIN]),
+  async (c) => {
+    try {
+      const user = c.get("user");
+      if (!user.workspaceId) {
+        return c.json(
+          { error: "User not authenticated or not in workspace" },
+          401
+        );
+      }
+
+      const invitationId = c.req.param("id");
+
+      // Find the invitation
+      const invitation = await prisma.invitation.findFirst({
+        where: {
+          id: invitationId,
+          workspaceId: user.workspaceId,
+          status: "PENDING",
+        },
+      });
+
+      if (!invitation) {
+        return c.json(
+          { error: "Invitation not found or already processed" },
+          404
+        );
+      }
+
+      // Update invitation status to expired
+      await prisma.invitation.update({
+        where: { id: invitationId },
+        data: {
+          status: "EXPIRED",
+          updatedAt: new Date(),
+        },
+      });
+
+      return c.json({
+        success: true,
+        message: "Invitation revoked successfully",
+      });
+    } catch (error) {
+      logger.error("Error revoking invitation:", error);
+      return c.json({ error: "Failed to revoke invitation" }, 500);
     }
-
-    const invitationId = c.req.param("id");
-
-    // Find the invitation
-    const invitation = await prisma.invitation.findFirst({
-      where: {
-        id: invitationId,
-        workspaceId: user.workspaceId,
-        status: "PENDING",
-      },
-    });
-
-    if (!invitation) {
-      return c.json(
-        { error: "Invitation not found or already processed" },
-        404
-      );
-    }
-
-    // Update invitation status to expired
-    await prisma.invitation.update({
-      where: { id: invitationId },
-      data: {
-        status: "EXPIRED",
-        updatedAt: new Date(),
-      },
-    });
-
-    return c.json({
-      success: true,
-      message: "Invitation revoked successfully",
-    });
-  } catch (error) {
-    logger.error("Error revoking invitation:", error);
-    return c.json({ error: "Failed to revoke invitation" }, 500);
   }
-});
+);
 
 /**
  * POST /invitations/:token/accept - Accept an invitation

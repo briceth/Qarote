@@ -19,7 +19,7 @@ memoryController.use("*", authenticate);
 memoryController.use("*", planValidationMiddleware());
 
 /**
- * Get detailed memory metrics for a specific node for a specific server
+ * Get detailed memory metrics for a specific node for a specific server (ALL USERS)
  * GET /servers/:id/nodes/:nodeName/memory
  */
 memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
@@ -34,15 +34,10 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
     const server = await prisma.rabbitMQServer.findFirst({
       where: {
         id,
-        workspaceId: user.workspaceId!,
+        workspaceId: user.workspaceId,
       },
       include: { workspace: true },
     });
-
-    logger.info(`Server found:`, server ? "Yes" : "No");
-    if (server) {
-      logger.info(`Server workspace plan:`, server.workspace?.plan);
-    }
 
     if (!server) {
       return c.json({ error: "Server not found or access denied" }, 404);
@@ -55,7 +50,7 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
     // Validate basic memory metrics access (available to all plans)
     validateBasicMemoryMetricsAccess(server.workspace.plan);
 
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const nodes = await client.getNodes();
     const node = nodes.find((n) => n.name === nodeName);
 

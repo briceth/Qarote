@@ -80,7 +80,7 @@ Located in `back-end/src/core/DatabaseStreamRegistry.ts`, this class provides:
 // Example registration
 const streamId = await streamRegistry.registerStream({
   userId: user.id,
-  workspaceId: user.workspaceId!,
+  workspaceId: user.workspaceId,
   serverId,
   queueName,
   cleanupFn: () => {

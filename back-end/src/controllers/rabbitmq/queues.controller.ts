@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { authenticate } from "@/core/auth";
+import { authenticate, authorize } from "@/core/auth";
+import { UserRole } from "@prisma/client";
 import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import { CreateQueueSchema } from "@/schemas/rabbitmq";
 import { logger } from "@/core/logger";
@@ -19,6 +20,14 @@ import {
   createErrorResponse,
   verifyServerAccess,
 } from "./shared";
+import { RabbitMQQueue } from "@/types/rabbitmq";
+import {
+  QueueConsumersResponse,
+  QueueCreationResponse,
+  QueuePurgeResponse,
+  QueuesResponse,
+  SingleQueueResponse,
+} from "@/types/Queue";
 
 const queuesController = new Hono();
 
@@ -27,7 +36,7 @@ queuesController.use("*", authenticate);
 queuesController.use("*", planValidationMiddleware());
 
 /**
- * Get all queues for a specific server
+ * Get all queues for a specific server (ALL USERS)
  * GET /servers/:id/queues
  */
 queuesController.get("/servers/:id/queues", async (c) => {
@@ -36,9 +45,9 @@ queuesController.get("/servers/:id/queues", async (c) => {
 
   try {
     // Verify the server belongs to the user's workspace and get over-limit info
-    const server = await verifyServerAccess(id, user.workspaceId!, true);
+    const server = await verifyServerAccess(id, user.workspaceId, true);
 
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const queues = await client.getQueues();
 
     // Store queue data in the database
@@ -101,7 +110,7 @@ queuesController.get("/servers/:id/queues", async (c) => {
     }
 
     // Prepare response with over-limit warning information
-    const response: any = { queues };
+    const response: QueuesResponse = { queues };
 
     // Add warning information if server is over the queue limit
     if (server.isOverQueueLimit && server.workspace) {
@@ -135,7 +144,7 @@ queuesController.get("/servers/:id/queues", async (c) => {
 });
 
 /**
- * Get a specific queue by name from a server
+ * Get a specific queue by name from a server (ALL USERS)
  * GET /servers/:id/queues/:queueName
  */
 queuesController.get("/servers/:id/queues/:queueName", async (c) => {
@@ -144,9 +153,10 @@ queuesController.get("/servers/:id/queues/:queueName", async (c) => {
   const user = c.get("user");
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const queue = await client.getQueue(queueName);
-    return c.json({ queue });
+    const response: SingleQueueResponse = { queue };
+    return c.json(response);
   } catch (error) {
     logger.error(`Error fetching queue ${queueName} for server ${id}:`, error);
     return createErrorResponse(c, error, 500, "Failed to fetch queue");
@@ -154,7 +164,7 @@ queuesController.get("/servers/:id/queues/:queueName", async (c) => {
 });
 
 /**
- * Get consumers for a specific queue on a server
+ * Get consumers for a specific queue on a server (ALL USERS)
  * GET /servers/:id/queues/:queueName/consumers
  */
 queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
@@ -163,15 +173,16 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
   const user = c.get("user");
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const consumers = await client.getQueueConsumers(queueName);
 
-    return c.json({
+    const response: QueueConsumersResponse = {
       success: true,
       consumers,
       totalConsumers: consumers.length,
       queueName,
-    });
+    };
+    return c.json(response);
   } catch (error) {
     logger.error(
       `Error fetching consumers for queue ${queueName} on server ${id}:`,
@@ -187,11 +198,12 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
 });
 
 /**
- * Create a new queue for a specific server (with plan validation)
+ * Create a new queue for a specific server (ADMIN ONLY - sensitive operation)
  * POST /servers/:serverId/queues
  */
 queuesController.post(
   "/servers/:serverId/queues",
+  authorize([UserRole.ADMIN]),
   zValidator("json", CreateQueueSchema),
   async (c) => {
     const serverId = c.req.param("serverId");
@@ -201,7 +213,7 @@ queuesController.post(
     try {
       // Get server to check workspace ownership and over-limit status
       const server = await prisma.rabbitMQServer.findUnique({
-        where: { id: serverId, workspaceId: user.workspaceId! },
+        where: { id: serverId, workspaceId: user.workspaceId },
         select: {
           workspaceId: true,
           isOverQueueLimit: true,
@@ -236,18 +248,19 @@ queuesController.post(
       );
 
       // Create the queue via RabbitMQ API
-      const client = await createRabbitMQClient(serverId, user.workspaceId!);
+      const client = await createRabbitMQClient(serverId, user.workspaceId);
       const result = await client.createQueue(queueData.name, {
         durable: queueData.durable,
         autoDelete: queueData.autoDelete,
         arguments: queueData.arguments,
       });
 
-      return c.json({
+      const response: QueueCreationResponse = {
         success: true,
         message: "Queue created successfully",
         queue: result,
-      });
+      };
+      return c.json(response);
     } catch (error) {
       logger.error("Error creating queue:", error);
       return createErrorResponse(c, error, 500, "Failed to create queue");
@@ -256,25 +269,27 @@ queuesController.post(
 );
 
 /**
- * Purge queue messages for a specific server (DELETE)
+ * Purge queue messages for a specific server (ADMIN ONLY - dangerous operation)
  * DELETE /servers/:serverId/queues/:queueName/messages
  */
 queuesController.delete(
   "/servers/:serverId/queues/:queueName/messages",
+  authorize([UserRole.ADMIN]),
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
     const user = c.get("user");
 
     try {
-      const client = await createRabbitMQClient(serverId, user.workspaceId!);
+      const client = await createRabbitMQClient(serverId, user.workspaceId);
       await client.purgeQueue(queueName);
 
-      return c.json({
+      const response: QueuePurgeResponse = {
         success: true,
         message: `Queue "${queueName}" purged successfully`,
         purged: -1, // -1 indicates all messages were purged
-      });
+      };
+      return c.json(response);
     } catch (error) {
       logger.error(
         `Error purging queue ${queueName} on server ${serverId}:`,

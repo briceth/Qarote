@@ -10,9 +10,9 @@ import {
 import {
   createRabbitMQClient,
   createErrorResponse,
-  WarningInfo,
   verifyServerAccess,
 } from "./shared";
+import { OverviewResponse } from "@/types/Overview";
 
 const overviewController = new Hono();
 
@@ -20,13 +20,8 @@ const overviewController = new Hono();
 overviewController.use("*", authenticate);
 overviewController.use("*", planValidationMiddleware());
 
-interface OverviewResponse {
-  overview: RabbitMQOverview;
-  warning?: WarningInfo;
-}
-
 /**
- * Get overview for a specific server
+ * Get overview for a specific server (ALL USERS)
  * GET /servers/:id/overview
  */
 overviewController.get("/servers/:id/overview", async (c) => {
@@ -35,9 +30,9 @@ overviewController.get("/servers/:id/overview", async (c) => {
 
   try {
     // Verify the server belongs to the user's workspace and get over-limit info
-    const server = await verifyServerAccess(id, user.workspaceId!, true);
+    const server = await verifyServerAccess(id, user.workspaceId, true);
 
-    const client = await createRabbitMQClient(id, user.workspaceId!);
+    const client = await createRabbitMQClient(id, user.workspaceId);
     const overview = await client.getOverview();
 
     // Prepare response with properly typed over-limit warning information

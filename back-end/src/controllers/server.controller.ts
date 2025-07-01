@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { prisma } from "@/core/prisma";
 import RabbitMQClient from "@/core/rabbitmq";
-import { authenticate } from "@/core/auth";
+import { authenticate, authorize } from "@/core/auth";
+import { UserRole } from "@prisma/client";
 import { EncryptionService } from "@/services/encryption.service";
 import { logger } from "@/core/logger";
 import {
@@ -29,24 +30,6 @@ serverController.use("*", authenticate);
 
 // Apply plan validation middleware to all routes
 serverController.use("*", planValidationMiddleware());
-
-// Helper function to decrypt server credentials for RabbitMQ client
-function getDecryptedCredentials(server: any) {
-  return {
-    host: server.host,
-    port: server.port,
-    username: EncryptionService.decrypt(server.username),
-    password: EncryptionService.decrypt(server.password),
-    vhost: server.vhost,
-    sslConfig: {
-      enabled: server.sslEnabled,
-      verifyPeer: server.sslVerifyPeer,
-      caCertPath: server.sslCaCertPath,
-      clientCertPath: server.sslClientCertPath,
-      clientKeyPath: server.sslClientKeyPath,
-    },
-  };
-}
 
 // Get all RabbitMQ servers (filtered by user's workspace)
 serverController.get("/", async (c) => {
@@ -179,9 +162,10 @@ serverController.get("/:id", async (c) => {
   }
 });
 
-// Create a new server (automatically assigned to user's workspace)
+// Create a new server (ADMIN ONLY - sensitive operation)
 serverController.post(
   "/",
+  authorize([UserRole.ADMIN]),
   zValidator("json", CreateServerSchema),
   async (c) => {
     const data = c.req.valid("json");
@@ -196,7 +180,7 @@ serverController.post(
 
       validateServerCreation(plan, resourceCounts.servers);
 
-      logger.info("Creating server with data:", { ...data, password: "***" });
+      logger.info("Creating server with data:", data);
 
       // Test connection before creating the server (use plain text for testing)
       const client = new RabbitMQClient({
@@ -295,9 +279,10 @@ serverController.post(
   }
 );
 
-// Update a server (only if it belongs to user's workspace)
+// Update a server (ADMIN ONLY - sensitive operation)
 serverController.put(
   "/:id",
+  authorize([UserRole.ADMIN]),
   zValidator("json", UpdateServerSchema),
   async (c) => {
     const id = c.req.param("id");
@@ -366,8 +351,8 @@ serverController.put(
   }
 );
 
-// Delete a server (only if it belongs to user's workspace)
-serverController.delete("/:id", async (c) => {
+// Delete a server (ADMIN ONLY - dangerous operation)
+serverController.delete("/:id", authorize([UserRole.ADMIN]), async (c) => {
   const id = c.req.param("id");
   const user = c.get("user");
 
@@ -395,9 +380,10 @@ serverController.delete("/:id", async (c) => {
   }
 });
 
-// Test RabbitMQ connection
+// Test RabbitMQ connection (ADMIN ONLY - could expose sensitive info)
 serverController.post(
   "/test-connection",
+  authorize([UserRole.ADMIN]),
   zValidator("json", RabbitMQCredentialsSchema),
   async (c) => {
     const credentials = c.req.valid("json");
@@ -428,37 +414,41 @@ serverController.post(
   }
 );
 
-// Mark over-limit warning as shown for a server
-serverController.put("/:id/warning-shown", async (c) => {
-  const id = c.req.param("id");
-  const user = c.get("user");
+// Mark over-limit warning as shown for a server (ADMIN ONLY - modifies server state)
+serverController.put(
+  "/:id/warning-shown",
+  authorize([UserRole.ADMIN]),
+  async (c) => {
+    const id = c.req.param("id");
+    const user = c.get("user");
 
-  try {
-    // Check if server exists and belongs to user's workspace
-    const existingServer = await prisma.rabbitMQServer.findUnique({
-      where: {
-        id,
-        workspaceId: user.workspaceId,
-      },
-    });
+    try {
+      // Check if server exists and belongs to user's workspace
+      const existingServer = await prisma.rabbitMQServer.findUnique({
+        where: {
+          id,
+          workspaceId: user.workspaceId,
+        },
+      });
 
-    if (!existingServer) {
-      return c.json({ error: "Server not found or access denied" }, 404);
+      if (!existingServer) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
+      // Update warning shown status
+      await prisma.rabbitMQServer.update({
+        where: { id },
+        data: {
+          overLimitWarningShown: true,
+        },
+      });
+
+      return c.json({ message: "Warning status updated successfully" });
+    } catch (error) {
+      logger.error(`Error updating warning status for server ${id}:`, error);
+      return c.json({ error: "Failed to update warning status" }, 500);
     }
-
-    // Update warning shown status
-    await prisma.rabbitMQServer.update({
-      where: { id },
-      data: {
-        overLimitWarningShown: true,
-      },
-    });
-
-    return c.json({ message: "Warning status updated successfully" });
-  } catch (error) {
-    logger.error(`Error updating warning status for server ${id}:`, error);
-    return c.json({ error: "Failed to update warning status" }, 500);
   }
-});
+);
 
 export default serverController;
