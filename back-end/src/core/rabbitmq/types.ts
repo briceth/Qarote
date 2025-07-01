@@ -2,7 +2,7 @@
  * Additional types for RabbitMQ queue operations
  */
 
-import type { QueueArguments } from "@/types/rabbitmq";
+import type { QueueArguments } from "@/types/Rabbitmq";
 
 export interface RabbitMQMessage {
   payload: string;

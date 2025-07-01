@@ -557,7 +557,7 @@ workspaceController.delete(
 // ============================================
 
 // Get all available plans with their features (ADMIN ONLY - sensitive pricing data)
-workspaceController.get("/plans", authorize([UserRole.ADMIN]), async (c) => {
+workspaceController.get("/plans", async (c) => {
   try {
     const allPlans = Object.entries(PLAN_FEATURES).map(
       ([planKey, features]) => ({

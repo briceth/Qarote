@@ -20,7 +20,7 @@ import {
   createErrorResponse,
   verifyServerAccess,
 } from "./shared";
-import { RabbitMQQueue } from "@/types/rabbitmq";
+import { RabbitMQQueue } from "@/types/Rabbitmq";
 import {
   QueueConsumersResponse,
   QueueCreationResponse,

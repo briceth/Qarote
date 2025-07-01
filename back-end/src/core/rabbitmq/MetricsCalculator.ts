@@ -5,7 +5,7 @@ import type {
   RabbitMQChannel,
   RabbitMQNode,
   EnhancedMetrics,
-} from "@/types/rabbitmq";
+} from "@/types/Rabbitmq";
 
 /**
  * Metrics calculation utilities for RabbitMQ

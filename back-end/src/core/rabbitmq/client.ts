@@ -1,4 +1,4 @@
-import type { RabbitMQCredentials, EnhancedMetrics } from "@/types/rabbitmq";
+import type { RabbitMQCredentials, EnhancedMetrics } from "@/types/Rabbitmq";
 import type {
   RabbitMQMessage,
   MessageProperties,

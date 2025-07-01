@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { authenticate } from "@/core/auth";
 import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import { logger } from "@/core/logger";
-import { RabbitMQOverview } from "@/types/rabbitmq";
+import { RabbitMQOverview } from "@/types/Rabbitmq";
 import {
   getOverLimitWarningMessage,
   getUpgradeRecommendationForOverLimit,

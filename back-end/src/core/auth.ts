@@ -104,7 +104,6 @@ export const extractUserFromToken = async (
   }
 };
 
-// Authentication middleware
 export const authenticate = async (c: Context, next: () => Promise<void>) => {
   const authHeader = c.req.header("Authorization");
 

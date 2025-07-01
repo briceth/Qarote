@@ -1,5 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
-import { RabbitMQQueue } from "./rabbitmq";
+import { RabbitMQQueue } from "./Rabbitmq";
 
 export interface QueueLimitWarning {
   isOverLimit: true;

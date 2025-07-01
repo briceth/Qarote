@@ -1,5 +1,4 @@
-// Initialize Sentry before importing anything else
-import { initSentry } from "./core/sentry";
+import { initSentry } from "@/core/sentry";
 initSentry();
 
 import { serve } from "@hono/node-server";
@@ -8,26 +7,26 @@ import { logger as honoLogger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { PrismaClient } from "@prisma/client";
-import { logger } from "./core/logger";
+import { logger } from "@/core/logger";
 import { serverConfig } from "@/config";
 
-import serverController from "./controllers/server.controller";
-import rabbitmqController from "./controllers/rabbitmq";
-import alertController from "./controllers/alert.controller";
-import authController from "./controllers/auth.controller";
-import userController from "./controllers/user.controller";
-import workspaceController from "./controllers/workspace.controller";
-import logsController from "./controllers/logs.controller";
-import routingController from "./controllers/routing.controller";
-import feedbackController from "./controllers/feedback.controller";
-import invitationController from "./controllers/invitation.controller";
-import paymentController from "./controllers/payment.controller";
-import { messageHistoryController } from "./controllers/message-history.controller";
+import serverController from "@/controllers/server.controller";
+import rabbitmqController from "@/controllers/rabbitmq";
+import alertController from "@/controllers/alert.controller";
+import authController from "@/controllers/auth.controller";
+import userController from "@/controllers/user.controller";
+import workspaceController from "@/controllers/workspace.controller";
+import logsController from "@/controllers/logs.controller";
+import routingController from "@/controllers/routing.controller";
+import feedbackController from "@/controllers/feedback.controller";
+import invitationController from "@/controllers/invitation.controller";
+import paymentController from "@/controllers/payment.controller";
+import { messageHistoryController } from "@/controllers/message-history.controller";
 
-import { corsMiddleware } from "./middlewares/cors";
+import { corsMiddleware } from "@/middlewares/cors";
 // import { alertService } from "./services/alert.service";
 // import { TemporaryStorage } from "./core/privacy";
-import { streamRegistry } from "./core/DatabaseStreamRegistry";
+import { streamRegistry } from "@/core/DatabaseStreamRegistry";
 
 const prisma = new PrismaClient();
 
