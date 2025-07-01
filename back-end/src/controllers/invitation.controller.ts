@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { prisma } from "@/core/prisma";
 import { authenticate, authorize } from "@/core/auth";
 import { UserRole } from "@prisma/client";
-import { sendInvitationEmail } from "@/services/email/email.service";
+import { EmailService } from "@/services/email/email.service";
 import { logger } from "@/core/logger";
 import { inviteUserSchema } from "@/schemas/invitation";
 import {
@@ -198,7 +198,7 @@ invitationController.post(
       });
 
       // Send invitation email
-      const emailResult = await sendInvitationEmail({
+      const emailResult = await EmailService.sendInvitationEmail({
         to: email,
         inviterName: getUserDisplayName(user),
         inviterEmail: user.email,

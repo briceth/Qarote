@@ -12,12 +12,11 @@ import {
   Customer,
   PaymentIntent,
 } from "@/services/stripe.service";
+import { EmailService } from "@/services/email/email.service";
 import {
-  sendUpgradeConfirmationEmail,
-  sendTrialEndingEmail,
-  sendPaymentActionRequiredEmail,
-  sendUpcomingInvoiceEmail,
-} from "@/services/email/email.service";
+  getWorkspaceResourceCounts,
+  getMonthlyMessageCount,
+} from "@/middlewares/plan-validation";
 import {
   WorkspacePlan,
   SubscriptionStatus,
@@ -280,7 +279,7 @@ async function handleCheckoutSessionCompleted(session: Session) {
     });
 
     if (workspace?.users[0]) {
-      await sendUpgradeConfirmationEmail({
+      await EmailService.sendUpgradeConfirmationEmail({
         to: workspace.users[0].email,
         userName: getUserDisplayName(workspace.users[0]),
         workspaceName: workspace.name,
@@ -544,12 +543,23 @@ async function handleTrialWillEnd(subscription: Subscription) {
         subscription.trial_end * 1000
       ).toLocaleDateString();
 
-      const emailResult = await sendTrialEndingEmail({
+      // Get current usage for more compelling email content
+      const [resourceCounts, monthlyMessages] = await Promise.all([
+        getWorkspaceResourceCounts(workspace.id),
+        getMonthlyMessageCount(workspace.id),
+      ]);
+
+      const emailResult = await EmailService.sendTrialEndingEmail({
         to: workspace.users[0].email,
         name: getUserDisplayName(workspace.users[0]),
         workspaceName: workspace.name,
         plan: workspace.plan as "DEVELOPER" | "STARTUP" | "BUSINESS",
         trialEndDate,
+        currentUsage: {
+          servers: resourceCounts.servers,
+          queues: resourceCounts.queues,
+          monthlyMessages,
+        },
       });
 
       if (!emailResult.success) {
@@ -598,11 +608,11 @@ async function handlePaymentActionRequired(invoice: Invoice) {
 
     // Send payment action required email
     if (invoice.hosted_invoice_url && workspace.plan !== WorkspacePlan.FREE) {
-      const emailResult = await sendPaymentActionRequiredEmail({
+      const emailResult = await EmailService.sendPaymentActionRequiredEmail({
         to: workspace.users[0].email,
         name: getUserDisplayName(workspace.users[0]),
         workspaceName: workspace.name,
-        plan: workspace.plan as "DEVELOPER" | "STARTUP" | "BUSINESS",
+        plan: workspace.plan,
         invoiceUrl: invoice.hosted_invoice_url,
         amount: (invoice.amount_due / 100).toFixed(2),
         currency: invoice.currency,
@@ -664,7 +674,13 @@ async function handleUpcomingInvoice(invoice: Invoice) {
               Date.now() + 30 * 24 * 60 * 60 * 1000
             ).toLocaleDateString(); // Default to 30 days from now
 
-        const emailResult = await sendUpcomingInvoiceEmail({
+        // Get usage data for business intelligence email
+        const [resourceCounts, monthlyMessages] = await Promise.all([
+          getWorkspaceResourceCounts(workspace.id),
+          getMonthlyMessageCount(workspace.id),
+        ]);
+
+        const emailResult = await EmailService.sendUpcomingInvoiceEmail({
           to: workspace.users[0].email,
           name: getUserDisplayName(workspace.users[0]),
           workspaceName: workspace.name,
@@ -673,6 +689,12 @@ async function handleUpcomingInvoice(invoice: Invoice) {
           currency: invoice.currency,
           invoiceDate,
           nextBillingDate,
+          usageReport: {
+            servers: resourceCounts.servers,
+            queues: resourceCounts.queues,
+            monthlyMessages,
+            totalMessages: monthlyMessages, // For now, same as monthly
+          },
         });
 
         if (!emailResult.success) {

@@ -21,6 +21,12 @@ interface UpcomingInvoiceEmailProps {
   invoiceDate: string;
   nextBillingDate: string;
   frontendUrl: string;
+  usageReport?: {
+    servers: number;
+    queues: number;
+    monthlyMessages: number;
+    totalMessages: number;
+  };
 }
 
 export const UpcomingInvoiceEmail = ({
@@ -32,6 +38,7 @@ export const UpcomingInvoiceEmail = ({
   invoiceDate,
   nextBillingDate,
   frontendUrl,
+  usageReport,
 }: UpcomingInvoiceEmailProps) => {
   const planDisplayName = {
     DEVELOPER: "Developer",
@@ -111,6 +118,43 @@ export const UpcomingInvoiceEmail = ({
               Your subscription will automatically renew, and payment will be
               processed using your saved payment method.
             </Text>
+
+            {/* Usage Insights Section */}
+            {usageReport && (
+              <Section style={usageSection}>
+                <Text style={sectionTitle}>📊 Your usage this month:</Text>
+
+                <Section style={usageRow}>
+                  <Text style={usageLabel}>RabbitMQ Servers:</Text>
+                  <Text style={usageValue}>
+                    {usageReport.servers} server
+                    {usageReport.servers !== 1 ? "s" : ""}
+                  </Text>
+                </Section>
+
+                <Section style={usageRow}>
+                  <Text style={usageLabel}>Message Queues:</Text>
+                  <Text style={usageValue}>
+                    {usageReport.queues} queue
+                    {usageReport.queues !== 1 ? "s" : ""}
+                  </Text>
+                </Section>
+
+                <Section style={usageRow}>
+                  <Text style={usageLabel}>Messages Processed:</Text>
+                  <Text style={usageValue}>
+                    {usageReport.monthlyMessages.toLocaleString()} messages
+                  </Text>
+                </Section>
+
+                {usageReport.monthlyMessages > 0 && (
+                  <Text style={usageInsight}>
+                    💡 Great activity! You're making the most of your{" "}
+                    {planDisplayName} plan.
+                  </Text>
+                )}
+              </Section>
+            )}
 
             {/* Features Reminder */}
             <Section style={featuresSection}>
@@ -287,6 +331,43 @@ const invoiceValue = {
   color: "#1f2937",
   margin: "0",
   fontWeight: "600",
+};
+
+const usageSection = {
+  margin: "32px 0",
+  padding: "24px",
+  backgroundColor: "#f0fdf4",
+  borderRadius: "8px",
+  border: "1px solid #bbf7d0",
+};
+
+const usageRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  margin: "0 0 12px",
+  alignItems: "center",
+};
+
+const usageLabel = {
+  fontSize: "15px",
+  color: "#6b7280",
+  margin: "0",
+  fontWeight: "500",
+};
+
+const usageValue = {
+  fontSize: "15px",
+  color: "#1f2937",
+  margin: "0",
+  fontWeight: "600",
+};
+
+const usageInsight = {
+  fontSize: "14px",
+  lineHeight: "20px",
+  color: "#059669",
+  margin: "16px 0 0",
+  fontStyle: "italic" as const,
 };
 
 const featuresSection = {

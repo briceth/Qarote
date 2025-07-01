@@ -19,7 +19,7 @@ import {
   PasswordChangeSchema,
   AcceptInvitationSchema,
 } from "@/schemas/auth";
-import { sendWelcomeEmail } from "@/services/email/email.service";
+import { EmailService } from "@/services/email/email.service";
 import { EncryptionService } from "@/services/encryption.service";
 import { EmailVerificationService } from "@/services/email/email-verification.service";
 import { isDevelopment } from "@/config";
@@ -138,7 +138,7 @@ authController.post(
           });
 
           if (workspace) {
-            await sendWelcomeEmail({
+            await EmailService.sendWelcomeEmail({
               to: result.user.email,
               name: result.user.firstName || result.user.email,
               workspaceName: workspace.name,
@@ -621,7 +621,7 @@ authController.post(
       // Send welcome email for newly created users
       if (isNewUser) {
         try {
-          await sendWelcomeEmail({
+          await EmailService.sendWelcomeEmail({
             to: result.email,
             name: result.firstName || result.email,
             workspaceName: invitation.workspace.name,

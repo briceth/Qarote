@@ -3,7 +3,7 @@ import { prisma } from "@/core/prisma";
 import type { User } from "@prisma/client";
 import { logger } from "@/core/logger";
 import { EncryptionService } from "../encryption.service";
-import { sendVerificationEmail } from "./email.service";
+import { EmailService } from "./email.service";
 
 export interface EmailVerificationOptions {
   userId: string;
@@ -64,7 +64,7 @@ export class EmailVerificationService {
         tokenLength: token.length,
       });
 
-      const result = await sendVerificationEmail({
+      const result = await EmailService.sendVerificationEmail({
         to: email,
         userName,
         verificationToken: token,
