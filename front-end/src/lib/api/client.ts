@@ -391,13 +391,13 @@ class ApiClient {
   }
 
   // Plan methods
-  // async getAllPlans(workspaceId: string) {
-  //   return this.planClient.getAllPlans(workspaceId);
-  // }
+  async getAllPlans() {
+    return this.planClient.getAllPlans();
+  }
 
-  // async getCurrentPlan(workspaceId: string) {
-  //   return this.planClient.getCurrentPlan(workspaceId);
-  // }
+  async getCurrentPlan() {
+    return this.planClient.getCurrentPlan();
+  }
 
   // Payment methods
   async createCheckoutSession(
@@ -424,6 +424,12 @@ class ApiClient {
 
   async createBillingPortalSession() {
     return this.paymentClient.createBillingPortalSession();
+  }
+
+  async cancelSubscription(
+    data: Parameters<PaymentApiClient["cancelSubscription"]>[0]
+  ) {
+    return this.paymentClient.cancelSubscription(data);
   }
 }
 

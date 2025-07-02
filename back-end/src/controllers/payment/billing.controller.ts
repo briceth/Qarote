@@ -234,4 +234,102 @@ app.post("/billing/portal", authMiddleware, async (c) => {
   }
 });
 
+// Cancel subscription
+app.post("/billing/cancel", authMiddleware, async (c) => {
+  const user = c.get("user");
+  const { cancelImmediately = false, reason, feedback } = await c.req.json();
+
+  try {
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: user.workspaceId },
+      include: {
+        subscription: true,
+      },
+    });
+
+    if (!workspace) {
+      return c.json({ error: "Workspace not found" }, 404);
+    }
+
+    if (!workspace.subscription?.stripeSubscriptionId) {
+      return c.json({ error: "No active subscription found" }, 404);
+    }
+
+    // Cancel the subscription in Stripe
+    const canceledSubscription = await stripe.subscriptions.update(
+      workspace.subscription.stripeSubscriptionId,
+      {
+        cancel_at_period_end: !cancelImmediately,
+        ...(cancelImmediately && { prorate: true }),
+        metadata: {
+          canceled_by: user.email,
+          canceled_at: new Date().toISOString(),
+          cancellation_reason: reason || "user_requested",
+          user_feedback: feedback || "",
+        },
+      }
+    );
+
+    // Update our database
+    await prisma.subscription.update({
+      where: { workspaceId: user.workspaceId },
+      data: {
+        status: "CANCELED",
+        cancelAtPeriodEnd: !cancelImmediately,
+        canceledAt: cancelImmediately ? new Date() : null,
+        cancelationReason: reason || "user_requested",
+        updatedAt: new Date(),
+      },
+    });
+
+    // Log the cancellation for audit purposes
+    logger.info(
+      {
+        workspaceId: user.workspaceId,
+        subscriptionId: workspace.subscription.stripeSubscriptionId,
+        cancelImmediately,
+        reason,
+        feedback,
+        userId: user.id,
+      },
+      "Subscription cancellation requested"
+    );
+
+    // If canceling immediately, downgrade workspace to FREE plan
+    if (cancelImmediately) {
+      await prisma.workspace.update({
+        where: { id: user.workspaceId },
+        data: {
+          plan: "FREE",
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    return c.json({
+      success: true,
+      subscription: {
+        id: canceledSubscription.id,
+        status: canceledSubscription.status,
+        cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
+        currentPeriodEnd: new Date(
+          canceledSubscription.current_period_end * 1000
+        ),
+        canceledAt: cancelImmediately ? new Date() : null,
+      },
+      message: cancelImmediately
+        ? "Subscription canceled immediately. Your workspace has been downgraded to the Free plan."
+        : `Subscription will be canceled at the end of your current billing period (${new Date(
+            canceledSubscription.current_period_end * 1000
+          ).toLocaleDateString()}).`,
+    });
+  } catch (error) {
+    logger.error(
+      { error, workspaceId: user.workspaceId },
+      "Error canceling subscription"
+    );
+    return c.json({ error: "Failed to cancel subscription" }, 500);
+  }
+});
+
 export default app;

@@ -106,6 +106,24 @@ export interface BillingOverviewResponse {
   }>;
 }
 
+export interface CancelSubscriptionRequest {
+  cancelImmediately?: boolean;
+  reason?: string;
+  feedback?: string;
+}
+
+export interface CancelSubscriptionResponse {
+  success: boolean;
+  subscription: {
+    id: string;
+    status: string;
+    cancelAtPeriodEnd: boolean;
+    currentPeriodEnd: string;
+    canceledAt: string | null;
+  };
+  message: string;
+}
+
 export class PaymentApiClient extends BaseApiClient {
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -165,5 +183,20 @@ export class PaymentApiClient extends BaseApiClient {
     return this.request<{ url: string }>("/payments/billing/portal", {
       method: "POST",
     });
+  }
+
+  /**
+   * Cancel current subscription
+   */
+  async cancelSubscription(
+    data: CancelSubscriptionRequest
+  ): Promise<CancelSubscriptionResponse> {
+    return this.request<CancelSubscriptionResponse>(
+      "/payments/billing/cancel",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
   }
 }

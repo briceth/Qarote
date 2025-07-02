@@ -26,7 +26,7 @@ const PlanUpgradeModal: React.FC<PlanUpgradeModalProps> = ({
   // Fetch all plans data
   const { data: allPlansData } = useQuery({
     queryKey: ["plans", "all", workspace?.id],
-    queryFn: () => apiClient.getAllPlans(workspace!.id),
+    queryFn: () => apiClient.getAllPlans(),
     enabled: !!workspace?.id,
   });
 

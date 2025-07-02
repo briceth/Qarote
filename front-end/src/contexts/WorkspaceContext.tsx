@@ -110,7 +110,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
     setPlanError(null);
 
     try {
-      const response = await apiClient.getCurrentPlan(user.workspaceId);
+      const response = await apiClient.getCurrentPlan();
       setPlanData(response);
     } catch (err) {
       const errorMessage =

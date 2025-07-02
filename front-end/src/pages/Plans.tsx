@@ -40,7 +40,7 @@ const useAllPlans = () => {
 
   return useQuery({
     queryKey: ["plans", "all", workspace?.id],
-    queryFn: () => apiClient.getAllPlans(workspace!.id),
+    queryFn: () => apiClient.getAllPlans(),
     enabled: !!workspace?.id,
   });
 };
