@@ -36,7 +36,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { FeedbackForm } from "@/components/FeedbackForm";
 
 const faqs = [
   {
@@ -177,7 +176,6 @@ export function HelpSupport() {
               with the RabbitMQ Dashboard.
             </p>
           </div>
-
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Quick Help Links */}
             <div className="space-y-6">
@@ -317,11 +315,6 @@ export function HelpSupport() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Feedback Form */}
-          <div className="border-t pt-8">
-            <FeedbackForm className="max-w-2xl" />
           </div>
         </div>
       </SidebarInset>
