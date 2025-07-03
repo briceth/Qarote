@@ -1,6 +1,6 @@
 import React from "react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import logger from "@/lib/logger";
 import { BillingOverviewResponse } from "@/lib/api/paymentClient";
@@ -12,9 +12,21 @@ import {
   RecentPayments,
 } from "@/components/billing";
 
+interface ExtendedSubscription {
+  cancelAtPeriodEnd?: boolean;
+  [key: string]: unknown;
+}
+
+interface ExtendedStripeSubscription {
+  cancel_at_period_end?: boolean;
+  current_period_end?: number;
+  [key: string]: unknown;
+}
+
 const Billing: React.FC = () => {
   const { workspace } = useWorkspace();
   const { handleUpgrade } = usePlanUpgrade();
+  const queryClient = useQueryClient();
 
   const {
     data: billingData,
@@ -29,6 +41,33 @@ const Billing: React.FC = () => {
     enabled: !!workspace?.id,
   });
 
+  const handleCancelSubscription = async (data: {
+    cancelImmediately: boolean;
+    reason: string;
+    feedback: string;
+  }) => {
+    try {
+      const response = await apiClient.cancelSubscription(data);
+      logger.info("Subscription canceled successfully", response);
+
+      // Show success message to user
+      if (response.message) {
+        // You might want to show a toast notification here
+        console.log("Cancellation message:", response.message);
+      }
+
+      // Refetch billing data to update the UI
+      await queryClient.invalidateQueries({
+        queryKey: ["billing", workspace?.id],
+      });
+
+      return response;
+    } catch (error) {
+      logger.error("Failed to cancel subscription:", error);
+      throw error; // Re-throw so the modal can handle the error
+    }
+  };
+
   const handleOpenBillingPortal = async () => {
     try {
       const data = await apiClient.createBillingPortalSession();
@@ -40,26 +79,37 @@ const Billing: React.FC = () => {
 
   return (
     <BillingLayout isLoading={isLoading} error={!!error || !billingData}>
-      {billingData &&
-        (console.log("Billing data:", billingData),
-        (
-          <>
-            <BillingHeader
-              hasSubscription={!!billingData.subscription}
+      {billingData && (
+        <>
+          <BillingHeader />
+
+          {billingData.subscription && (
+            <SubscriptionManagement
+              currentPlan={billingData.workspace.plan}
               onOpenBillingPortal={handleOpenBillingPortal}
+              onUpgrade={handleUpgrade}
+              onCancelSubscription={handleCancelSubscription}
+              periodEnd={
+                billingData.stripeSubscription?.current_period_end
+                  ? new Date(
+                      billingData.stripeSubscription.current_period_end * 1000
+                    ).toISOString()
+                  : undefined
+              }
+              isLoading={isLoading}
+              cancelAtPeriodEnd={
+                (billingData.stripeSubscription as ExtendedStripeSubscription)
+                  ?.cancel_at_period_end ||
+                (billingData.subscription as ExtendedSubscription)
+                  ?.cancelAtPeriodEnd ||
+                false
+              }
             />
+          )}
 
-            {billingData.subscription && (
-              <SubscriptionManagement
-                currentPlan={billingData.workspace.plan}
-                onOpenBillingPortal={handleOpenBillingPortal}
-                onUpgrade={handleUpgrade}
-              />
-            )}
-
-            <RecentPayments recentPayments={billingData.recentPayments} />
-          </>
-        ))}
+          <RecentPayments recentPayments={billingData.recentPayments} />
+        </>
+      )}
     </BillingLayout>
   );
 };

@@ -10,6 +10,7 @@ import {
   Users,
   Server,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 import { WorkspacePlan } from "@/types/plans";
 import { usePlanUpgrade } from "@/hooks/usePlanUpgrade";
@@ -24,7 +25,7 @@ export const PlansSummaryTab: React.FC<PlansSummaryTabProps> = ({
   currentPlan,
   className = "",
 }) => {
-  const { handleUpgrade } = usePlanUpgrade();
+  const { handleUpgrade, isUpgrading } = usePlanUpgrade();
   const { planData } = useWorkspace();
   const currentFeatures = planData?.planFeatures;
 
@@ -232,8 +233,16 @@ export const PlansSummaryTab: React.FC<PlansSummaryTabProps> = ({
                 <Button
                   onClick={() => handleUpgrade(nextPlan, "monthly")}
                   className="bg-purple-600 hover:bg-purple-700"
+                  disabled={isUpgrading}
                 >
-                  Upgrade Now
+                  {isUpgrading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Upgrade Now"
+                  )}
                 </Button>
               </div>
             </div>

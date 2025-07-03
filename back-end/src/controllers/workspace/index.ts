@@ -8,10 +8,13 @@ import planRoutes from "./plan.controller";
 const workspaceRoutes = new Hono();
 
 // Mount all workspace route modules
-workspaceRoutes.route("/", coreRoutes);
+// IMPORTANT: Mount specific routes BEFORE the catch-all /:id route
+// Plan routes must come before core routes because core has /:id catch-all
+workspaceRoutes.route("/", planRoutes);
 workspaceRoutes.route("/", privacyRoutes);
 workspaceRoutes.route("/", statsRoutes);
 workspaceRoutes.route("/", dataRoutes);
-workspaceRoutes.route("/", planRoutes);
+// Core routes last because it contains the catch-all /:id route
+workspaceRoutes.route("/", coreRoutes);
 
 export default workspaceRoutes;

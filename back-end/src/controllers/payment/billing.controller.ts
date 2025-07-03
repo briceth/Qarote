@@ -2,11 +2,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "@/middlewares/auth";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+import { StripeService } from "@/services/stripe.service";
 
 const app = new Hono();
 
@@ -39,21 +35,19 @@ app.get("/billing/overview", authMiddleware, async (c) => {
     // Fetch Stripe subscription details if exists
     if (workspace.subscription?.stripeSubscriptionId) {
       try {
-        stripeSubscription = await stripe.subscriptions.retrieve(
+        stripeSubscription = await StripeService.getSubscription(
           workspace.subscription.stripeSubscriptionId,
-          {
-            expand: ["default_payment_method", "latest_invoice"],
-          }
+          ["latest_invoice"]
         );
 
         // Get upcoming invoice
-        upcomingInvoice = await stripe.invoices.retrieveUpcoming({
-          subscription: workspace.subscription.stripeSubscriptionId,
-        });
+        upcomingInvoice = await StripeService.getUpcomingInvoice(
+          workspace.subscription.stripeSubscriptionId
+        );
 
         // Get payment method details
         if (stripeSubscription.default_payment_method) {
-          paymentMethod = await stripe.paymentMethods.retrieve(
+          paymentMethod = await StripeService.getPaymentMethod(
             stripeSubscription.default_payment_method as string
           );
         }
@@ -187,9 +181,10 @@ app.post("/billing/payment-method", authMiddleware, async (c) => {
     }
 
     // Update the payment method in Stripe
-    await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-      default_payment_method: paymentMethodId,
-    });
+    await StripeService.updateSubscriptionPaymentMethod(
+      subscription.stripeSubscriptionId,
+      paymentMethodId
+    );
 
     logger.info(
       { workspaceId: user.workspaceId, paymentMethodId },
@@ -219,10 +214,10 @@ app.post("/billing/portal", authMiddleware, async (c) => {
       return c.json({ error: "No customer found" }, 404);
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
-      return_url: `${process.env.FRONTEND_URL}/payments/billing`,
-    });
+    const session = await StripeService.createPortalSession(
+      subscription.stripeCustomerId,
+      `${process.env.FRONTEND_URL}/payments/billing`
+    );
 
     return c.json({ url: session.url });
   } catch (error) {
@@ -256,17 +251,13 @@ app.post("/billing/cancel", authMiddleware, async (c) => {
     }
 
     // Cancel the subscription in Stripe
-    const canceledSubscription = await stripe.subscriptions.update(
+    const canceledSubscription = await StripeService.cancelSubscriptionAdvanced(
       workspace.subscription.stripeSubscriptionId,
       {
-        cancel_at_period_end: !cancelImmediately,
-        ...(cancelImmediately && { prorate: true }),
-        metadata: {
-          canceled_by: user.email,
-          canceled_at: new Date().toISOString(),
-          cancellation_reason: reason || "user_requested",
-          user_feedback: feedback || "",
-        },
+        cancelImmediately,
+        reason: reason || "user_requested",
+        feedback,
+        canceledBy: user.email,
       }
     );
 
