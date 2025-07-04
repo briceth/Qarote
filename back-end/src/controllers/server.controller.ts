@@ -11,17 +11,23 @@ import {
   UpdateServerSchema,
   RabbitMQCredentialsSchema,
 } from "@/schemas/rabbitmq";
-import {
-  validateServerCreation,
-  validateRabbitMqVersion,
-  extractMajorMinorVersion,
-  isServerOverQueueLimit,
-} from "@/services/plan-validation.service";
+// import {
+//   validateServerCreation,
+//   validateRabbitMqVersion,
+//   extractMajorMinorVersion,
+//   isServerOverQueueLimit,
+// } from "@/services/plan-features.service";
 import {
   getWorkspacePlan,
   getWorkspaceResourceCounts,
   planValidationMiddleware,
 } from "@/middlewares/plan-validation";
+import {
+  extractMajorMinorVersion,
+  isServerOverQueueLimit,
+  validateRabbitMqVersion,
+  validateServerCreation,
+} from "@/services/plan.service";
 
 const serverController = new Hono();
 

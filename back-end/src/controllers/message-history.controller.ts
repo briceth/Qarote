@@ -7,10 +7,7 @@ import {
   messageHistorySearchSchema,
   messageHistoryStatsSchema,
 } from "@/schemas/message-history";
-import {
-  PlanValidationError,
-  getPlanLimits,
-} from "@/services/plan-validation.service";
+import { PlanValidationError, getPlanFeatures } from "@/services/plan.service";
 
 const messageHistoryController = new Hono();
 
@@ -48,7 +45,7 @@ messageHistoryController.get(
         return c.json({ error: "Workspace not found" }, 404);
       }
 
-      const planLimits = getPlanLimits(userData.workspace.plan);
+      const planLimits = getPlanFeatures(userData.workspace.plan);
 
       // Check if user has access to message history
       if (!planLimits.canAccessMessageHistory) {
@@ -129,7 +126,7 @@ messageHistoryController.get(
         return c.json({ error: "Workspace not found" }, 404);
       }
 
-      const planLimits = getPlanLimits(userData.workspace.plan);
+      const planLimits = getPlanFeatures(userData.workspace.plan);
 
       // Check if user has access to message history
       if (!planLimits.canAccessMessageHistory) {

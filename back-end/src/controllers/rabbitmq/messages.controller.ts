@@ -12,7 +12,7 @@ import {
   getMonthlyMessageCount,
   incrementMonthlyMessageCount,
 } from "@/middlewares/plan-validation";
-import { validateMessageSending } from "@/services/plan-validation.service";
+import { validateMessageSending } from "@/services/plan.service";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
 import { publishMessageToQueueSchema } from "@/schemas/rabbitmq";
 

@@ -2,25 +2,24 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { authenticate, authorize } from "@/core/auth";
 import { UserRole } from "@prisma/client";
-import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import { CreateQueueSchema } from "@/schemas/rabbitmq";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 import {
-  validateQueueCreationOnServer,
   getOverLimitWarningMessage,
   getUpgradeRecommendationForOverLimit,
-} from "@/services/plan-validation.service";
+  validateQueueCreationOnServer,
+} from "@/services/plan.service";
 import {
   getWorkspacePlan,
   getWorkspaceResourceCounts,
 } from "@/middlewares/plan-validation";
+import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import {
   createRabbitMQClient,
   createErrorResponse,
   verifyServerAccess,
 } from "./shared";
-import { RabbitMQQueue } from "@/types/Rabbitmq";
 import {
   QueueConsumersResponse,
   QueueCreationResponse,

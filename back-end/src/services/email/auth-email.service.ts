@@ -1,5 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
-import { getPlanLimits } from "../plan-validation.service";
+import { getPlanFeatures } from "../plan.service";
 import { InvitationEmail } from "./templates/invitation-email";
 import { WelcomeEmail } from "./templates/welcome-email";
 import { EmailVerification } from "./templates/email-verification";
@@ -48,7 +48,7 @@ export class AuthEmailService {
     } = params;
 
     // Get plan information for the email
-    const planLimits = getPlanLimits(plan);
+    const planLimits = getPlanFeatures(plan);
     const userCostPerMonth = planLimits.userCostPerMonth;
     const { frontendUrl } = CoreEmailService.getConfig();
 

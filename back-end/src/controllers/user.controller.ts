@@ -6,7 +6,7 @@ import { UpdateUserSchema, UpdateProfileSchema } from "@/schemas/user";
 import { UpdateWorkspaceSchema } from "@/schemas/workspace";
 import { InviteUserSchema } from "@/schemas/auth";
 import { UserRole } from "@prisma/client";
-import { validateUserInvitation } from "@/services/plan-validation.service";
+import { validateUserInvitation } from "@/services/plan.service";
 import { logger } from "@/core/logger";
 import {
   getWorkspacePlan,

@@ -4,7 +4,7 @@ import { logger } from "@/core/logger";
 import {
   PlanValidationError,
   PlanLimitExceededError,
-} from "@/services/plan-validation.service";
+} from "@/services/plan.service";
 
 interface Variables {
   user: {

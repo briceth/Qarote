@@ -3,14 +3,21 @@ import { prisma } from "@/core/prisma";
 import { authenticate } from "@/core/auth";
 import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import { logger } from "@/core/logger";
-import {
-  validateBasicMemoryMetricsAccess,
-  validateAdvancedMemoryMetricsAccess,
-  validateExpertMemoryMetricsAccess,
-  validateMemoryTrendsAccess,
-  validateMemoryOptimizationAccess,
-} from "@/services/plan-validation.service";
+// import {
+//   validateBasicMemoryMetricsAccess,
+//   validateAdvancedMemoryMetricsAccess,
+//   validateExpertMemoryMetricsAccess,
+//   validateMemoryTrendsAccess,
+//   validateMemoryOptimizationAccess,
+// } from "@/services/plan.service";
 import { createRabbitMQClient, createErrorResponse } from "./shared";
+import {
+  validateAdvancedMemoryMetricsAccess,
+  validateBasicMemoryMetricsAccess,
+  validateExpertMemoryMetricsAccess,
+  validateMemoryOptimizationAccess,
+  validateMemoryTrendsAccess,
+} from "@/services/plan.service";
 
 const memoryController = new Hono();
 

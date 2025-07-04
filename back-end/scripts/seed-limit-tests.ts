@@ -11,7 +11,7 @@
 import { PrismaClient, WorkspacePlan, UserRole } from "@prisma/client";
 import { hashPassword } from "../src/core/auth";
 import { logger } from "../src/core/logger";
-import { PLAN_LIMITS } from "../src/services/plan-validation.service";
+import { PLAN_LIMITS } from "../src/services/plan.service";
 
 const prisma = new PrismaClient();
 

@@ -12,7 +12,7 @@ import {
   getUserLimitText,
   getInvitationLimitText,
   PlanValidationError,
-} from "@/services/plan-validation.service";
+} from "@/services/plan.service";
 import { EncryptionService } from "@/services/encryption.service";
 import { getUserDisplayName } from "./shared";
 

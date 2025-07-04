@@ -3,7 +3,7 @@ import { UserRole } from "@prisma/client";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
 import { authorize, checkWorkspaceAccess } from "@/core/auth";
-import { validateDataExport } from "@/services/plan-validation.service";
+import { validateDataExport } from "@/services/plan.service";
 
 const dataRoutes = new Hono();
 

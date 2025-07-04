@@ -1,380 +1,501 @@
 import { WorkspacePlan } from "@prisma/client";
-import { PLAN_LIMITS, type PlanLimits } from "./plan-validation.service";
+import { getPlanFeatures, type PlanFeatures } from "./plan-features.service";
 
-export interface PlanFeatures extends PlanLimits {
-  // Display information
-  displayName: string;
-  description: string;
-  color: string;
+// Re-export for convenience
+export {
+  PLAN_FEATURES,
+  getPlanFeatures,
+  type PlanFeatures,
+} from "./plan-features.service";
 
-  // Pricing information
-  monthlyPrice: number; // in cents
-  yearlyPrice: number; // in cents
-
-  // Feature descriptions for UI
-  featureDescriptions: string[];
-
-  // UI-specific flags (derived from existing limits)
-  canAddQueue: boolean;
-  canSendMessages: boolean;
-  canAddServer: boolean;
-  canExportData: boolean;
-  canAccessRouting: boolean;
-  hasAdvancedMetrics: boolean;
-  hasAdvancedAlerts: boolean;
-  hasPrioritySupport: boolean;
-
-  // Memory features
-  canViewBasicMemoryMetrics: boolean;
-  canViewAdvancedMemoryMetrics: boolean;
-  canViewExpertMemoryMetrics: boolean;
-  canViewMemoryTrends: boolean;
-  canViewMemoryOptimization: boolean;
+// Error classes
+export class PlanValidationError extends Error {
+  constructor(
+    public feature: string,
+    public currentPlan: WorkspacePlan,
+    public requiredPlan: string,
+    public currentCount?: number,
+    public limit?: number,
+    public details?: string
+  ) {
+    super(
+      `${feature} is not available on the ${currentPlan} plan. Upgrade to ${requiredPlan} plan.${
+        details ? " " + details : ""
+      }`
+    );
+    this.name = "PlanValidationError";
+  }
 }
 
-export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
-  [WorkspacePlan.FREE]: {
-    // Inherit from PLAN_LIMITS
-    ...PLAN_LIMITS[WorkspacePlan.FREE],
-
-    // Display information
-    displayName: "Free",
-    description: "Perfect for getting started with RabbitMQ monitoring",
-    color: "text-white bg-gray-600",
-
-    // Pricing
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-
-    // Feature descriptions
-    featureDescriptions: [
-      "1 RabbitMQ server",
-      "Read-only queue monitoring",
-      "Basic memory metrics",
-      "Community support",
-    ],
-
-    // UI flags (derived from existing limits)
-    canAddQueue: false,
-    canSendMessages: false,
-    canAddServer: true,
-    canExportData: false,
-    canAccessRouting: false,
-    hasAdvancedMetrics: false,
-    hasAdvancedAlerts: false,
-    hasPrioritySupport: false,
-
-    // Memory features
-    canViewBasicMemoryMetrics: true,
-    canViewAdvancedMemoryMetrics: false,
-    canViewExpertMemoryMetrics: false,
-    canViewMemoryTrends: false,
-    canViewMemoryOptimization: false,
-  },
-
-  [WorkspacePlan.DEVELOPER]: {
-    // Inherit from PLAN_LIMITS
-    ...PLAN_LIMITS[WorkspacePlan.DEVELOPER],
-
-    // Display information
-    displayName: "Developer",
-    description: "Ideal for individual developers and small projects",
-    color: "text-white bg-blue-600",
-
-    // Pricing
-    monthlyPrice: 4900, // $49.00
-    yearlyPrice: 3900, // $39.00
-
-    // Feature descriptions
-    featureDescriptions: [
-      "2 RabbitMQ servers",
-      "10 message queues",
-      "100 messages/month",
-      "Advanced memory analysis",
-      "Data export capabilities",
-      "1-day message history",
-      "Email support",
-    ],
-
-    // UI flags
-    canAddQueue: true,
-    canSendMessages: true,
-    canAddServer: true,
-    canExportData: true,
-    canAccessRouting: false,
-    hasAdvancedMetrics: true,
-    hasAdvancedAlerts: false,
-    hasPrioritySupport: false,
-
-    // Memory features
-    canViewBasicMemoryMetrics: true,
-    canViewAdvancedMemoryMetrics: false,
-    canViewExpertMemoryMetrics: false,
-    canViewMemoryTrends: false,
-    canViewMemoryOptimization: false,
-  },
-
-  [WorkspacePlan.STARTUP]: {
-    // Inherit from PLAN_LIMITS
-    ...PLAN_LIMITS[WorkspacePlan.STARTUP],
-
-    // Display information
-    displayName: "Startup",
-    description: "Great for growing teams and production workloads",
-    color: "text-white bg-green-600",
-
-    // Pricing
-    monthlyPrice: 9900, // $99.00
-    yearlyPrice: 7900, // $79.00
-
-    // Feature descriptions
-    featureDescriptions: [
-      "10 RabbitMQ servers",
-      "50 message queues",
-      "1,000 messages/month",
-      "Advanced analytics & alerts",
-      "Routing visualization",
-      "7-day message history",
-      "Memory trends & optimization",
-      "Priority email support",
-    ],
-
-    // UI flags
-    canAddQueue: true,
-    canSendMessages: true,
-    canAddServer: true,
-    canExportData: true,
-    canAccessRouting: true,
-    hasAdvancedMetrics: true,
-    hasAdvancedAlerts: true,
-    hasPrioritySupport: false,
-
-    // Memory features
-    canViewBasicMemoryMetrics: true,
-    canViewAdvancedMemoryMetrics: true,
-    canViewExpertMemoryMetrics: false,
-    canViewMemoryTrends: true,
-    canViewMemoryOptimization: true,
-  },
-
-  [WorkspacePlan.BUSINESS]: {
-    // Inherit from PLAN_LIMITS
-    ...PLAN_LIMITS[WorkspacePlan.BUSINESS],
-
-    // Display information
-    displayName: "Business",
-    description: "Enterprise-grade features for mission-critical systems",
-    color: "text-white bg-purple-600",
-
-    // Pricing
-    monthlyPrice: 19900, // $199.00
-    yearlyPrice: 15900, // $159.00
-
-    // Feature descriptions
-    featureDescriptions: [
-      "Unlimited RabbitMQ servers",
-      "200 message queues",
-      "Unlimited messages",
-      "Advanced analytics & alerts",
-      "Routing visualization",
-      "30-day message history",
-      "Expert memory analysis",
-      "Dedicated support",
-      "Custom integrations",
-    ],
-
-    // UI flags
-    canAddQueue: true,
-    canSendMessages: true,
-    canAddServer: true,
-    canExportData: true,
-    canAccessRouting: true,
-    hasAdvancedMetrics: true,
-    hasAdvancedAlerts: true,
-    hasPrioritySupport: true,
-
-    // Memory features
-    canViewBasicMemoryMetrics: true,
-    canViewAdvancedMemoryMetrics: true,
-    canViewExpertMemoryMetrics: true,
-    canViewMemoryTrends: true,
-    canViewMemoryOptimization: true,
-  },
-};
-
-export function getUnifiedPlanFeatures(plan: WorkspacePlan): PlanFeatures {
-  return PLAN_FEATURES[plan];
+export class PlanLimitExceededError extends Error {
+  constructor(
+    public feature: string,
+    public currentCount: number,
+    public limit: number,
+    public currentPlan: WorkspacePlan
+  ) {
+    super(
+      `${feature} limit exceeded. Current: ${currentCount}, Limit: ${limit} for ${currentPlan} plan.`
+    );
+    this.name = "PlanLimitExceededError";
+  }
 }
 
-export function getPlanDisplayName(plan: WorkspacePlan): string {
-  return getUnifiedPlanFeatures(plan).displayName;
+// Validation functions
+export function validateQueueCreation(
+  plan: WorkspacePlan,
+  currentQueueCount: number
+): void {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canAddQueue) {
+    throw new PlanValidationError(
+      "Queue creation",
+      plan,
+      "Developer, Startup, or Business"
+    );
+  }
+
+  if (currentQueueCount >= features.maxQueues) {
+    throw new PlanLimitExceededError(
+      "Queue creation",
+      currentQueueCount,
+      features.maxQueues,
+      plan
+    );
+  }
 }
 
-export function getPlanColor(plan: WorkspacePlan): string {
-  return getUnifiedPlanFeatures(plan).color;
+// Additional Invitation Validation Functions
+export function calculateMonthlyCostForUsers(
+  plan: WorkspacePlan,
+  additionalUsers: number
+): number {
+  const limits = getPlanFeatures(plan);
+
+  if (!limits.userCostPerMonth || additionalUsers <= 0) {
+    return 0;
+  }
+
+  return limits.userCostPerMonth * additionalUsers;
 }
 
+/**
+ * Get upgrade recommendation for over-limit scenario
+ */
+export function getUpgradeRecommendationForOverLimit(
+  currentPlan: WorkspacePlan,
+  queueCount: number
+): { recommendedPlan: WorkspacePlan | null; message: string } {
+  // Find the lowest plan that can accommodate the queue count
+  const plans = [
+    WorkspacePlan.DEVELOPER,
+    WorkspacePlan.STARTUP,
+    WorkspacePlan.BUSINESS,
+  ];
+
+  for (const plan of plans) {
+    if (plan === currentPlan) continue;
+
+    const limits = getPlanFeatures(plan);
+    if (queueCount <= limits.maxQueues) {
+      return {
+        recommendedPlan: plan,
+        message: `Upgrade to ${plan} plan (supports up to ${limits.maxQueues} queues) to fully manage this server.`,
+      };
+    }
+  }
+
+  return {
+    recommendedPlan: WorkspacePlan.BUSINESS,
+    message: `Upgrade to BUSINESS plan for maximum queue capacity.`,
+  };
+}
+
+/**
+ * Get warning message for over-limit server
+ */
+export function getOverLimitWarningMessage(
+  plan: WorkspacePlan,
+  queueCount: number,
+  serverName: string
+): string {
+  const limits = getPlanFeatures(plan);
+  const overage = queueCount - limits.maxQueues;
+
+  return `The server "${serverName}" has ${queueCount} queues, which exceeds your ${plan} plan limit of ${limits.maxQueues} queues by ${overage}. You can view existing queues but cannot create new ones. Consider upgrading your plan to manage all queues.`;
+}
+
+/**
+ * Validate if queue creation is allowed on a server
+ */
+export function validateQueueCreationOnServer(
+  plan: WorkspacePlan,
+  currentQueueCount: number,
+  isServerOverLimit: boolean,
+  serverName: string
+): void {
+  // If server is flagged as over-limit, block all queue creation
+  if (isServerOverLimit) {
+    throw new PlanValidationError(
+      "queue creation",
+      plan,
+      "a higher plan",
+      undefined,
+      undefined,
+      `Server "${serverName}" exceeds your plan's queue limit. Please upgrade your plan to create new queues.`
+    );
+  }
+
+  // Standard plan validation
+  validateQueueCreation(plan, currentQueueCount);
+}
+
+// Memory Features Validation Functions
+export function validateBasicMemoryMetricsAccess(plan: WorkspacePlan): void {
+  const limits = getPlanFeatures(plan);
+
+  if (!limits.canViewBasicMemoryMetrics) {
+    throw new PlanValidationError(
+      "Basic memory metrics access",
+      plan,
+      "All plans have access",
+      0,
+      0
+    );
+  }
+}
+
+export function validateAdvancedMemoryMetricsAccess(plan: WorkspacePlan): void {
+  const limits = getPlanFeatures(plan);
+
+  if (!limits.canViewAdvancedMemoryMetrics) {
+    throw new PlanValidationError(
+      "Advanced memory metrics access",
+      plan,
+      "Startup or Business",
+      0,
+      0
+    );
+  }
+}
+
+export function validateExpertMemoryMetricsAccess(plan: WorkspacePlan): void {
+  const limits = getPlanFeatures(plan);
+
+  if (!limits.canViewExpertMemoryMetrics) {
+    throw new PlanValidationError(
+      "Expert memory metrics access",
+      plan,
+      "Business",
+      0,
+      0
+    );
+  }
+}
+
+export function validateMemoryTrendsAccess(plan: WorkspacePlan): void {
+  const limits = getPlanFeatures(plan);
+
+  if (!limits.canViewMemoryTrends) {
+    throw new PlanValidationError(
+      "Memory trends access",
+      plan,
+      "Startup or Business",
+      0,
+      0
+    );
+  }
+}
+
+export function validateMemoryOptimizationAccess(plan: WorkspacePlan): void {
+  const limits = getPlanFeatures(plan);
+
+  if (!limits.canViewMemoryOptimization) {
+    throw new PlanValidationError(
+      "Memory optimization access",
+      plan,
+      "Startup or Business",
+      0,
+      0
+    );
+  }
+}
+
+/**
+ * Check if a server has more queues than the plan allows
+ */
+export function isServerOverQueueLimit(
+  plan: WorkspacePlan,
+  queueCount: number
+): boolean {
+  const limits = getPlanFeatures(plan);
+  return queueCount > limits.maxQueues;
+}
+
+/**
+ * Extract major.minor version from full RabbitMQ version string
+ * Examples: "3.12.10" -> "3.12", "4.0.1" -> "4.0", "4.1.0-rc.1" -> "4.1"
+ */
+export function extractMajorMinorVersion(fullVersion: string): string {
+  const versionMatch = fullVersion.match(/^(\d+\.\d+)/);
+  return versionMatch ? versionMatch[1] : fullVersion;
+}
+
+/**
+ * Validate if a RabbitMQ version is supported by the current plan
+ */
+export function validateRabbitMqVersion(
+  plan: WorkspacePlan,
+  rabbitMqVersion: string
+): void {
+  const limits = getPlanFeatures(plan);
+  const majorMinorVersion = extractMajorMinorVersion(rabbitMqVersion);
+
+  if (!limits.supportedRabbitMqVersions.includes(majorMinorVersion)) {
+    const supportedVersionsStr = limits.supportedRabbitMqVersions.join(", ");
+
+    throw new PlanValidationError(
+      `RabbitMQ version ${majorMinorVersion}`,
+      plan,
+      plan === WorkspacePlan.FREE || plan === WorkspacePlan.DEVELOPER
+        ? "Startup or Business"
+        : "a higher plan",
+      undefined,
+      undefined,
+      `Supported versions for ${plan} plan: ${supportedVersionsStr}`
+    );
+  }
+}
+
+export function validateServerCreation(
+  plan: WorkspacePlan,
+  currentServerCount: number
+): void {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canAddServer) {
+    throw new PlanValidationError(
+      "Server creation",
+      plan,
+      "Developer, Startup, or Business"
+    );
+  }
+
+  if (
+    features.maxServers !== null &&
+    currentServerCount >= features.maxServers
+  ) {
+    throw new PlanLimitExceededError(
+      "Server creation",
+      currentServerCount,
+      features.maxServers,
+      plan
+    );
+  }
+}
+
+export function validateMessageSending(
+  plan: WorkspacePlan,
+  currentMonthlyMessages: number
+): void {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canSendMessages) {
+    throw new PlanValidationError(
+      "Message sending",
+      plan,
+      "Developer, Startup, or Business"
+    );
+  }
+
+  if (
+    features.maxMessagesPerMonth !== null &&
+    currentMonthlyMessages >= features.maxMessagesPerMonth
+  ) {
+    throw new PlanLimitExceededError(
+      "Message sending",
+      currentMonthlyMessages,
+      features.maxMessagesPerMonth,
+      plan
+    );
+  }
+}
+
+export function validateUserInvitation(
+  plan: WorkspacePlan,
+  currentUserCount: number,
+  pendingInvitations: number = 0
+): void {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canInviteUsers) {
+    throw new PlanValidationError(
+      "User invitation",
+      plan,
+      "Developer, Startup, or Business"
+    );
+  }
+
+  const totalUsers = currentUserCount + pendingInvitations;
+
+  if (features.maxUsers !== null && totalUsers >= features.maxUsers) {
+    throw new PlanLimitExceededError(
+      "User invitation",
+      totalUsers,
+      features.maxUsers,
+      plan
+    );
+  }
+
+  if (
+    features.maxInvitations !== null &&
+    pendingInvitations >= features.maxInvitations
+  ) {
+    throw new PlanLimitExceededError(
+      "Pending invitations",
+      pendingInvitations,
+      features.maxInvitations,
+      plan
+    );
+  }
+}
+
+export function validateDataExport(plan: WorkspacePlan): void {
+  const features = getPlanFeatures(plan);
+
+  if (!features.canExportData) {
+    throw new PlanValidationError(
+      "Data export",
+      plan,
+      "Developer, Startup, or Business"
+    );
+  }
+}
+
+// Access helper functions
 export function canUserAddQueue(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canAddQueue;
+  return getPlanFeatures(plan).canAddQueue;
 }
 
 export function canUserSendMessages(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canSendMessages;
+  return getPlanFeatures(plan).canSendMessages;
 }
 
 export function canUserAddServer(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canAddServer;
+  return getPlanFeatures(plan).canAddServer;
+}
+
+export function canUserExportData(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canExportData;
+}
+
+export function canUserInviteUsers(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canInviteUsers;
+}
+
+export function canUserAccessRouting(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canAccessRouting;
+}
+
+// Memory features
+export function canUserViewBasicMemoryMetrics(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canViewBasicMemoryMetrics;
+}
+
+export function canUserViewAdvancedMemoryMetrics(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canViewAdvancedMemoryMetrics;
+}
+
+export function canUserViewExpertMemoryMetrics(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canViewExpertMemoryMetrics;
+}
+
+export function canUserViewMemoryTrends(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canViewMemoryTrends;
+}
+
+export function canUserViewMemoryOptimization(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canViewMemoryOptimization;
+}
+
+// Count-based validations
+export function canUserAddQueueWithCount(
+  plan: WorkspacePlan,
+  currentQueueCount: number
+): boolean {
+  const features = getPlanFeatures(plan);
+  return features.canAddQueue && currentQueueCount < features.maxQueues;
 }
 
 export function canUserAddServerWithCount(
   plan: WorkspacePlan,
   currentServerCount: number
 ): boolean {
-  const features = getUnifiedPlanFeatures(plan);
-
-  if (!features.canAddServer) {
-    return false;
-  }
-
-  // If maxServers is undefined, it's unlimited
-  if (features.maxServers === undefined) {
-    return true;
-  }
-
+  const features = getPlanFeatures(plan);
+  if (!features.canAddServer) return false;
+  if (features.maxServers === null) return true;
   return currentServerCount < features.maxServers;
-}
-
-export function canUserAddQueueWithCount(
-  plan: WorkspacePlan,
-  currentQueueCount: number
-): boolean {
-  const features = getUnifiedPlanFeatures(plan);
-
-  if (!features.canAddQueue) {
-    return false;
-  }
-
-  // If maxQueues is undefined, it's unlimited
-  if (features.maxQueues === undefined) {
-    return true;
-  }
-
-  return currentQueueCount < features.maxQueues;
 }
 
 export function canUserSendMessagesWithCount(
   plan: WorkspacePlan,
   currentMonthlyMessages: number
 ): boolean {
-  const features = getUnifiedPlanFeatures(plan);
-
-  if (!features.canSendMessages) {
-    return false;
-  }
-
-  // If maxMessagesPerMonth is null or undefined, it's unlimited
-  if (
-    features.maxMessagesPerMonth === null ||
-    features.maxMessagesPerMonth === undefined
-  ) {
-    return true;
-  }
-
+  const features = getPlanFeatures(plan);
+  if (!features.canSendMessages) return false;
+  if (features.maxMessagesPerMonth === null) return true;
   return currentMonthlyMessages < features.maxMessagesPerMonth;
 }
 
-export function getQueueLimitForPlan(plan: WorkspacePlan): number | undefined {
-  return getUnifiedPlanFeatures(plan).maxQueues;
+export function canUserInviteMoreUsers(
+  plan: WorkspacePlan,
+  currentUserCount: number
+): boolean {
+  const features = getPlanFeatures(plan);
+  if (!features.canInviteUsers) return false;
+  if (features.maxUsers === null) return true;
+  return currentUserCount < features.maxUsers;
 }
 
-export function getQueueLimitText(plan: WorkspacePlan): string {
-  const features = getUnifiedPlanFeatures(plan);
-  if (!features.canAddQueue) {
-    return "Cannot add queues";
-  }
-  if (features.maxQueues === undefined) {
-    return "Unlimited queues";
-  }
-  return `Up to ${features.maxQueues} queues`;
+// Display helpers
+export function getPlanDisplayName(plan: WorkspacePlan): string {
+  return getPlanFeatures(plan).displayName;
 }
 
-export function canUserExportData(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canExportData;
+export function getPlanColor(plan: WorkspacePlan): string {
+  return getPlanFeatures(plan).color;
 }
 
-export function getMessageLimitText(plan: WorkspacePlan): string {
-  const features = getUnifiedPlanFeatures(plan);
-  if (!features.canSendMessages) {
-    return "Cannot send messages";
-  }
-  if (
-    features.maxMessagesPerMonth === null ||
-    features.maxMessagesPerMonth === undefined
-  ) {
-    return "Unlimited messages";
-  }
-  return `${features.maxMessagesPerMonth} messages/month`;
+export function getPlanDescription(plan: WorkspacePlan): string {
+  return getPlanFeatures(plan).description;
 }
 
-export function getMessageLimitForPlan(
-  plan: WorkspacePlan
-): number | undefined {
-  const maxMessages = getUnifiedPlanFeatures(plan).maxMessagesPerMonth;
-  return maxMessages === null ? undefined : maxMessages;
+export function getPlanFeatureDescriptions(plan: WorkspacePlan): string[] {
+  return getPlanFeatures(plan).featureDescriptions;
 }
 
-export function getServerLimitText(plan: WorkspacePlan): string {
-  const features = getUnifiedPlanFeatures(plan);
-  if (!features.canAddServer) {
-    return "Cannot add servers";
-  }
-  if (features.maxServers === undefined) {
-    return "Unlimited servers";
-  }
-  return `Up to ${features.maxServers} servers`;
-}
-
-export function getServerLimitForPlan(plan: WorkspacePlan): number | undefined {
-  return getUnifiedPlanFeatures(plan).maxServers;
-}
-
-export function canUserAccessRouting(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canAccessRouting;
-}
-
-// Memory Features Access Control
-export function canUserViewBasicMemoryMetrics(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canViewBasicMemoryMetrics;
-}
-
-export function canUserViewAdvancedMemoryMetrics(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canViewAdvancedMemoryMetrics;
-}
-
-export function canUserViewExpertMemoryMetrics(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canViewExpertMemoryMetrics;
-}
-
-export function canUserViewMemoryTrends(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canViewMemoryTrends;
-}
-
-export function canUserViewMemoryOptimization(plan: WorkspacePlan): boolean {
-  return getUnifiedPlanFeatures(plan).canViewMemoryOptimization;
-}
-
+// Pricing helpers
 export function getMonthlyPrice(plan: WorkspacePlan): string {
-  const features = getUnifiedPlanFeatures(plan);
-  return formatPrice(features.monthlyPrice);
+  const price = getPlanFeatures(plan).monthlyPrice;
+  return price === 0 ? "Free" : `$${(price / 100).toFixed(0)}`;
 }
 
 export function getYearlyPrice(plan: WorkspacePlan): string {
-  const features = getUnifiedPlanFeatures(plan);
-  return formatPrice(features.yearlyPrice);
+  const price = getPlanFeatures(plan).yearlyPrice;
+  return price === 0 ? "Free" : `$${(price / 100).toFixed(0)}`;
+}
+
+export function getMonthlyPriceInCents(plan: WorkspacePlan): number {
+  return getPlanFeatures(plan).monthlyPrice;
+}
+
+export function getYearlyPriceInCents(plan: WorkspacePlan): number {
+  return getPlanFeatures(plan).yearlyPrice;
 }
 
 export function getYearlySavings(plan: WorkspacePlan): string | null {
-  const features = getUnifiedPlanFeatures(plan);
+  const features = getPlanFeatures(plan);
   if (features.monthlyPrice === 0 || features.yearlyPrice === 0) return null;
 
   const monthlyAnnual = features.monthlyPrice * 12;
@@ -383,11 +504,97 @@ export function getYearlySavings(plan: WorkspacePlan): string | null {
 
   if (savings <= 0) return null;
 
-  return formatPrice(savings);
+  return `$${(savings / 100).toFixed(0)}`;
 }
 
-// Utility functions for pricing
-function formatPrice(priceInCents: number): string {
-  if (priceInCents === 0) return "Free";
-  return `$${(priceInCents / 100).toFixed(0)}`;
+// Limit getters
+export function getQueueLimitForPlan(plan: WorkspacePlan): number {
+  return getPlanFeatures(plan).maxQueues;
+}
+
+export function getServerLimitForPlan(plan: WorkspacePlan): number | null {
+  return getPlanFeatures(plan).maxServers;
+}
+
+export function getUserLimitForPlan(plan: WorkspacePlan): number | null {
+  return getPlanFeatures(plan).maxUsers;
+}
+
+export function getMessageLimitForPlan(plan: WorkspacePlan): number | null {
+  return getPlanFeatures(plan).maxMessagesPerMonth;
+}
+
+export function getInvitationLimitForPlan(plan: WorkspacePlan): number | null {
+  return getPlanFeatures(plan).maxInvitations;
+}
+
+// Limit text helpers
+export function getQueueLimitText(plan: WorkspacePlan): string {
+  const features = getPlanFeatures(plan);
+  if (!features.canAddQueue) return "Cannot add queues";
+  return `Up to ${features.maxQueues} queues`;
+}
+
+export function getServerLimitText(plan: WorkspacePlan): string {
+  const features = getPlanFeatures(plan);
+  if (!features.canAddServer) return "Cannot add servers";
+  if (features.maxServers === null) return "Unlimited servers";
+  return `Up to ${features.maxServers} servers`;
+}
+
+export function getMessageLimitText(plan: WorkspacePlan): string {
+  const features = getPlanFeatures(plan);
+  if (!features.canSendMessages) return "Cannot send messages";
+  if (features.maxMessagesPerMonth === null) return "Unlimited messages";
+  return `${features.maxMessagesPerMonth.toLocaleString()} messages/month`;
+}
+
+export function getUserLimitText(plan: WorkspacePlan): string {
+  const features = getPlanFeatures(plan);
+  if (!features.canInviteUsers) return "Cannot invite users";
+  if (features.maxUsers === null) return "Unlimited users";
+  const additionalUsers = features.maxUsers - 1;
+  return `Up to ${additionalUsers} additional user${additionalUsers === 1 ? "" : "s"}`;
+}
+
+export function getInvitationLimitText(plan: WorkspacePlan): string {
+  const features = getPlanFeatures(plan);
+  if (!features.canInviteUsers) return "Cannot send invitations";
+  if (features.maxInvitations === null) return "Unlimited invitations";
+  return `Up to ${features.maxInvitations} pending invitations`;
+}
+
+// RabbitMQ version support
+export function getSupportedRabbitMqVersions(plan: WorkspacePlan): string[] {
+  return getPlanFeatures(plan).supportedRabbitMqVersions;
+}
+
+export function isRabbitMqVersionSupported(
+  plan: WorkspacePlan,
+  version: string
+): boolean {
+  const supportedVersions = getSupportedRabbitMqVersions(plan);
+  return supportedVersions.includes(version);
+}
+
+// Message history features
+export function getAvailableRetentionPeriods(plan: WorkspacePlan): number[] {
+  return getPlanFeatures(plan).availableRetentionPeriods;
+}
+
+export function getMaxMessageHistoryStorage(plan: WorkspacePlan): number {
+  return getPlanFeatures(plan).maxMessageHistoryStorage;
+}
+
+export function canUserAccessMessageHistory(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canAccessMessageHistory;
+}
+
+export function canUserConfigureRetention(plan: WorkspacePlan): boolean {
+  return getPlanFeatures(plan).canConfigureRetention;
+}
+
+// Legacy exports for backward compatibility
+export function getUnifiedPlanFeatures(plan: WorkspacePlan): PlanFeatures {
+  return getPlanFeatures(plan);
 }
