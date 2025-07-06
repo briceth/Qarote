@@ -305,6 +305,9 @@ export interface TimeSeriesResponse {
     publishRate: number;
     consumeRate: number;
   }>;
+  metadata?: {
+    allowedTimeRanges: string[];
+  };
 }
 
 export interface NodeMemoryDetailsResponse {

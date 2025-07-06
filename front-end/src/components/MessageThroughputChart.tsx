@@ -21,6 +21,7 @@ interface MessageThroughputChartProps {
   selectedTimeRange: TimeRange;
   timeSeriesLoading: boolean;
   onTimeRangeChange: (timeRange: TimeRange) => void;
+  availableTimeRanges?: TimeRange[];
 }
 
 export const MessageThroughputChart = ({
@@ -28,29 +29,13 @@ export const MessageThroughputChart = ({
   selectedTimeRange,
   timeSeriesLoading,
   onTimeRangeChange,
+  availableTimeRanges,
 }: MessageThroughputChartProps) => {
-  const getTimeRangeText = (timeRange: TimeRange) => {
-    switch (timeRange) {
-      case "1m":
-        return "last minute";
-      case "10m":
-        return "last 10 minutes";
-      case "1h":
-        return "last hour";
-      case "8h":
-        return "last 8 hours";
-      case "24h":
-        return "last 24 hours";
-      default:
-        return "selected period";
-    }
-  };
-
   return (
     <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-900">
-          Message Throughput ({selectedTimeRange.toUpperCase()})
+          Message Throughput
         </CardTitle>
         <p className="text-sm text-gray-500">Published vs Consumed messages</p>
       </CardHeader>
@@ -79,6 +64,7 @@ export const MessageThroughputChart = ({
               data={chartData}
               onTimeRangeChange={onTimeRangeChange}
               selectedTimeRange={selectedTimeRange}
+              availableTimeRanges={availableTimeRanges}
               isLoading={timeSeriesLoading}
             />
           </Suspense>

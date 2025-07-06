@@ -26,7 +26,7 @@ export const MessageBrowserHeader = () => {
                   </Badge>
                 </h1>
                 <p className="text-purple-100 text-lg">
-                  Powerful message exploration across all your queues
+                  Message exploration across all your queues
                 </p>
               </div>
             </div>

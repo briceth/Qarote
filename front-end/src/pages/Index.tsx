@@ -35,6 +35,7 @@ const Index = () => {
     timeSeriesLoading,
     selectedTimeRange,
     handleTimeRangeChange,
+    availableTimeRanges,
   } = useDashboardData(selectedServerId);
 
   if (!hasServers) {
@@ -136,9 +137,10 @@ const Index = () => {
             {/* Message Throughput Chart - Full Width */}
             <MessageThroughputChart
               chartData={chartData}
-              selectedTimeRange={selectedTimeRange}
               timeSeriesLoading={timeSeriesLoading}
+              selectedTimeRange={selectedTimeRange}
               onTimeRangeChange={handleTimeRangeChange}
+              availableTimeRanges={availableTimeRanges}
             />
 
             {/* Queue Depths Chart - Full Width */}

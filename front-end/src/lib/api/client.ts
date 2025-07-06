@@ -150,7 +150,7 @@ class ApiClient {
     return this.rabbitmqClient.getQueueConsumers(serverId, queueName);
   }
 
-  async getTimeSeriesMetrics(serverId: string, timeRange?: string) {
+  async getTimeSeriesMetrics(serverId: string, timeRange: string = "1h") {
     return this.rabbitmqClient.getTimeSeriesMetrics(serverId, timeRange);
   }
 

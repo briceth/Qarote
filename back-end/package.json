@@ -19,6 +19,8 @@
     "seed:limits": "tsx scripts/seed-test-data.ts --type=limits",
     "seed:email": "tsx scripts/seed-test-data.ts --type=email",
     "seed:clean": "tsx scripts/seed-test-data.ts --type=clean",
+    "seed:publish": "tsx scripts/seed-publish-messages.ts",
+    "seed:consume": "tsx scripts/seed-consume-messages.ts",
     "setup-stripe": "tsx scripts/setup-stripe.ts",
     "stripe:create": "tsx scripts/setup-stripe.ts create",
     "stripe:list": "tsx scripts/setup-stripe.ts list",

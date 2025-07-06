@@ -596,6 +596,36 @@ export function canUserConfigureRetention(plan: WorkspacePlan): boolean {
   return getPlanFeatures(plan).canConfigureRetention;
 }
 
+// Metrics retention based on plan
+export function getMetricsRetentionDays(plan: WorkspacePlan): number {
+  switch (plan) {
+    case WorkspacePlan.FREE:
+      return 1; // 1 day
+    case WorkspacePlan.DEVELOPER:
+      return 7; // 7 days
+    case WorkspacePlan.STARTUP:
+      return 30; // 30 days
+    case WorkspacePlan.BUSINESS:
+      return 365; // 1 year
+    default:
+      return 1; // Default to 1 day for unknown plans
+  }
+}
+
+export function getMaxTimeRangeForPlan(plan: WorkspacePlan): string[] {
+  const retentionDays = getMetricsRetentionDays(plan);
+
+  if (retentionDays >= 365) {
+    return ["1m", "10m", "1h", "8h", "24h", "7d", "30d", "90d", "1y"];
+  } else if (retentionDays >= 30) {
+    return ["1m", "10m", "1h", "8h", "24h", "7d", "30d"];
+  } else if (retentionDays >= 7) {
+    return ["1m", "10m", "1h", "8h", "24h", "7d"];
+  } else {
+    return ["1m", "10m", "1h", "8h", "24h"];
+  }
+}
+
 export async function getWorkspacePlan(workspaceId: string) {
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },

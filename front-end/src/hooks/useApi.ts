@@ -245,16 +245,18 @@ export const useRecentAlerts = () => {
   });
 };
 
-export const useTimeSeriesMetrics = (serverId: string, timeRange: string) => {
+export const useTimeSeriesMetrics = (
+  serverId: string,
+  timeRange: string = "1h"
+) => {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: [...queryKeys.overview(serverId), "timeseries", timeRange],
     queryFn: () => apiClient.getTimeSeriesMetrics(serverId, timeRange),
     enabled: !!serverId && isAuthenticated,
-    staleTime: 1000, // 1 second
-    refetchInterval:
-      timeRange === "1m" ? 2000 : timeRange === "10m" ? 5000 : 10000, // More frequent refresh for all ranges
+    staleTime: 30000, // 30 seconds for historical data
+    refetchInterval: 60000, // Refetch every minute for historical data
   });
 };
 

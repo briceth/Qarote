@@ -256,10 +256,10 @@ class TestMessageGenerator {
 async function main() {
   const config: RabbitMQConfig = {
     host: process.env.RABBITMQ_HOST || "localhost",
-    port: parseInt(process.env.RABBITMQ_PORT || "5675"),
+    port: parseInt(process.env.RABBITMQ_PORT || "5679"),
     username: process.env.RABBITMQ_USER || "admin",
     password: process.env.RABBITMQ_PASS || "admin123",
-    managementPort: parseInt(process.env.RABBITMQ_MANAGEMENT_PORT || "15675"),
+    managementPort: parseInt(process.env.RABBITMQ_MANAGEMENT_PORT || "15679"),
   };
 
   // Get message count from command line argument or default to 100
@@ -275,6 +275,8 @@ async function main() {
   console.log("🔧 Configuration:");
   console.log(`  🏠 Host: ${config.host}:${config.port}`);
   console.log(`  👤 User: ${config.username}`);
+  console.log(`  🔒 Password: ${config.password}`);
+  console.log(`  📊 Management Port: ${config.managementPort}`);
   console.log(`  📊 Messages to generate: ${messageCount}\n`);
 
   const generator = new TestMessageGenerator(config);

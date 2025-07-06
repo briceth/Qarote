@@ -41,7 +41,7 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async getTimeSeriesMetrics(
     serverId: string,
-    timeRange: string = "24h"
+    timeRange: string = "1h"
   ): Promise<TimeSeriesResponse> {
     return this.request<TimeSeriesResponse>(
       `/rabbitmq/servers/${serverId}/metrics/timeseries?timeRange=${timeRange}`
