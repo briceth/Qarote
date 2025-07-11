@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Rabbit Scout Pure Dokku Deployment Script
+ * Rabbit HQ Pure Dokku Deployment Script
  * Deploy backend to Dokku and frontend to Cloudflare Pages
  */
 
@@ -192,17 +192,17 @@ async function deployBackend(
   );
 
   if (sslStatusResult.stdout.includes("not-found")) {
+    Logger.info("Setting email for Let's Encrypt...");
+    await sshCommand(
+      config.DOKKU_HOST,
+      `dokku letsencrypt:set ${backendApp} email tessierhuort@gmail.com`
+    );
+
     // Configure Let's Encrypt SSL
     Logger.info("Setting up SSL certificate (first time)...");
     await sshCommand(
       config.DOKKU_HOST,
       `dokku letsencrypt:enable ${backendApp}`
-    );
-
-    Logger.info("Setting email for Let's Encrypt...");
-    await sshCommand(
-      config.DOKKU_HOST,
-      `dokku letsencrypt:set ${backendApp} email tessierhuort@gmail.com`
     );
 
     Logger.info("Adding automatic SSL certificate renewal cron job...");
@@ -358,7 +358,7 @@ async function deployFrontend(
         "deploy",
         "dist",
         "--project-name",
-        `rabbit-scout-${environment}`,
+        `rabbithq-${environment}`,
         "--compatibility-date",
         "2024-01-01",
       ],

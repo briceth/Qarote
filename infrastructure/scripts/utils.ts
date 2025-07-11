@@ -279,8 +279,8 @@ export async function checkDokkuConnection(host: string): Promise<boolean> {
  */
 export function getAppNames(environment: Environment) {
   return {
-    backend: `rabbit-scout-backend-${environment}`,
-    postgres: `rabbit-scout-postgres-${environment}`,
+    backend: `rabbithq-backend-${environment}`,
+    postgres: `rabbithq-postgres-${environment}`,
   };
 }
 
