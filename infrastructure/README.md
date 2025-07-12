@@ -144,6 +144,62 @@ Features:
 
 If you prefer to use other cloud providers, you can still use any Ubuntu 22.04+ server with the Dokku setup scripts included in this project.
 
+## Environment Configuration
+
+### Backend Environment
+
+Backend environment variables are stored in:
+- `environments/staging/.env`
+- `environments/production/.env`
+
+These files contain all the configuration needed for the backend application, including database credentials, API keys, and other service configurations.
+
+### Frontend Environment (New)
+
+Frontend environment variables are now stored in separate files:
+- `environments/staging/frontend.env`
+- `environments/production/frontend.env`
+
+These files contain frontend-specific variables like:
+```
+VITE_API_URL=https://api.example.com
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+VITE_SENTRY_DSN=https://xxx.ingest.sentry.io/xxx
+VITE_SENTRY_ENABLED=true
+VITE_APP_VERSION=1.0.0
+```
+
+## Cloudflare Pages Deployment
+
+### Local Deployment
+
+To deploy the frontend to Cloudflare Pages from your local machine:
+
+```bash
+# Deploy only the frontend
+npm run deploy:staging:frontend
+
+# Or deploy both backend and frontend
+npm run deploy:staging
+```
+
+### CI/CD Deployment (GitHub Actions)
+
+The repository is configured with a GitHub Actions workflow for frontend deployment:
+
+- `.github/workflows/deploy-frontend-staging.yml`: Deploys frontend to Cloudflare Pages
+
+For CI environments, authentication to Cloudflare is handled with an API token:
+
+1. Create an API token in the Cloudflare dashboard with the following permissions:
+   - Account > Cloudflare Pages > Edit
+   - Zone > Zone > Read
+   - Zone > Workers Routes > Edit
+
+2. Add the token as a GitHub Actions secret named `CLOUDFLARE_API_TOKEN`.
+
+For local development, run `wrangler login` once to authenticate.
+
 ## Directory Structure
 
 ```

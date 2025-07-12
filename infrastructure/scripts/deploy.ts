@@ -14,12 +14,14 @@ import {
   sshCommand,
   checkDokkuConnection,
   loadEnvConfig,
+  loadFrontendEnvConfig,
   validateEnvironment,
   getAppNames,
   Paths,
   isRunningInCI,
   type Environment,
   type EnvConfig,
+  type FrontendEnvConfig,
 } from "./utils.js";
 
 type Component = "all" | "backend" | "frontend";
@@ -333,10 +335,13 @@ async function deployBackend(
  * Deploy frontend to Cloudflare Pages
  */
 async function deployFrontend(
-  config: EnvConfig,
+  backendConfig: EnvConfig,
   environment: Environment
 ): Promise<void> {
   Logger.info("Deploying frontend to Cloudflare Pages...");
+
+  // Load frontend-specific configuration
+  const frontendConfig = await loadFrontendEnvConfig(environment);
 
   // Check if wrangler is installed
   try {
@@ -349,11 +354,29 @@ async function deployFrontend(
   }
 
   // Check Cloudflare authentication
-  const whoamiResult = await executeCommand("wrangler", ["whoami"]);
-  if (whoamiResult.exitCode !== 0) {
-    Logger.error("Please login to Cloudflare first:");
-    Logger.error("wrangler login");
-    process.exit(1);
+  if (isRunningInCI()) {
+    // In CI environment, use the ci-wrangler-login.sh script
+    Logger.info("Running in CI environment, using CI Wrangler login script...");
+
+    const loginScript = path.join(Paths.scriptDir, "ci-wrangler-login.sh");
+    const loginResult = await executeCommand(loginScript, [], {
+      stdio: "inherit",
+    });
+
+    if (loginResult.exitCode !== 0) {
+      Logger.error(
+        "Failed to authenticate with Cloudflare. Make sure CLOUDFLARE_API_TOKEN is set in your CI environment."
+      );
+      process.exit(1);
+    }
+  } else {
+    // For local environment, check if already authenticated
+    const whoamiResult = await executeCommand("wrangler", ["whoami"]);
+    if (whoamiResult.exitCode !== 0) {
+      Logger.error("Please login to Cloudflare first:");
+      Logger.error("wrangler login");
+      process.exit(1);
+    }
   }
 
   const frontendDir = path.join(Paths.projectRoot, "front-end");
@@ -365,14 +388,13 @@ async function deployFrontend(
 
   // Create environment file for build
   const envContent = [
-    `VITE_API_URL=https://${config.DOMAIN_BACKEND}`,
-    `VITE_STRIPE_PUBLISHABLE_KEY=${config.VITE_STRIPE_PUBLISHABLE_KEY}`,
-    `VITE_SENTRY_DSN=${config.VITE_SENTRY_DSN}`,
-    `VITE_SENTRY_ENABLED=${config.VITE_SENTRY_ENABLED}`,
-    `VITE_APP_VERSION=${config.VITE_APP_VERSION}`,
+    `VITE_API_URL=${frontendConfig.VITE_API_URL}`,
+    `VITE_SENTRY_DSN=${frontendConfig.VITE_SENTRY_DSN}`,
+    `VITE_SENTRY_ENABLED=${frontendConfig.VITE_SENTRY_ENABLED}`,
+    `VITE_APP_VERSION=${frontendConfig.VITE_APP_VERSION}`,
   ].join("\n");
 
-  await fs.writeFile(".env.production", envContent);
+  await fs.writeFile(".env", envContent);
 
   try {
     // Build the application
@@ -396,11 +418,11 @@ async function deployFrontend(
     );
 
     Logger.success("Frontend deployed successfully!");
-    Logger.info(`Frontend URL: https://${config.DOMAIN_FRONTEND}`);
+    Logger.info(`Frontend URL: https://${backendConfig.DOMAIN_FRONTEND}`);
   } finally {
     // Clean up
     try {
-      await fs.unlink(".env.production");
+      await fs.unlink(".env");
     } catch {
       // Ignore if file doesn't exist
     }

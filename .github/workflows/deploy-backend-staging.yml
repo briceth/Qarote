@@ -10,8 +10,8 @@ on:
   workflow_dispatch: # Allow manual triggers
 
 jobs:
-  deploy-staging:
-    name: Deploy Backend to Staging
+  deploy-backend:
+    name: Deploy Backend to Hetzner Dokku Staging
     runs-on: ubuntu-latest
     environment: staging
 
@@ -24,7 +24,7 @@ jobs:
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: 22
           cache: "npm"
           cache-dependency-path: |
             back-end/package-lock.json

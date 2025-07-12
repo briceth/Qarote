@@ -1,4 +1,4 @@
-name = "rabbit-hq-staging"
+name = "rabbit-hq"
 compatibility_date = "2024-01-01"
 
 [env.staging]

@@ -57,6 +57,15 @@ export class Paths {
     return path.join(this.infraDir, "environments", environment, ".env");
   }
 
+  static getFrontendEnvFile(environment: Environment): string {
+    return path.join(
+      this.infraDir,
+      "environments",
+      environment,
+      "frontend.env"
+    );
+  }
+
   /**
    * Check if the current file is being run directly as the main module
    */
@@ -119,6 +128,48 @@ export interface EnvConfig {
 }
 
 /**
+ * Frontend environment configuration
+ */
+export interface FrontendEnvConfig {
+  // API Configuration
+  VITE_API_URL: string;
+
+  // Monitoring
+  VITE_SENTRY_DSN: string;
+  VITE_SENTRY_ENABLED: string;
+  VITE_APP_VERSION: string;
+}
+
+/**
+ * Load environment variables from a file
+ */
+export async function loadEnvFromFile(
+  filePath: string
+): Promise<Record<string, string>> {
+  try {
+    await fs.access(filePath);
+  } catch {
+    throw new Error(
+      `Environment file not found: ${filePath}\nPlease copy and configure: cp ${filePath}.example ${filePath}`
+    );
+  }
+
+  // Load environment variables
+  const content = await fs.readFile(filePath, "utf-8");
+  const vars: Record<string, string> = {};
+
+  content.split("\n").forEach((line: string) => {
+    const match = line.match(/^([^#=\s]+)=(.*)$/);
+    if (match) {
+      const [, key, value] = match;
+      vars[key] = value.replace(/^["']|["']$/g, ""); // Remove quotes
+    }
+  });
+
+  return vars;
+}
+
+/**
  * Load and validate environment configuration
  */
 export async function loadEnvConfig(
@@ -127,25 +178,7 @@ export async function loadEnvConfig(
   const envFile = Paths.getEnvFile(environment);
   console.log(`Loading environment configuration from: ${envFile}`);
 
-  try {
-    await fs.access(envFile);
-  } catch {
-    throw new Error(
-      `Environment file not found: ${envFile}\nPlease copy and configure: cp ${envFile}.example ${envFile}`
-    );
-  }
-
-  // Load environment variables
-  const envContent = await fs.readFile(envFile, "utf-8");
-  const envVars: Record<string, string> = {};
-
-  envContent.split("\n").forEach((line) => {
-    const match = line.match(/^([^#=\s]+)=(.*)$/);
-    if (match) {
-      const [, key, value] = match;
-      envVars[key] = value.replace(/^["']|["']$/g, ""); // Remove quotes
-    }
-  });
+  const envVars = await loadEnvFromFile(envFile);
 
   // Required variables
   const requiredVars = [
@@ -184,6 +217,37 @@ export async function loadEnvConfig(
   }
 
   return envVars as unknown as EnvConfig;
+}
+
+/**
+ * Load frontend environment configuration
+ */
+export async function loadFrontendEnvConfig(
+  environment: Environment
+): Promise<FrontendEnvConfig> {
+  const envFile = Paths.getFrontendEnvFile(environment);
+  console.log(`Loading frontend environment configuration from: ${envFile}`);
+
+  const envVars = await loadEnvFromFile(envFile);
+
+  // Required variables
+  const requiredVars = [
+    "VITE_API_URL",
+    "VITE_STRIPE_PUBLISHABLE_KEY",
+    "VITE_SENTRY_DSN",
+    "VITE_SENTRY_ENABLED",
+    "VITE_APP_VERSION",
+  ];
+
+  for (const varName of requiredVars) {
+    if (!envVars[varName]) {
+      throw new Error(
+        `Required frontend variable ${varName} is not set in ${envFile}`
+      );
+    }
+  }
+
+  return envVars as unknown as FrontendEnvConfig;
 }
 
 /**

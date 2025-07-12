@@ -1,0 +1,45 @@
+name: Deploy Frontend to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "front-end/**"
+      - ".github/workflows/deploy-frontend-staging.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend to Cloudflare Pages
+    environment: staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: |
+            package-lock.json
+            infrastructure/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: front-end
+
+      - name: Install deployment dependencies
+        run: npm ci
+        working-directory: infrastructure
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Deploy Frontend to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run deploy:staging frontend
+        working-directory: infrastructure
