@@ -3,7 +3,7 @@
  */
 
 import fs from "node:fs/promises";
-import { Environment, Logger, Paths, executeCommand } from "../utils/index.js";
+import { Environment, Logger, Paths, executeCommand } from "../utils";
 
 /**
  * Setup options

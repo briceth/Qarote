@@ -2,13 +2,20 @@
   "name": "rabbithq-infrastructure",
   "version": "1.0.0",
   "description": "Pure Dokku infrastructure for RabbitHQ",
+  "keywords": [
+    "dokku",
+    "deployment",
+    "infrastructure",
+    "cloudflare",
+    "postgres"
+  ],
+  "author": "RabbitHQ Team",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "setup": "tsx scripts/setup-server.ts",
     "setup:staging": "tsx scripts/setup-server.ts staging",
     "setup:production": "tsx scripts/setup-server.ts production",
-    "deploy:frontend:staging": "tsx scripts/deploy/frontend/index.ts staging",
-    "deploy:frontend:production": "tsx scripts/deploy/frontend/index.ts production",
     "deploy:backend:staging": "tsx scripts/deploy/backend/index.ts staging",
     "deploy:backend:production": "tsx scripts/deploy/backend./index.ts production",
     "status:staging": "tsx scripts/status.ts staging",
@@ -23,15 +30,6 @@
     "destroy:production": "tsx scripts/destroy.ts production",
     "maintenance": "tsx scripts/maintenance.ts"
   },
-  "keywords": [
-    "dokku",
-    "deployment",
-    "infrastructure",
-    "cloudflare",
-    "postgres"
-  ],
-  "author": "RabbitHQ Team",
-  "license": "MIT",
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^11.1.0",

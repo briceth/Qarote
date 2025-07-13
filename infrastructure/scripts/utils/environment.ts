@@ -155,37 +155,6 @@ export async function loadEnvConfig(
 }
 
 /**
- * Load frontend environment configuration
- */
-export async function loadFrontendEnvConfig(
-  environment: Environment
-): Promise<FrontendEnvConfig> {
-  const envFile = Paths.getFrontendEnvFile(environment);
-  console.log(`Loading frontend environment configuration from: ${envFile}`);
-
-  const envVars = await loadEnvFromFile(envFile);
-
-  // Required variables
-  const requiredVars = [
-    "VITE_API_URL",
-    "VITE_SENTRY_DSN",
-    "VITE_SENTRY_ENABLED",
-    "VITE_APP_VERSION",
-    "DOMAIN_FRONTEND",
-  ];
-
-  for (const varName of requiredVars) {
-    if (!envVars[varName]) {
-      throw new Error(
-        `Required frontend variable ${varName} is not set in ${envFile}`
-      );
-    }
-  }
-
-  return envVars as unknown as FrontendEnvConfig;
-}
-
-/**
  * Validate environment parameter
  */
 export function validateEnvironment(env: string): Environment {

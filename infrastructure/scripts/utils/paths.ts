@@ -23,15 +23,6 @@ export class Paths {
     return path.join(this.infraDir, "environments", environment, ".env");
   }
 
-  static getFrontendEnvFile(environment: string): string {
-    return path.join(
-      this.infraDir,
-      "environments",
-      environment,
-      ".frontend.env"
-    );
-  }
-
   /**
    * Check if the current file is being run directly as the main module
    */

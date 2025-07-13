@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy-backend:
-    name: Deploy Backend to Hetzner Dokku Staging
+    name: Deploy Backend to Hetzner Dokku - Staging
     runs-on: ubuntu-latest
     environment: staging
 
