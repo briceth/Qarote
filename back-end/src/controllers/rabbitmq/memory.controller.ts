@@ -8,7 +8,7 @@ import {
   validateMemoryOptimizationAccess,
   validateMemoryTrendsAccess,
 } from "@/services/plan/plan.service";
-import { RabbitMQNode } from "@/interfaces/rabbitmq";
+import { RabbitMQNode } from "@/types/rabbitmq";
 import { createErrorResponse } from "../shared";
 import { createRabbitMQClient } from "./shared";
 

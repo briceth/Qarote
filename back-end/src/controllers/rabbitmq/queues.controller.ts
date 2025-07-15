@@ -19,7 +19,7 @@ import {
   QueuePurgeResponse,
   QueuesResponse,
   SingleQueueResponse,
-} from "@/interfaces/queue";
+} from "@/types/queue";
 import { createErrorResponse } from "../shared";
 
 const queuesController = new Hono();

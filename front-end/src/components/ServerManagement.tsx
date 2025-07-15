@@ -64,7 +64,7 @@ export function ServerManagement({ trigger }: ServerManagementProps) {
             Server Management
           </DialogTitle>
           <DialogDescription>
-            Add, edit, or remove RabbitMQ server connections.
+            Edit, or remove RabbitMQ server connections.
           </DialogDescription>
         </DialogHeader>
 

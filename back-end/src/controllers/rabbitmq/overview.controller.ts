@@ -5,7 +5,7 @@ import {
   getUpgradeRecommendationForOverLimit,
 } from "@/services/plan/plan.service";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
-import { OverviewResponse } from "@/interfaces/overview";
+import { OverviewResponse } from "@/types/overview";
 import { createErrorResponse } from "../shared";
 
 const overviewController = new Hono();
