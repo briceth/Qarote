@@ -33,7 +33,6 @@ import {
 } from "@/lib/api";
 import { isAlertsEnabled } from "@/lib/alertsFeatureFlag";
 import PremiumPageWrapper from "@/components/PremiumPageWrapper";
-import { WorkspacePlan } from "@/types/plans";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 const AlertDashboard: React.FC = () => {
@@ -42,7 +41,7 @@ const AlertDashboard: React.FC = () => {
   const [alerts, setAlerts] = useState<AlertInstance[]>([]);
   const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
   const [stats, setStats] = useState<AlertStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("alerts");
 
   // Filters
@@ -53,13 +52,13 @@ const AlertDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Check if alerts feature is enabled
-  const alertsEnabled = isAlertsEnabled();
+  // const alertsEnabled = isAlertsEnabled();
 
   const loadData = useCallback(async () => {
-    if (!alertsEnabled) return;
+    // if (!alertsEnabled) return;
 
     try {
-      setLoading(true);
+      // setLoading(true);
       const [alertsResponse, rulesResponse, statsResponse] = await Promise.all([
         apiClient.getAlerts({
           status: statusFilter !== "ALL" ? statusFilter : undefined,
@@ -76,9 +75,9 @@ const AlertDashboard: React.FC = () => {
     } catch (error) {
       logger.error("Error loading alerts data:", error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
-  }, [alertsEnabled, statusFilter, severityFilter]);
+  }, [statusFilter, severityFilter]);
 
   useEffect(() => {
     loadData();
@@ -151,20 +150,20 @@ const AlertDashboard: React.FC = () => {
     );
   });
 
-  if (loading) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
-          <AppSidebar />
-          <main className="flex-1 p-6 overflow-auto">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex justify-center p-8">Loading...</div>
-            </div>
-          </main>
-        </div>
-      </SidebarProvider>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <SidebarProvider>
+  //       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
+  //         <AppSidebar />
+  //         <main className="flex-1 p-6 overflow-auto">
+  //           <div className="max-w-7xl mx-auto">
+  //             <div className="flex justify-center p-8">Loading...</div>
+  //           </div>
+  //         </main>
+  //       </div>
+  //     </SidebarProvider>
+  //   );
+  // }
 
   return (
     <SidebarProvider>
