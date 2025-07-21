@@ -35,7 +35,6 @@ const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
 const TermsOfService = lazy(() => import("./pages/public/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/public/PrivacyPolicy"));
 const HelpSupport = lazy(() => import("./pages/HelpSupport"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -279,14 +278,6 @@ const AppCore = () => (
                         <Layout>
                           <HelpSupport />
                         </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute>
-                        <AdminDashboard />
                       </ProtectedRoute>
                     }
                   />
