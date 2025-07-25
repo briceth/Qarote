@@ -75,7 +75,7 @@ export const ConnectedNodes = () => {
           {nodes.length > 0 && (
             <Button asChild variant="outline" size="sm">
               <Link to="/nodes" className="flex items-center gap-2">
-                View Details
+                Details
                 <ExternalLink className="h-3 w-3" />
               </Link>
             </Button>

@@ -379,9 +379,9 @@ export function NodeMemoryDetails({
                       <div className="flex justify-between text-sm">
                         <span>Usage</span>
                         <span>
-                          {data.node.advanced.sockets.usagePercentage.toFixed(
+                          {data.node.advanced.sockets.usagePercentage?.toFixed(
                             1
-                          )}
+                          ) || "0.0"}
                           %
                         </span>
                       </div>

@@ -58,8 +58,8 @@ const Connections = () => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
-  const getStateColor = (state: string) => {
-    switch (state.toLowerCase()) {
+  const getStateColor = (state?: string) => {
+    switch (state?.toLowerCase()) {
       case "running":
         return "bg-green-100 text-green-800";
       case "blocked":
@@ -292,7 +292,7 @@ const Connections = () => {
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium">
-                                    {formatBytes(connection.recv_oct)}
+                                    {formatBytes(connection.recv_oct || 0)}
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     Received
@@ -300,7 +300,7 @@ const Connections = () => {
                                 </div>
                                 <div className="text-center">
                                   <div className="font-medium">
-                                    {formatBytes(connection.send_oct)}
+                                    {formatBytes(connection.send_oct || 0)}
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     Sent
@@ -334,13 +334,13 @@ const Connections = () => {
                                       <span className="text-gray-500">
                                         Packets Received:
                                       </span>{" "}
-                                      {connection.recv_cnt.toLocaleString()}
+                                      {connection.recv_cnt?.toLocaleString()}
                                     </div>
                                     <div>
                                       <span className="text-gray-500">
                                         Packets Sent:
                                       </span>{" "}
-                                      {connection.send_cnt.toLocaleString()}
+                                      {connection.send_cnt?.toLocaleString()}
                                     </div>
                                   </div>
                                 </div>
@@ -353,13 +353,13 @@ const Connections = () => {
                                       <span className="text-gray-500">
                                         Bytes Received:
                                       </span>{" "}
-                                      {formatBytes(connection.recv_oct)}
+                                      {formatBytes(connection.recv_oct || 0)}
                                     </div>
                                     <div>
                                       <span className="text-gray-500">
                                         Bytes Sent:
                                       </span>{" "}
-                                      {formatBytes(connection.send_oct)}
+                                      {formatBytes(connection.send_oct || 0)}
                                     </div>
                                     <div>
                                       <span className="text-gray-500">

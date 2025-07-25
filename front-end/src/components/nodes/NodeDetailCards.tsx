@@ -164,14 +164,17 @@ export const NodeDetailCards = ({ serverId }: NodeDetailCardsProps) => {
                   className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-100 hover:shadow-lg transition-all duration-300"
                 >
                   {/* Node Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-lg truncate">
+                  <div className="flex items-start justify-between mb-4 gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className="font-bold text-gray-900 text-lg truncate"
+                        title={node.name}
+                      >
                         {node.name}
                       </h3>
                       <p className="text-sm text-gray-600">{node.type}</p>
                     </div>
-                    <Badge className={healthStatus.color}>
+                    <Badge className={`${healthStatus.color} flex-shrink-0`}>
                       <healthStatus.icon className="w-3 h-3 mr-1" />
                       {healthStatus.status}
                     </Badge>

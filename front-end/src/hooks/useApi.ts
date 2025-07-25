@@ -480,6 +480,16 @@ export const useInvitationDetails = (token: string) => {
 
 export const useAcceptInvitation = () => {
   return useMutation({
-    mutationFn: (token: string) => apiClient.acceptInvitation(token),
+    mutationFn: (data: {
+      token: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+    }) =>
+      apiClient.acceptInvitationWithRegistration(data.token, {
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      }),
   });
 };

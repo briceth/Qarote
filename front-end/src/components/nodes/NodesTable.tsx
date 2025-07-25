@@ -329,7 +329,7 @@ export const NodesTable = ({ serverId }: NodesTableProps) => {
                           className="flex items-center gap-1"
                         >
                           <MemoryStick className="h-3 w-3" />
-                          Memory Details
+                          Details
                         </Button>
                       </TableCell>
                     </TableRow>

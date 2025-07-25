@@ -12,6 +12,7 @@ import { LogsApiClient } from "./logsClient";
 import { FeedbackApiClient } from "./feedbackClient";
 import { PlanApiClient } from "./planClient";
 import { PaymentApiClient } from "./paymentClient";
+import { PasswordApiClient } from "./passwordClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 import type { FeedbackRequest } from "@/types/feedback";
 import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
@@ -26,6 +27,7 @@ class ApiClient {
   private feedbackClient: FeedbackApiClient;
   private planClient: PlanApiClient;
   private paymentClient: PaymentApiClient;
+  private passwordClient: PasswordApiClient;
 
   constructor(baseUrl?: string) {
     this.serverClient = new ServerApiClient(baseUrl);
@@ -37,6 +39,7 @@ class ApiClient {
     this.feedbackClient = new FeedbackApiClient(baseUrl);
     this.planClient = new PlanApiClient(baseUrl);
     this.paymentClient = new PaymentApiClient(baseUrl);
+    this.passwordClient = new PasswordApiClient(baseUrl);
   }
 
   // Server methods
@@ -104,6 +107,10 @@ class ApiClient {
     );
   }
 
+  async stopMessageStreaming(serverId: string, queueName: string) {
+    return this.rabbitmqClient.stopMessageStreaming(serverId, queueName);
+  }
+
   async publishMessage(
     params: Parameters<RabbitMQApiClient["publishMessage"]>[0]
   ) {
@@ -112,6 +119,10 @@ class ApiClient {
 
   async getNodes(serverId: string) {
     return this.rabbitmqClient.getNodes(serverId);
+  }
+
+  async getNodeMemoryDetails(serverId: string, nodeName: string) {
+    return this.rabbitmqClient.getNodeMemoryDetails(serverId, nodeName);
   }
 
   async getEnhancedMetrics(serverId: string) {
@@ -187,6 +198,75 @@ class ApiClient {
 
   async logout() {
     return this.authClient.logout();
+  }
+
+  // Password methods
+  async changePassword(
+    data: Parameters<PasswordApiClient["changePassword"]>[0]
+  ) {
+    return this.passwordClient.changePassword(data);
+  }
+
+  async requestPasswordReset(
+    data: Parameters<PasswordApiClient["requestPasswordReset"]>[0]
+  ) {
+    return this.passwordClient.requestPasswordReset(data);
+  }
+
+  async resetPassword(data: Parameters<PasswordApiClient["resetPassword"]>[0]) {
+    return this.passwordClient.resetPassword(data);
+  }
+
+  // Email verification and change methods
+  async getVerificationStatus() {
+    return this.authClient.getVerificationStatus();
+  }
+
+  async requestEmailChange(
+    data: Parameters<AuthApiClient["requestEmailChange"]>[0]
+  ) {
+    return this.authClient.requestEmailChange(data);
+  }
+
+  async cancelEmailChange() {
+    return this.authClient.cancelEmailChange();
+  }
+
+  // Invitation methods
+  async getInvitations() {
+    return this.authClient.getInvitations();
+  }
+
+  async sendInvitation(
+    invitationData: Parameters<AuthApiClient["sendInvitation"]>[0]
+  ) {
+    return this.authClient.sendInvitation(invitationData);
+  }
+
+  async revokeInvitation(invitationId: string) {
+    return this.authClient.revokeInvitation(invitationId);
+  }
+
+  async getInvitationDetails(token: string) {
+    return this.authClient.getInvitationDetails(token);
+  }
+
+  async acceptInvitation(token: string) {
+    return this.authClient.acceptInvitation(token);
+  }
+
+  async acceptInvitationWithRegistration(
+    token: string,
+    registrationData: {
+      password: string;
+      firstName: string;
+      lastName: string;
+    }
+  ) {
+    return this.authClient.acceptInvitationWithRegistration(
+      token,
+      registrationData
+    );
   }
 
   // Alert methods
@@ -266,6 +346,10 @@ class ApiClient {
 
   async deleteWorkspaceData(companyId: string) {
     return this.workspaceClient.deleteWorkspaceData(companyId);
+  }
+
+  async getCurrentWorkspaceMonthlyMessageCount() {
+    return this.workspaceClient.getCurrentWorkspaceMonthlyMessageCount();
   }
 
   // Logs methods
