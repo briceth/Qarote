@@ -1,11 +1,9 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { AddServerForm } from "@/components/AddServerFormComponent";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Activity,
   Shuffle,
@@ -17,36 +15,42 @@ import {
   Share2,
   Radio,
   Hash,
-  Eye,
   Link2,
+  Trash2,
 } from "lucide-react";
-import { useExchanges } from "@/hooks/useApi";
+import { Button } from "@/components/ui/button";
+import { useExchanges, useDeleteExchange } from "@/hooks/useApi";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useState } from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/useToast";
+import CreateExchangeDialog from "@/components/ExchangeManagement";
 
 const Exchanges = () => {
   const { selectedServerId, hasServers } = useServerContext();
   const { workspacePlan } = useWorkspace();
+  const { toast } = useToast();
   const [expandedExchanges, setExpandedExchanges] = useState<Set<string>>(
     new Set()
   );
   const [selectedExchangeType, setSelectedExchangeType] =
     useState<string>("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [exchangeToDelete, setExchangeToDelete] = useState<string>("");
 
   const {
     data: exchangesData,
@@ -55,8 +59,43 @@ const Exchanges = () => {
     refetch: refetchExchanges,
   } = useExchanges(selectedServerId);
 
+  const deleteExchangeMutation = useDeleteExchange();
+
   const handleRefresh = () => {
     refetchExchanges();
+  };
+
+  const handleDeleteExchange = async (exchangeName: string) => {
+    if (!selectedServerId) return;
+
+    try {
+      await deleteExchangeMutation.mutateAsync({
+        serverId: selectedServerId,
+        exchangeName,
+        options: { if_unused: true },
+      });
+
+      toast({
+        title: "Success",
+        description: `Exchange "${exchangeName}" has been deleted successfully`,
+      });
+
+      setDeleteDialogOpen(false);
+      setExchangeToDelete("");
+    } catch (error) {
+      console.error("Failed to delete exchange:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to delete exchange",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmDeleteExchange = (exchangeName: string) => {
+    setExchangeToDelete(exchangeName);
+    setDeleteDialogOpen(true);
   };
 
   const toggleExchange = (exchangeName: string) => {
@@ -189,7 +228,10 @@ const Exchanges = () => {
                   </p>
                 </div>
               </div>
-              <PlanBadge workspacePlan={workspacePlan} />
+              <div className="flex items-center gap-4">
+                <CreateExchangeDialog serverId={selectedServerId} />
+                <PlanBadge workspacePlan={workspacePlan} />
+              </div>
             </div>
 
             {/* Overview Cards */}
@@ -335,13 +377,22 @@ const Exchanges = () => {
                 ) : (
                   <div className="space-y-4">
                     {filteredExchanges.map((exchange) => (
-                      <Collapsible key={exchange.name}>
+                      <Collapsible
+                        key={exchange.name}
+                        open={expandedExchanges.has(exchange.name)}
+                        onOpenChange={(isOpen) => {
+                          const newExpanded = new Set(expandedExchanges);
+                          if (isOpen) {
+                            newExpanded.add(exchange.name);
+                          } else {
+                            newExpanded.delete(exchange.name);
+                          }
+                          setExpandedExchanges(newExpanded);
+                        }}
+                      >
                         <div className="border rounded-lg">
                           <CollapsibleTrigger asChild>
-                            <div
-                              className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer"
-                              onClick={() => toggleExchange(exchange.name)}
-                            >
+                            <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer">
                               <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                   {getExchangeIcon(exchange.type)}
@@ -487,6 +538,21 @@ const Exchanges = () => {
                                 </div>
                               </div>
 
+                              {/* Delete Exchange Button */}
+                              <div className="mb-4">
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() =>
+                                    confirmDeleteExchange(exchange.name)
+                                  }
+                                  disabled={deleteExchangeMutation.isPending}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete Exchange
+                                </Button>
+                              </div>
+
                               {exchange.bindings?.length > 0 && (
                                 <div>
                                   <h4 className="font-medium mb-2">
@@ -547,6 +613,38 @@ const Exchanges = () => {
           </div>
         </main>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Exchange</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the exchange "{exchangeToDelete}"?
+              This action cannot be undone and may affect message routing if the
+              exchange is currently in use.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteExchangeMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDeleteExchange(exchangeToDelete)}
+              disabled={deleteExchangeMutation.isPending}
+            >
+              {deleteExchangeMutation.isPending
+                ? "Deleting..."
+                : "Delete Exchange"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };

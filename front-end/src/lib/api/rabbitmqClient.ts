@@ -208,6 +208,71 @@ export class RabbitMQApiClient extends BaseApiClient {
     }>(`/rabbitmq/servers/${serverId}/exchanges`);
   }
 
+  async createExchange(
+    serverId: string,
+    exchangeData: {
+      name: string;
+      type: string;
+      durable?: boolean;
+      auto_delete?: boolean;
+      internal?: boolean;
+      arguments?: { [key: string]: unknown };
+    }
+  ): Promise<{
+    success: boolean;
+    message: string;
+    exchange: {
+      name: string;
+      type: string;
+      durable: boolean;
+      auto_delete: boolean;
+      internal: boolean;
+      arguments: { [key: string]: unknown };
+    };
+  }> {
+    return this.request<{
+      success: boolean;
+      message: string;
+      exchange: {
+        name: string;
+        type: string;
+        durable: boolean;
+        auto_delete: boolean;
+        internal: boolean;
+        arguments: { [key: string]: unknown };
+      };
+    }>(`/rabbitmq/servers/${serverId}/exchanges`, {
+      method: "POST",
+      body: JSON.stringify(exchangeData),
+    });
+  }
+
+  async deleteExchange(
+    serverId: string,
+    exchangeName: string,
+    options: {
+      if_unused?: boolean;
+    } = {}
+  ): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const queryParams = new URLSearchParams();
+    if (options.if_unused !== undefined) {
+      queryParams.append("if_unused", options.if_unused.toString());
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/rabbitmq/servers/${serverId}/exchanges/${encodeURIComponent(exchangeName)}${queryString ? `?${queryString}` : ""}`;
+
+    return this.request<{
+      success: boolean;
+      message: string;
+    }>(url, {
+      method: "DELETE",
+    });
+  }
+
   async getBindings(serverId: string): Promise<{
     success: boolean;
     bindings: Binding[];

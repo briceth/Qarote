@@ -14,7 +14,10 @@ export function createErrorResponse(
   return c.json(
     {
       error: defaultMessage,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message:
+        error instanceof Error
+          ? `${error.message} ${error.cause ? `(${error.cause})` : ""}`
+          : "Unknown error",
     },
     statusCode
   );

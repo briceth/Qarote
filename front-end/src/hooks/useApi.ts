@@ -196,6 +196,48 @@ export const useExchanges = (serverId: string) => {
   });
 };
 
+export const useCreateExchange = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      exchangeData,
+    }: {
+      serverId: string;
+      exchangeData: Parameters<typeof apiClient.createExchange>[1];
+    }) => apiClient.createExchange(serverId, exchangeData),
+    onSuccess: (_, variables) => {
+      // Invalidate exchanges list for the specific server
+      queryClient.invalidateQueries({
+        queryKey: ["exchanges", variables.serverId],
+      });
+    },
+  });
+};
+
+export const useDeleteExchange = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      exchangeName,
+      options,
+    }: {
+      serverId: string;
+      exchangeName: string;
+      options?: Parameters<typeof apiClient.deleteExchange>[2];
+    }) => apiClient.deleteExchange(serverId, exchangeName, options),
+    onSuccess: (_, variables) => {
+      // Invalidate exchanges list for the specific server
+      queryClient.invalidateQueries({
+        queryKey: ["exchanges", variables.serverId],
+      });
+    },
+  });
+};
+
 export const useBindings = (serverId: string) => {
   const { isAuthenticated } = useAuth();
 

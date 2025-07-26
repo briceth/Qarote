@@ -243,4 +243,100 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       throw error;
     }
   }
+
+  async createExchange(
+    exchangeName: string,
+    exchangeType: string,
+    options: {
+      durable?: boolean;
+      auto_delete?: boolean;
+      internal?: boolean;
+      arguments?: { [key: string]: unknown };
+    } = {}
+  ): Promise<void> {
+    try {
+      logger.debug("Creating RabbitMQ exchange", {
+        exchangeName,
+        exchangeType,
+        options,
+      });
+
+      const exchangeDefinition = {
+        type: exchangeType,
+        durable: options.durable ?? true,
+        auto_delete: options.auto_delete ?? false,
+        internal: options.internal ?? false,
+        arguments: options.arguments ?? {},
+      };
+
+      // const encodedExchangeName = exchangeName;
+      const encodedExchangeName = encodeURIComponent(exchangeName);
+
+      await this.request(`/exchanges/${this.vhost}/${encodedExchangeName}`, {
+        method: "PUT",
+        body: JSON.stringify(exchangeDefinition),
+      });
+
+      logger.debug("RabbitMQ exchange created successfully", {
+        exchangeName,
+        exchangeType,
+      });
+    } catch (error) {
+      logger.error(
+        { error, exchangeName, exchangeType },
+        "Failed to create RabbitMQ exchange"
+      );
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "createExchange",
+          exchange: exchangeName,
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async deleteExchange(
+    exchangeName: string,
+    options: {
+      if_unused?: boolean;
+    } = {}
+  ): Promise<void> {
+    try {
+      logger.debug("Deleting RabbitMQ exchange", { exchangeName, options });
+
+      const encodedExchangeName = encodeURIComponent(exchangeName);
+
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      if (options.if_unused !== undefined) {
+        queryParams.append("if-unused", options.if_unused.toString());
+      }
+
+      const queryString = queryParams.toString();
+      const url = `/exchanges/${this.vhost}/${encodedExchangeName}${queryString ? `?${queryString}` : ""}`;
+
+      await this.request(url, { method: "DELETE" });
+
+      logger.debug("RabbitMQ exchange deleted successfully", { exchangeName });
+    } catch (error) {
+      logger.error(
+        { error, exchangeName },
+        "Failed to delete RabbitMQ exchange"
+      );
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "deleteExchange",
+          exchange: exchangeName,
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
 }

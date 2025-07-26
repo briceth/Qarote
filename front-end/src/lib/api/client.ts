@@ -141,6 +141,21 @@ class ApiClient {
     return this.rabbitmqClient.getExchanges(serverId);
   }
 
+  async createExchange(
+    serverId: string,
+    exchangeData: Parameters<RabbitMQApiClient["createExchange"]>[1]
+  ) {
+    return this.rabbitmqClient.createExchange(serverId, exchangeData);
+  }
+
+  async deleteExchange(
+    serverId: string,
+    exchangeName: string,
+    options: Parameters<RabbitMQApiClient["deleteExchange"]>[2] = {}
+  ) {
+    return this.rabbitmqClient.deleteExchange(serverId, exchangeName, options);
+  }
+
   async getBindings(serverId: string) {
     return this.rabbitmqClient.getBindings(serverId);
   }

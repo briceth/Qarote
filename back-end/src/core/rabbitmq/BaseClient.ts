@@ -94,8 +94,10 @@ export class RabbitMQBaseClient {
       const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       if (!response.ok) {
+        const payload = await response.json();
         const error = new Error(
-          `RabbitMQ API error: ${response.status} ${response.statusText}`
+          `RabbitMQ API error: ${response.status} ${response.statusText}`,
+          { cause: payload.reason }
         );
 
         // Capture API error in Sentry

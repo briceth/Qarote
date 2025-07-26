@@ -104,4 +104,27 @@ export class RabbitMQClient extends RabbitMQApiClient {
       throw error;
     }
   }
+
+  // Exchange management methods
+  async createExchange(
+    exchangeName: string,
+    exchangeType: string,
+    options: {
+      durable?: boolean;
+      auto_delete?: boolean;
+      internal?: boolean;
+      arguments?: { [key: string]: unknown };
+    } = {}
+  ): Promise<void> {
+    return super.createExchange(exchangeName, exchangeType, options);
+  }
+
+  async deleteExchange(
+    exchangeName: string,
+    options: {
+      if_unused?: boolean;
+    } = {}
+  ): Promise<void> {
+    return super.deleteExchange(exchangeName, options);
+  }
 }
