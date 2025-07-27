@@ -462,7 +462,7 @@ export interface RabbitMQQueue {
   };
 }
 
-export interface EnhancedMetrics {
+export interface Metrics {
   overview: RabbitMQOverview;
   nodes: RabbitMQNode[];
   connections: RabbitMQConnection[];

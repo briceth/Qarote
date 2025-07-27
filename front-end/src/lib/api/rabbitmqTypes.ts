@@ -146,6 +146,11 @@ export interface Node {
   metrics_gc_queue_length: MetricsGcQueueLength;
 }
 
+export interface NodesResponse {
+  nodes: Node[] | null;
+  permissionStatus?: PermissionStatus;
+}
+
 export interface SampleRetentionPolicies {
   global: number[];
   basic: number[];
@@ -253,7 +258,7 @@ export interface Overview {
   contexts: ContextInfo[];
 }
 
-export interface EnhancedMetrics {
+export interface Metrics {
   overview: Overview;
   nodes: Node[];
   connections: Connection[];
@@ -266,8 +271,8 @@ export interface EnhancedMetrics {
   calculatedAt: string;
 }
 
-export interface EnhancedMetricsResponse {
-  metrics: EnhancedMetrics | null;
+export interface MetricsResponse {
+  metrics: Metrics | null;
   permissionStatus?: PermissionStatus;
 }
 

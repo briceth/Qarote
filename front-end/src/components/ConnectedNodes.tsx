@@ -2,16 +2,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Server, Wifi, HardDrive, Cpu } from "lucide-react";
-import { useServerContext } from "@/contexts/ServerContext";
-import { useNodes } from "@/hooks/useApi";
 import { Node } from "@/lib/api";
+import { isRabbitMQAuthError } from "@/types/apiErrors";
+import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
 
-export const ConnectedNodes = () => {
-  const { selectedServerId } = useServerContext();
-  const { data: nodesData, isLoading } = useNodes(selectedServerId || "");
+interface ConnectedNodesProps {
+  nodes: Node[];
+  isLoading: boolean;
+  nodesError?: Error | null;
+}
 
-  const nodes = nodesData?.nodes || [];
-
+export const ConnectedNodes = ({
+  nodes,
+  isLoading,
+  nodesError,
+}: ConnectedNodesProps) => {
   const getStatusBadge = (node: Node) => {
     if (!node.running) {
       return (
@@ -69,7 +74,13 @@ export const ConnectedNodes = () => {
         </p>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {nodesError && isRabbitMQAuthError(nodesError) ? (
+          <RabbitMQPermissionError
+            requiredPermission={nodesError.requiredPermission}
+            message={nodesError.message}
+            title="Node Information Unavailable"
+          />
+        ) : isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="p-4 bg-gray-50 rounded-lg border">

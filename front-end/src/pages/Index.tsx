@@ -8,7 +8,7 @@ import { RecentAlerts } from "@/components/RecentAlerts";
 import { ResourceUsage } from "@/components/ResourceUsage";
 import { ConnectedNodes } from "@/components/ConnectedNodes";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
-import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { AddServerButton } from "@/components/AddServerButton";
 import { PrimaryMetricsCards } from "@/components/PrimaryMetricsCards";
 import { SecondaryMetricsCards } from "@/components/SecondaryMetricsCards";
@@ -33,8 +33,9 @@ const Index = () => {
     isLoading,
     queuesLoading,
     timeSeriesLoading,
-    enhancedMetricsError,
+    metricsError,
     timeSeriesError,
+    nodesError,
     selectedTimeRange,
     handleTimeRangeChange,
     availableTimeRanges,
@@ -130,7 +131,7 @@ const Index = () => {
             <PrimaryMetricsCards
               metrics={metrics}
               isLoading={isLoading}
-              enhancedMetricsError={enhancedMetricsError}
+              metricsError={metricsError}
             />
 
             {/* Secondary Metrics */}
@@ -138,7 +139,8 @@ const Index = () => {
               metrics={metrics}
               nodes={nodes}
               isLoading={isLoading}
-              enhancedMetricsError={enhancedMetricsError}
+              metricsError={metricsError}
+              nodesError={nodesError}
             />
 
             {/* Message Throughput Chart - Full Width */}
@@ -155,12 +157,21 @@ const Index = () => {
             <QueueDepthsChart queues={queues} isLoading={queuesLoading} />
 
             {/* Connected Nodes - Full Width */}
-            <ConnectedNodes />
+            <ConnectedNodes
+              nodes={nodes}
+              isLoading={isLoading}
+              nodesError={nodesError}
+            />
 
             {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <RecentAlerts />
-              <ResourceUsage metrics={metrics} overview={overview} />
+              <ResourceUsage
+                metrics={metrics}
+                overview={overview}
+                metricsError={metricsError}
+                overviewError={null}
+              />
             </div>
           </div>
         </main>

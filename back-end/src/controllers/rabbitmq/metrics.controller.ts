@@ -27,7 +27,6 @@ metricsController.get("/servers/:id/metrics", async (c) => {
     const enhancedMetrics = await client.getMetrics();
 
     return c.json({
-      serverId: id,
       metrics: enhancedMetrics,
     });
   } catch (error) {
@@ -37,7 +36,6 @@ metricsController.get("/servers/:id/metrics", async (c) => {
     if (error instanceof Error && error.message.includes("401")) {
       // Return successful response with permission status instead of error
       return c.json({
-        serverId: id,
         metrics: null,
         permissionStatus: {
           hasPermission: false,

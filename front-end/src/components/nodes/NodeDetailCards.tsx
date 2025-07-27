@@ -16,19 +16,22 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { useNodes } from "@/hooks/useApi";
 import { Node } from "@/lib/api";
 import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
 
 interface NodeDetailCardsProps {
   serverId: string;
+  nodes: Node[];
+  isLoading: boolean;
+  nodesError?: Error | null;
 }
 
-export const NodeDetailCards = ({ serverId }: NodeDetailCardsProps) => {
-  const { data: nodesData, isLoading, error } = useNodes(serverId);
-  const nodes = nodesData?.nodes || [];
-
+export const NodeDetailCards = ({
+  nodes,
+  isLoading,
+  nodesError,
+}: NodeDetailCardsProps) => {
   const formatBytes = (bytes: number) => {
     const gb = bytes / (1024 * 1024 * 1024);
     return `${gb.toFixed(2)} GB`;
@@ -143,12 +146,12 @@ export const NodeDetailCards = ({ serverId }: NodeDetailCardsProps) => {
   }
 
   // Handle RabbitMQ authorization errors
-  if (error && isRabbitMQAuthError(error)) {
+  if (nodesError && isRabbitMQAuthError(nodesError)) {
     return (
       <RabbitMQPermissionError
-        requiredPermission={error.requiredPermission}
-        message={error.message}
-        title="Cannot View Node Details"
+        requiredPermission={nodesError.requiredPermission}
+        message={nodesError.message}
+        title="Node Details Unavailable"
       />
     );
   }

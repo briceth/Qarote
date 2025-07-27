@@ -3,12 +3,31 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useNodes } from "@/hooks/useApi";
+import { RabbitMQAuthorizationError } from "@/types/apiErrors";
 import { NodesOverview, NodeDetailCards, NodesTable } from "@/components/nodes";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 
 const Nodes = () => {
   const { selectedServerId, hasServers } = useServerContext();
   const { workspacePlan } = useWorkspace();
+
+  // Single useNodes call for all child components
+  const { data: nodesData, isLoading: nodesLoading } =
+    useNodes(selectedServerId);
+  const nodes = nodesData?.nodes || [];
+
+  // Check for permission status and create error object for backward compatibility with UI components
+  const nodesPermissionStatus = nodesData?.permissionStatus;
+  const processedNodesError =
+    nodesPermissionStatus && !nodesPermissionStatus.hasPermission
+      ? new RabbitMQAuthorizationError({
+          error: "insufficient_permissions",
+          message: nodesPermissionStatus.message,
+          code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
+          requiredPermission: nodesPermissionStatus.requiredPermission,
+        })
+      : null;
 
   if (!hasServers) {
     return (
@@ -77,13 +96,28 @@ const Nodes = () => {
             </div>
 
             {/* Cluster Overview */}
-            <NodesOverview serverId={selectedServerId} />
+            <NodesOverview
+              serverId={selectedServerId}
+              nodes={nodes}
+              isLoading={nodesLoading}
+              nodesError={processedNodesError}
+            />
 
             {/* Node Detail Cards */}
-            <NodeDetailCards serverId={selectedServerId} />
+            <NodeDetailCards
+              serverId={selectedServerId}
+              nodes={nodes}
+              isLoading={nodesLoading}
+              nodesError={processedNodesError}
+            />
 
             {/* Detailed Metrics Table */}
-            <NodesTable serverId={selectedServerId} />
+            <NodesTable
+              serverId={selectedServerId}
+              nodes={nodes}
+              isLoading={nodesLoading}
+              nodesError={processedNodesError}
+            />
           </div>
         </main>
       </div>

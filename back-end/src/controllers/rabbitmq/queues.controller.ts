@@ -44,9 +44,9 @@ queuesController.get("/servers/:id/queues", async (c) => {
       const queueData = {
         name: queue.name,
         vhost: queue.vhost,
-        messages: queue.messages,
-        messagesReady: queue.messages_ready,
-        messagesUnack: queue.messages_unacknowledged,
+        messages: queue.messages || 0,
+        messagesReady: queue.messages_ready || 0,
+        messagesUnack: queue.messages_unacknowledged || 0,
         lastFetched: new Date(),
         serverId: id,
       };
@@ -71,9 +71,9 @@ queuesController.get("/servers/:id/queues", async (c) => {
         await prisma.queueMetric.create({
           data: {
             queueId: existingQueue.id,
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
+            messages: queue.messages || 0,
+            messagesReady: queue.messages_ready || 0,
+            messagesUnack: queue.messages_unacknowledged || 0,
             publishRate: queue.message_stats?.publish_details?.rate || 0,
             consumeRate: queue.message_stats?.deliver_details?.rate || 0,
           },
@@ -88,9 +88,9 @@ queuesController.get("/servers/:id/queues", async (c) => {
         await prisma.queueMetric.create({
           data: {
             queueId: newQueue.id,
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
+            messages: queue.messages || 0,
+            messagesReady: queue.messages_ready || 0,
+            messagesUnack: queue.messages_unacknowledged || 0,
             publishRate: queue.message_stats?.publish_details?.rate || 0,
             consumeRate: queue.message_stats?.deliver_details?.rate || 0,
           },
@@ -283,7 +283,9 @@ queuesController.post(
           },
         });
 
-        logger.info(`Queue ${queueData.name} stored in database with id ${queueRecord.id}`);
+        logger.info(
+          `Queue ${queueData.name} stored in database with id ${queueRecord.id}`
+        );
       }
 
       const response: QueueCreationResponse = {

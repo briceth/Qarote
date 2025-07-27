@@ -1,4 +1,4 @@
-import type { RabbitMQCredentials, EnhancedMetrics } from "@/types/rabbitmq";
+import type { RabbitMQCredentials, Metrics } from "@/types/rabbitmq";
 import type {
   RabbitMQMessage,
   MessageProperties,
@@ -75,7 +75,7 @@ export class RabbitMQClient extends RabbitMQApiClient {
   }
 
   // Get comprehensive metrics for calculating latency and performance
-  async getMetrics(): Promise<EnhancedMetrics> {
+  async getMetrics(): Promise<Metrics> {
     try {
       const [overview, nodes, connections, channels] = await Promise.all([
         this.getOverview(),

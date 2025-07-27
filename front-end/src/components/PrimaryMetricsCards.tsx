@@ -13,13 +13,13 @@ interface MetricsData {
 interface PrimaryMetricsCardsProps {
   metrics: MetricsData;
   isLoading: boolean;
-  enhancedMetricsError?: Error | null;
+  metricsError?: Error | null;
 }
 
 export const PrimaryMetricsCards = ({
   metrics,
   isLoading,
-  enhancedMetricsError,
+  metricsError,
 }: PrimaryMetricsCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -28,17 +28,32 @@ export const PrimaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             Messages/sec
           </CardTitle>
-          <MessageSquare className="h-5 w-5 text-blue-600" />
+          {metricsError && isRabbitMQAuthError(metricsError) ? (
+            <ShieldAlert className="h-5 w-5 text-orange-600" />
+          ) : (
+            <MessageSquare className="h-5 w-5 text-blue-600" />
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-8 w-20" />
+          ) : metricsError && isRabbitMQAuthError(metricsError) ? (
+            <div>
+              <div className="text-lg font-semibold text-orange-600 mb-1">
+                Permission Required
+              </div>
+              <p className="text-xs text-orange-600">
+                Need 'monitor' permission
+              </p>
+            </div>
           ) : (
-            <div className="text-3xl font-bold text-gray-900">
-              {metrics.messagesPerSec.toLocaleString()}
+            <div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metrics.messagesPerSec}
+              </div>
+              <p className="text-xs text-green-600 mt-1">Real-time data</p>
             </div>
           )}
-          <p className="text-xs text-green-600 mt-1">Real-time data</p>
         </CardContent>
       </Card>
 
@@ -47,17 +62,32 @@ export const PrimaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             Active Queues
           </CardTitle>
-          <Activity className="h-5 w-5 text-green-600" />
+          {metricsError && isRabbitMQAuthError(metricsError) ? (
+            <ShieldAlert className="h-5 w-5 text-orange-600" />
+          ) : (
+            <Activity className="h-5 w-5 text-green-600" />
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-8 w-16" />
+          ) : metricsError && isRabbitMQAuthError(metricsError) ? (
+            <div>
+              <div className="text-lg font-semibold text-orange-600 mb-1">
+                Permission Required
+              </div>
+              <p className="text-xs text-orange-600">
+                Need 'monitor' permission
+              </p>
+            </div>
           ) : (
-            <div className="text-3xl font-bold text-gray-900">
-              {metrics.activeQueues}
+            <div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metrics.activeQueues}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Across all vhosts</p>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">Across all vhosts</p>
         </CardContent>
       </Card>
 
@@ -66,17 +96,34 @@ export const PrimaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             Queues Depth
           </CardTitle>
-          <Zap className="h-5 w-5 text-orange-600" />
+          {metricsError && isRabbitMQAuthError(metricsError) ? (
+            <ShieldAlert className="h-5 w-5 text-orange-600" />
+          ) : (
+            <Zap className="h-5 w-5 text-orange-600" />
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-8 w-20" />
+          ) : metricsError && isRabbitMQAuthError(metricsError) ? (
+            <div>
+              <div className="text-lg font-semibold text-orange-600 mb-1">
+                Permission Required
+              </div>
+              <p className="text-xs text-orange-600">
+                Need 'monitor' permission
+              </p>
+            </div>
           ) : (
-            <div className="text-3xl font-bold text-gray-900">
-              {metrics.queueDepth.toLocaleString()}
+            <div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metrics.queueDepth}
+              </div>
+              <p className="text-xs text-orange-600 mt-1">
+                Total pending messages
+              </p>
             </div>
           )}
-          <p className="text-xs text-orange-600 mt-1">Total pending messages</p>
         </CardContent>
       </Card>
 
@@ -85,7 +132,7 @@ export const PrimaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             Avg Latency
           </CardTitle>
-          {enhancedMetricsError && isRabbitMQAuthError(enhancedMetricsError) ? (
+          {metricsError && isRabbitMQAuthError(metricsError) ? (
             <ShieldAlert className="h-5 w-5 text-orange-600" />
           ) : (
             <Clock className="h-5 w-5 text-purple-600" />
@@ -94,8 +141,7 @@ export const PrimaryMetricsCards = ({
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-8 w-16" />
-          ) : enhancedMetricsError &&
-            isRabbitMQAuthError(enhancedMetricsError) ? (
+          ) : metricsError && isRabbitMQAuthError(metricsError) ? (
             <div>
               <div className="text-lg font-semibold text-orange-600 mb-1">
                 Permission Required

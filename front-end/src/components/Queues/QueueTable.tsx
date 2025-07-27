@@ -41,22 +41,22 @@ export function QueueTable({
 
   const getQueueMetrics = (queue: Queue) => {
     return {
-      messages: queue.messages,
-      consumers: queue.consumers,
-      messagesReady: queue.messages_ready,
-      messagesUnacked: queue.messages_unacknowledged,
+      messages: queue.messages || 0,
+      consumers: queue.consumers || 0,
+      messagesReady: queue.messages_ready || 0,
+      messagesUnacked: queue.messages_unacknowledged || 0,
       messageRate: queue.message_stats?.publish_details?.rate || 0,
       consumerUtilisation:
-        queue.consumers > 0
+        (queue.consumers || 0) > 0
           ? Math.min(
               100,
               (queue.message_stats?.deliver_details?.rate || 0) * 10
             )
           : 0,
-      memory: queue.memory / (1024 * 1024), // Convert to MB
-      vhost: queue.vhost,
+      memory: (queue.memory || 0) / (1024 * 1024), // Convert to MB
+      vhost: queue.vhost || "/",
       durability: queue.durable ? "durable" : "transient",
-      autoDelete: queue.auto_delete,
+      autoDelete: queue.auto_delete || false,
     };
   };
 
@@ -103,13 +103,13 @@ export function QueueTable({
                     <TableCell className="font-medium">{queue.name}</TableCell>
                     <TableCell>{getStatusBadge(queue)}</TableCell>
                     <TableCell className="font-mono">
-                      {metrics.messages.toLocaleString()}
+                      {metrics.messages}
                     </TableCell>
                     <TableCell className="font-mono text-blue-600">
-                      {metrics.messagesReady.toLocaleString()}
+                      {metrics.messagesReady}
                     </TableCell>
                     <TableCell className="font-mono text-orange-600">
-                      {metrics.messagesUnacked.toLocaleString()}
+                      {metrics.messagesUnacked}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

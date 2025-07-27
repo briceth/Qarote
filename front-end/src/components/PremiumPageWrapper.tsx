@@ -2,7 +2,7 @@ import React from "react";
 import { Crown, Zap } from "lucide-react";
 import { WorkspacePlan } from "@/types/plans";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 
 interface PremiumPageWrapperProps {
   children: React.ReactNode;
