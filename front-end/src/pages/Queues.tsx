@@ -8,12 +8,12 @@ import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useQueues, queryKeys, useMonthlyMessageCount } from "@/hooks/useApi";
-import logger from "@/lib/logger";
-import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { QueueHeader } from "@/components/Queues/QueueHeader";
 import { PlanRestrictions } from "@/components/Queues/PlanRestrictions";
 import { QueueSearchAndStats } from "@/components/Queues/QueueSearchAndStats";
 import { QueueTable } from "@/components/Queues/QueueTable";
+import logger from "@/lib/logger";
 
 const Queues = () => {
   const navigate = useNavigate();

@@ -8,8 +8,9 @@ import { Queue } from "./types";
 import {
   Overview,
   Node,
-  EnhancedMetrics,
-  EnhancedMetricsResponse,
+  NodesResponse,
+  Metrics,
+  MetricsResponse,
   Connection,
   Channel,
   TimeSeriesResponse,
@@ -32,10 +33,8 @@ export class RabbitMQApiClient extends BaseApiClient {
     );
   }
 
-  async getEnhancedMetrics(
-    serverId: string
-  ): Promise<{ metrics: EnhancedMetrics }> {
-    return this.request<{ metrics: EnhancedMetrics }>(
+  async getMetrics(serverId: string): Promise<MetricsResponse> {
+    return this.request<MetricsResponse>(
       `/rabbitmq/servers/${serverId}/metrics`
     );
   }
@@ -160,10 +159,8 @@ export class RabbitMQApiClient extends BaseApiClient {
   }
 
   // Node Management
-  async getNodes(serverId: string): Promise<{ nodes: Node[] }> {
-    return this.request<{ nodes: Node[] }>(
-      `/rabbitmq/servers/${serverId}/nodes`
-    );
+  async getNodes(serverId: string): Promise<NodesResponse> {
+    return this.request<NodesResponse>(`/rabbitmq/servers/${serverId}/nodes`);
   }
 
   async getNodeMemoryDetails(

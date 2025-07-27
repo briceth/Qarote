@@ -4,7 +4,7 @@ import type {
   RabbitMQConnection,
   RabbitMQChannel,
   RabbitMQNode,
-  EnhancedMetrics,
+  Metrics,
 } from "@/types/rabbitmq";
 
 /**
@@ -196,7 +196,7 @@ export class RabbitMQMetricsCalculator {
     nodes: RabbitMQNode[],
     connections: RabbitMQConnection[],
     channels: RabbitMQChannel[]
-  ): Promise<EnhancedMetrics> {
+  ): Promise<Metrics> {
     // Calculate average latency based on message stats
     const avgLatency = this.calculateAverageLatency(
       overview,

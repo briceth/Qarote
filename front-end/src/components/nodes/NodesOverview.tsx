@@ -11,24 +11,26 @@ import {
   Database,
   Activity,
 } from "lucide-react";
-import { useNodes, useEnhancedMetrics } from "@/hooks/useApi";
+import { useMetrics } from "@/hooks/useApi";
+import { Node } from "@/lib/api";
 import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
 
 interface NodesOverviewProps {
   serverId: string;
+  nodes: Node[];
+  isLoading: boolean;
+  nodesError?: Error | null;
 }
 
-export const NodesOverview = ({ serverId }: NodesOverviewProps) => {
-  const {
-    data: nodesData,
-    isLoading: nodesLoading,
-    error: nodesError,
-  } = useNodes(serverId);
-  const { data: metricsData, isLoading: metricsLoading } =
-    useEnhancedMetrics(serverId);
+export const NodesOverview = ({
+  serverId,
+  nodes,
+  isLoading: nodesLoading,
+  nodesError,
+}: NodesOverviewProps) => {
+  const { data: metricsData, isLoading: metricsLoading } = useMetrics(serverId);
 
-  const nodes = nodesData?.nodes || [];
   const metrics = metricsData?.metrics;
 
   const isLoading = nodesLoading || metricsLoading;

@@ -43,7 +43,7 @@ import { useLogout } from "@/hooks/useAuth";
 import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerFormComponent";
 import { PrivacyNotice } from "@/components/PrivacyNotice";
-import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { useLocation, Link } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { ServerManagement } from "@/components/ServerManagement";

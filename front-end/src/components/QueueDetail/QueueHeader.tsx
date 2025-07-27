@@ -5,7 +5,7 @@ import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useState } from "react";
-import PlanUpgradeModal from "@/components/plans/PlanUpgradeModal";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 
 interface QueueHeaderProps {
   queueName: string;

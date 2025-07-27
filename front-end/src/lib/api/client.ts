@@ -136,8 +136,8 @@ class ApiClient {
     return this.rabbitmqClient.getNodeMemoryDetails(serverId, nodeName);
   }
 
-  async getEnhancedMetrics(serverId: string) {
-    return this.rabbitmqClient.getEnhancedMetrics(serverId);
+  async getMetrics(serverId: string) {
+    return this.rabbitmqClient.getMetrics(serverId);
   }
 
   async getConnections(serverId: string) {

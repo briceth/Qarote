@@ -3,7 +3,7 @@ import {
   useOverview,
   useQueues,
   useNodes,
-  useEnhancedMetrics,
+  useMetrics,
   useTimeSeriesMetrics,
 } from "./useApi";
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
@@ -33,7 +33,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
     useQueues(selectedServerId);
   const { data: nodesData, isLoading: nodesLoading } =
     useNodes(selectedServerId);
-  const { data: enhancedMetricsData } = useEnhancedMetrics(selectedServerId);
+  const { data: enhancedMetricsData } = useMetrics(selectedServerId);
   const { data: timeSeriesData, isLoading: timeSeriesLoading } =
     useTimeSeriesMetrics(selectedServerId, selectedTimeRange);
 
@@ -46,9 +46,10 @@ export const useDashboardData = (selectedServerId: string | null) => {
   // Check for permission status instead of errors
   const metricsPermissionStatus = enhancedMetricsData?.permissionStatus;
   const timeSeriesPermissionStatus = timeSeriesData?.permissionStatus;
+  const nodesPermissionStatus = nodesData?.permissionStatus;
 
   // Create error objects for backward compatibility with UI components
-  const enhancedMetricsError =
+  const metricsError =
     metricsPermissionStatus && !metricsPermissionStatus.hasPermission
       ? new RabbitMQAuthorizationError({
           error: "insufficient_permissions",
@@ -65,6 +66,16 @@ export const useDashboardData = (selectedServerId: string | null) => {
           message: timeSeriesPermissionStatus.message,
           code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
           requiredPermission: timeSeriesPermissionStatus.requiredPermission,
+        })
+      : null;
+
+  const nodesError =
+    nodesPermissionStatus && !nodesPermissionStatus.hasPermission
+      ? new RabbitMQAuthorizationError({
+          error: "insufficient_permissions",
+          message: nodesPermissionStatus.message,
+          code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
+          requiredPermission: nodesPermissionStatus.requiredPermission,
         })
       : null;
 
@@ -216,8 +227,9 @@ export const useDashboardData = (selectedServerId: string | null) => {
     timeSeriesLoading,
 
     // Error states
-    enhancedMetricsError,
+    metricsError,
     timeSeriesError,
+    nodesError,
 
     // Chart controls
     selectedTimeRange,

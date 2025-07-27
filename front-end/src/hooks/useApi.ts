@@ -124,12 +124,12 @@ export const useQueue = (serverId: string, queueName: string) => {
   });
 };
 
-export const useEnhancedMetrics = (serverId: string) => {
+export const useMetrics = (serverId: string) => {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: [...queryKeys.overview(serverId), "enhanced"],
-    queryFn: () => apiClient.getEnhancedMetrics(serverId),
+    queryKey: [...queryKeys.overview(serverId), "metrics"],
+    queryFn: () => apiClient.getMetrics(serverId),
     enabled: !!serverId && isAuthenticated,
     staleTime: 5000, // 5 seconds
     refetchInterval: 15000, // Refetch every 15 seconds

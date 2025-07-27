@@ -13,7 +13,7 @@ interface PlanUpgradeModalProps {
   feature: string;
 }
 
-const PlanUpgradeModal: React.FC<PlanUpgradeModalProps> = ({
+export const PlanUpgradeModal: React.FC<PlanUpgradeModalProps> = ({
   isOpen,
   onClose,
   currentPlan,
@@ -214,5 +214,3 @@ const PlanUpgradeModal: React.FC<PlanUpgradeModalProps> = ({
     </div>
   );
 };
-
-export default PlanUpgradeModal;
