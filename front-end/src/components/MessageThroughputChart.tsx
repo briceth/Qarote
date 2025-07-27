@@ -1,7 +1,9 @@
 import { Suspense, lazy } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TimeRange } from "@/components/ThroughputChart";
+import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
+import { isRabbitMQAuthError } from "@/types/apiErrors";
 
 // Lazy load ThroughputChart since it's a heavy charting component
 const ThroughputChart = lazy(() =>
@@ -20,6 +22,7 @@ interface MessageThroughputChartProps {
   chartData: ChartData[];
   selectedTimeRange: TimeRange;
   timeSeriesLoading: boolean;
+  timeSeriesError?: Error | null;
   onTimeRangeChange: (timeRange: TimeRange) => void;
   availableTimeRanges?: TimeRange[];
 }
@@ -28,9 +31,20 @@ export const MessageThroughputChart = ({
   chartData,
   selectedTimeRange,
   timeSeriesLoading,
+  timeSeriesError,
   onTimeRangeChange,
   availableTimeRanges,
 }: MessageThroughputChartProps) => {
+  // Handle permission errors
+  if (timeSeriesError && isRabbitMQAuthError(timeSeriesError)) {
+    return (
+      <RabbitMQPermissionError
+        requiredPermission={timeSeriesError.requiredPermission}
+        message={timeSeriesError.message}
+        title="Cannot View Message Throughput Chart"
+      />
+    );
+  }
   return (
     <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
       <CardHeader>

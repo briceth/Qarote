@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   useOverview,
   useQueues,
   useNodes,
   useEnhancedMetrics,
   useTimeSeriesMetrics,
-} from "@/hooks/useApi";
+} from "./useApi";
+import { RabbitMQAuthorizationError } from "@/types/apiErrors";
 import { TimeRange } from "@/components/ThroughputChart";
 
 interface ChartData {
@@ -41,6 +42,31 @@ export const useDashboardData = (selectedServerId: string | null) => {
   const queues = queuesData?.queues || [];
   const nodes = useMemo(() => nodesData?.nodes || [], [nodesData?.nodes]);
   const enhancedMetrics = enhancedMetricsData?.metrics;
+
+  // Check for permission status instead of errors
+  const metricsPermissionStatus = enhancedMetricsData?.permissionStatus;
+  const timeSeriesPermissionStatus = timeSeriesData?.permissionStatus;
+
+  // Create error objects for backward compatibility with UI components
+  const enhancedMetricsError =
+    metricsPermissionStatus && !metricsPermissionStatus.hasPermission
+      ? new RabbitMQAuthorizationError({
+          error: "insufficient_permissions",
+          message: metricsPermissionStatus.message,
+          code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
+          requiredPermission: metricsPermissionStatus.requiredPermission,
+        })
+      : null;
+
+  const timeSeriesError =
+    timeSeriesPermissionStatus && !timeSeriesPermissionStatus.hasPermission
+      ? new RabbitMQAuthorizationError({
+          error: "insufficient_permissions",
+          message: timeSeriesPermissionStatus.message,
+          code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
+          requiredPermission: timeSeriesPermissionStatus.requiredPermission,
+        })
+      : null;
 
   // Calculate metrics
   const metrics = useMemo(
@@ -188,6 +214,10 @@ export const useDashboardData = (selectedServerId: string | null) => {
     queuesLoading,
     nodesLoading,
     timeSeriesLoading,
+
+    // Error states
+    enhancedMetricsError,
+    timeSeriesError,
 
     // Chart controls
     selectedTimeRange,

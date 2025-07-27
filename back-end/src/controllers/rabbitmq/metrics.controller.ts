@@ -32,6 +32,22 @@ metricsController.get("/servers/:id/metrics", async (c) => {
     });
   } catch (error) {
     logger.error({ error, id }, "Error fetching metrics for server");
+
+    // Check if this is a 401 Unauthorized error from RabbitMQ API
+    if (error instanceof Error && error.message.includes("401")) {
+      // Return successful response with permission status instead of error
+      return c.json({
+        serverId: id,
+        metrics: null,
+        permissionStatus: {
+          hasPermission: false,
+          requiredPermission: "monitor",
+          message:
+            "User does not have 'monitor' permissions to view metrics data. Please contact your RabbitMQ administrator to grant the necessary permissions.",
+        },
+      });
+    }
+
     return createErrorResponse(c, error, 500, "Failed to fetch metrics");
   }
 });
@@ -328,6 +344,37 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
       { error, id, timeRange },
       "Error fetching timeseries data for server"
     );
+
+    // Check if this is a 401 Unauthorized error from RabbitMQ API
+    if (error instanceof Error && error.message.includes("401")) {
+      // Return successful response with permission status instead of error
+      return c.json({
+        serverId: id,
+        dataSource: "permission_denied",
+        timeRange,
+        timestamp: new Date().toISOString(),
+        queues: [],
+        aggregatedThroughput: [],
+        permissionStatus: {
+          hasPermission: false,
+          requiredPermission: "monitor",
+          message:
+            "User does not have 'monitor' permissions to view metrics data. Please contact your RabbitMQ administrator to grant the necessary permissions.",
+        },
+        metadata: {
+          plan: null,
+          maxRetentionDays: 0,
+          allowedTimeRanges: [],
+          requestedHours: 0,
+          actualStartTime: new Date().toISOString(),
+          bucketIntervalMinutes: 0,
+          historicalDataPoints: 0,
+          aggregatedDataPoints: 0,
+          totalQueues: 0,
+        },
+      });
+    }
+
     return createErrorResponse(
       c,
       error,
@@ -487,6 +534,33 @@ metricsController.get("/servers/:id/metrics/historical", async (c) => {
     });
   } catch (error) {
     logger.error({ error, id }, "Error fetching historical data for server");
+
+    // Check if this is a 401 Unauthorized error from RabbitMQ API
+    if (error instanceof Error && error.message.includes("401")) {
+      // Return successful response with permission status instead of error
+      return c.json({
+        serverId: id,
+        timeRange,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        dataSource: "permission_denied",
+        queues: [],
+        aggregatedThroughput: [],
+        permissionStatus: {
+          hasPermission: false,
+          requiredPermission: "monitor",
+          message:
+            "User does not have 'monitor' permissions to view metrics data. Please contact your RabbitMQ administrator to grant the necessary permissions.",
+        },
+        metadata: {
+          plan: null,
+          storageMode: null,
+          retentionDays: 0,
+          dataPoints: 0,
+        },
+      });
+    }
+
     return createErrorResponse(
       c,
       error,

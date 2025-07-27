@@ -1,6 +1,7 @@
-import { Server, Cpu, HardDrive } from "lucide-react";
+import { Server, Cpu, HardDrive, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isRabbitMQAuthError } from "@/types/apiErrors";
 
 interface Node {
   running: boolean;
@@ -16,12 +17,14 @@ interface SecondaryMetricsCardsProps {
   metrics: SecondaryMetricsData;
   nodes: Node[];
   isLoading: boolean;
+  enhancedMetricsError?: Error | null;
 }
 
 export const SecondaryMetricsCards = ({
   metrics,
   nodes,
   isLoading,
+  enhancedMetricsError,
 }: SecondaryMetricsCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -53,17 +56,33 @@ export const SecondaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             CPU Usage
           </CardTitle>
-          <Cpu className="h-5 w-5 text-yellow-600" />
+          {enhancedMetricsError && isRabbitMQAuthError(enhancedMetricsError) ? (
+            <ShieldAlert className="h-5 w-5 text-orange-600" />
+          ) : (
+            <Cpu className="h-5 w-5 text-yellow-600" />
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-6 w-16" />
+          ) : enhancedMetricsError &&
+            isRabbitMQAuthError(enhancedMetricsError) ? (
+            <div>
+              <div className="text-lg font-semibold text-orange-600 mb-1">
+                Permission Required
+              </div>
+              <p className="text-xs text-orange-600">
+                Need 'monitor' permission
+              </p>
+            </div>
           ) : (
-            <div className="text-2xl font-bold text-gray-900">
-              {metrics.cpuUsage.toFixed(1)}%
+            <div>
+              <div className="text-2xl font-bold text-gray-900">
+                {metrics.cpuUsage.toFixed(1)}%
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Cluster average</p>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">Cluster average</p>
         </CardContent>
       </Card>
 
@@ -72,17 +91,33 @@ export const SecondaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             Memory Usage
           </CardTitle>
-          <HardDrive className="h-5 w-5 text-red-600" />
+          {enhancedMetricsError && isRabbitMQAuthError(enhancedMetricsError) ? (
+            <ShieldAlert className="h-5 w-5 text-orange-600" />
+          ) : (
+            <HardDrive className="h-5 w-5 text-red-600" />
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-6 w-20" />
+          ) : enhancedMetricsError &&
+            isRabbitMQAuthError(enhancedMetricsError) ? (
+            <div>
+              <div className="text-lg font-semibold text-orange-600 mb-1">
+                Permission Required
+              </div>
+              <p className="text-xs text-orange-600">
+                Need 'monitor' permission
+              </p>
+            </div>
           ) : (
-            <div className="text-2xl font-bold text-gray-900">
-              {metrics.totalMemory.toFixed(1)} GB
+            <div>
+              <div className="text-2xl font-bold text-gray-900">
+                {metrics.totalMemory.toFixed(1)} GB
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Total allocated</p>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">Total allocated</p>
         </CardContent>
       </Card>
     </div>

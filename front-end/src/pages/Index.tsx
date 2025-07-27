@@ -33,6 +33,8 @@ const Index = () => {
     isLoading,
     queuesLoading,
     timeSeriesLoading,
+    enhancedMetricsError,
+    timeSeriesError,
     selectedTimeRange,
     handleTimeRangeChange,
     availableTimeRanges,
@@ -125,19 +127,25 @@ const Index = () => {
             </div>
 
             {/* Primary Metrics Cards */}
-            <PrimaryMetricsCards metrics={metrics} isLoading={isLoading} />
+            <PrimaryMetricsCards
+              metrics={metrics}
+              isLoading={isLoading}
+              enhancedMetricsError={enhancedMetricsError}
+            />
 
             {/* Secondary Metrics */}
             <SecondaryMetricsCards
               metrics={metrics}
               nodes={nodes}
               isLoading={isLoading}
+              enhancedMetricsError={enhancedMetricsError}
             />
 
             {/* Message Throughput Chart - Full Width */}
             <MessageThroughputChart
               chartData={chartData}
               timeSeriesLoading={timeSeriesLoading}
+              timeSeriesError={timeSeriesError}
               selectedTimeRange={selectedTimeRange}
               onTimeRangeChange={handleTimeRangeChange}
               availableTimeRanges={availableTimeRanges}

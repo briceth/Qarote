@@ -1,6 +1,7 @@
-import { MessageSquare, Clock, Activity, Zap } from "lucide-react";
+import { MessageSquare, Clock, Activity, Zap, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isRabbitMQAuthError } from "@/types/apiErrors";
 
 interface MetricsData {
   messagesPerSec: number;
@@ -12,11 +13,13 @@ interface MetricsData {
 interface PrimaryMetricsCardsProps {
   metrics: MetricsData;
   isLoading: boolean;
+  enhancedMetricsError?: Error | null;
 }
 
 export const PrimaryMetricsCards = ({
   metrics,
   isLoading,
+  enhancedMetricsError,
 }: PrimaryMetricsCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -82,17 +85,33 @@ export const PrimaryMetricsCards = ({
           <CardTitle className="text-sm font-medium text-gray-600">
             Avg Latency
           </CardTitle>
-          <Clock className="h-5 w-5 text-purple-600" />
+          {enhancedMetricsError && isRabbitMQAuthError(enhancedMetricsError) ? (
+            <ShieldAlert className="h-5 w-5 text-orange-600" />
+          ) : (
+            <Clock className="h-5 w-5 text-purple-600" />
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-8 w-16" />
+          ) : enhancedMetricsError &&
+            isRabbitMQAuthError(enhancedMetricsError) ? (
+            <div>
+              <div className="text-lg font-semibold text-orange-600 mb-1">
+                Permission Required
+              </div>
+              <p className="text-xs text-orange-600">
+                Need 'monitor' permission
+              </p>
+            </div>
           ) : (
-            <div className="text-3xl font-bold text-gray-900">
-              {metrics.avgLatency.toFixed(1)}ms
+            <div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metrics.avgLatency.toFixed(1)}ms
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Estimated latency</p>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">Estimated latency</p>
         </CardContent>
       </Card>
     </div>

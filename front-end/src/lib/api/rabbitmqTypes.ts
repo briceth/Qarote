@@ -13,6 +13,13 @@ import {
   ExchangeType,
 } from "./types";
 
+// Permission status for unauthorized operations
+export interface PermissionStatus {
+  hasPermission: boolean;
+  requiredPermission: string;
+  message: string;
+}
+
 export interface Node {
   // Basic node information
   name: string;
@@ -259,6 +266,11 @@ export interface EnhancedMetrics {
   calculatedAt: string;
 }
 
+export interface EnhancedMetricsResponse {
+  metrics: EnhancedMetrics | null;
+  permissionStatus?: PermissionStatus;
+}
+
 export interface Connection {
   name: string;
   node: string;
@@ -297,17 +309,18 @@ export interface TimeSeriesDataPoint {
 }
 
 export interface TimeSeriesResponse {
-  timeseries: TimeSeriesDataPoint[];
+  timeseries: TimeSeriesDataPoint[] | null;
   timeRange: string;
   dataPoints: number;
   aggregatedThroughput?: Array<{
     timestamp: number;
     publishRate: number;
     consumeRate: number;
-  }>;
+  }> | null;
   metadata?: {
     allowedTimeRanges: string[];
   };
+  permissionStatus?: PermissionStatus;
 }
 
 export interface NodeMemoryDetailsResponse {

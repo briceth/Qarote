@@ -9,6 +9,7 @@ import {
   Overview,
   Node,
   EnhancedMetrics,
+  EnhancedMetricsResponse,
   Connection,
   Channel,
   TimeSeriesResponse,
