@@ -252,6 +252,36 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
+  async getQueueBindings(queueName: string): Promise<RabbitMQBinding[]> {
+    try {
+      logger.debug("Fetching RabbitMQ queue bindings", { queueName });
+      const encodedQueueName = encodeURIComponent(queueName);
+      const bindings = await this.request(
+        `/queues/${this.vhost}/${encodedQueueName}/bindings`
+      );
+      logger.debug("RabbitMQ queue bindings fetched successfully", {
+        queueName,
+        count: bindings?.length || 0,
+      });
+      return bindings;
+    } catch (error) {
+      logger.error("Failed to fetch RabbitMQ queue bindings:", {
+        error,
+        queueName,
+      });
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getQueueBindings",
+          queueName,
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
   async createExchange(
     exchangeName: string,
     exchangeType: string,

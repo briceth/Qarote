@@ -187,6 +187,10 @@ class ApiClient {
     return this.rabbitmqClient.getQueueConsumers(serverId, queueName);
   }
 
+  async getQueueBindings(serverId: string, queueName: string) {
+    return this.rabbitmqClient.getQueueBindings(serverId, queueName);
+  }
+
   async getTimeSeriesMetrics(serverId: string, timeRange?: string) {
     return this.rabbitmqClient.getTimeSeriesMetrics(serverId, timeRange);
   }

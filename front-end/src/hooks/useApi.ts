@@ -262,6 +262,18 @@ export const useQueueConsumers = (serverId: string, queueName: string) => {
   });
 };
 
+export const useQueueBindings = (serverId: string, queueName: string) => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["queueBindings", serverId, queueName],
+    queryFn: () => apiClient.getQueueBindings(serverId, queueName),
+    enabled: !!serverId && !!queueName && isAuthenticated,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
 // Alerts hooks
 export const useAlerts = () => {
   const { isAuthenticated } = useAuth();

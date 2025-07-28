@@ -17,6 +17,7 @@ import { useServerContext } from "@/contexts/ServerContext";
 import {
   useQueue,
   useQueueConsumers,
+  useQueueBindings,
   useMonthlyMessageCount,
   useDeleteQueue,
 } from "@/hooks/useApi";
@@ -28,6 +29,7 @@ import { MessageStatistics } from "@/components/QueueDetail/MessageStatistics";
 import { QueueConfiguration } from "@/components/QueueDetail/QueueConfiguration";
 import { QueueTiming } from "@/components/QueueDetail/QueueTiming";
 import { ConsumerDetails } from "@/components/QueueDetail/ConsumerDetails";
+import { QueueBindings } from "@/components/QueueDetail/QueueBindings";
 import { NotFound } from "@/components/QueueDetail/NotFound";
 import { LoadingSkeleton } from "@/components/QueueDetail/LoadingSkeleton";
 
@@ -50,6 +52,11 @@ const QueueDetail = () => {
 
   const { data: consumersData, isLoading: consumersLoading } =
     useQueueConsumers(selectedServerId, queueName);
+
+  const { data: bindingsData, isLoading: bindingsLoading } = useQueueBindings(
+    selectedServerId,
+    queueName
+  );
 
   const deleteQueueMutation = useDeleteQueue();
 
@@ -147,6 +154,12 @@ const QueueDetail = () => {
                   <ConsumerDetails
                     consumersData={consumersData}
                     consumersLoading={consumersLoading}
+                  />
+
+                  {/* Queue Bindings Section */}
+                  <QueueBindings
+                    bindingsData={bindingsData}
+                    bindingsLoading={bindingsLoading}
                   />
                 </>
               ) : (

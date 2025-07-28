@@ -25,6 +25,7 @@ import {
 import { EncryptionService } from "@/services/encryption.service";
 import {
   QueueConsumersResponse,
+  QueueBindingsResponse,
   QueueCreationResponse,
   QueuePurgeResponse,
   QueuesResponse,
@@ -193,6 +194,35 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
       500,
       "Failed to fetch queue consumers"
     );
+  }
+});
+
+/**
+ * Get bindings for a specific queue on a server (ALL USERS)
+ * GET /servers/:id/queues/:queueName/bindings
+ */
+queuesController.get("/servers/:id/queues/:queueName/bindings", async (c) => {
+  const id = c.req.param("id");
+  const queueName = c.req.param("queueName");
+  const user = c.get("user");
+
+  try {
+    const client = await createRabbitMQClient(id, user.workspaceId);
+    const bindings = await client.getQueueBindings(queueName);
+
+    const response: QueueBindingsResponse = {
+      success: true,
+      bindings,
+      totalBindings: bindings.length,
+      queueName,
+    };
+    return c.json(response);
+  } catch (error) {
+    logger.error(
+      `Error fetching bindings for queue ${queueName} on server ${id}:`,
+      error
+    );
+    return createErrorResponse(c, error, 500, "Failed to fetch queue bindings");
   }
 });
 

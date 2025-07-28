@@ -394,6 +394,28 @@ export class RabbitMQApiClient extends BaseApiClient {
     );
   }
 
+  // Queue Bindings Management
+  async getQueueBindings(
+    serverId: string,
+    queueName: string
+  ): Promise<{
+    success: boolean;
+    bindings: Binding[];
+    totalBindings: number;
+    queueName: string;
+  }> {
+    return this.request<{
+      success: boolean;
+      bindings: Binding[];
+      totalBindings: number;
+      queueName: string;
+    }>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+        queueName
+      )}/bindings`
+    );
+  }
+
   // VHost Management (Admin Only)
   async getVHosts(serverId: string): Promise<VHostsResponse> {
     return this.request<VHostsResponse>(`/rabbitmq/servers/${serverId}/vhosts`);

@@ -1,5 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
-import { RabbitMQQueue } from "./rabbitmq";
+import { RabbitMQQueue, RabbitMQBinding } from "./rabbitmq";
 
 export interface QueueLimitWarning {
   isOverLimit: true;
@@ -24,6 +24,13 @@ export interface QueueConsumersResponse {
   success: true;
   consumers: any[]; // TODO: Define proper consumer interface when available
   totalConsumers: number;
+  queueName: string;
+}
+
+export interface QueueBindingsResponse {
+  success: true;
+  bindings: RabbitMQBinding[];
+  totalBindings: number;
   queueName: string;
 }
 
