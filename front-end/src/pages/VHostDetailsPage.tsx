@@ -1,32 +1,13 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import {
-  Database,
-  ArrowLeft,
-  Users,
-  Settings,
-  Trash2,
-  Edit,
-  Plus,
-  AlertCircle,
-  Activity,
-  MessageSquare,
-  Network,
-} from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -41,11 +22,8 @@ import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api";
-import { VHost } from "@/lib/api/vhostTypes";
 import { DeleteVHostModal } from "@/components/vhosts/DeleteVHostModal";
 import { EditVHostModal } from "@/components/vhosts/EditVHostModal";
-import { VHostPermissionsTab } from "@/components/vhosts/VHostPermissionsTab";
-import { VHostLimitsTab } from "@/components/vhosts/VHostLimitsTab";
 import { toast } from "sonner";
 
 export default function VHostDetailsPage() {
@@ -56,7 +34,6 @@ export default function VHostDetailsPage() {
   const { selectedServerId } = useServerContext();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -194,11 +171,20 @@ export default function VHostDetailsPage() {
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <main className="flex-1 p-6">
-          <div className="space-y-8">
+          <div className="max-w-6xl mx-auto space-y-8">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="mr-2" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/vhosts")}
+                  className="mr-2 flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="text-sm">Back to vhosts</span>
+                </Button>
                 <h1 className="text-2xl font-bold">
                   Virtual host / {decodedVHostName}
                 </h1>
@@ -327,7 +313,9 @@ export default function VHostDetailsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">User</label>
+                      <label className="block text-sm font-medium mb-2">
+                        User
+                      </label>
                       <select
                         className="w-full p-2 border rounded-md bg-background"
                         value={selectedUser}
@@ -415,7 +403,9 @@ export default function VHostDetailsPage() {
             {/* Danger zone */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-red-600">Danger zone</CardTitle>
+                <CardTitle className="text-lg text-red-600">
+                  Danger zone
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <Button

@@ -25,6 +25,8 @@ const Channels = lazy(() => import("./pages/Channels"));
 const Nodes = lazy(() => import("./pages/Nodes"));
 const VHosts = lazy(() => import("./pages/VHostsPage"));
 const VHostDetails = lazy(() => import("./pages/VHostDetailsPage"));
+const Users = lazy(() => import("./pages/UsersPage"));
+const UserDetails = lazy(() => import("./pages/UserDetailsPage"));
 const Routing = lazy(() => import("./pages/Routing"));
 const Logs = lazy(() => import("./pages/Logs"));
 const Alerts = lazy(() => import("./pages/Alerts"));
@@ -197,6 +199,26 @@ const AppCore = () => (
                       <ProtectedRoute>
                         <Layout>
                           <VHostDetails />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Users />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/users/:username"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <UserDetails />
                         </Layout>
                       </ProtectedRoute>
                     }

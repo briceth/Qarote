@@ -255,6 +255,50 @@ class ApiClient {
     return this.rabbitmqClient.deleteVHostLimit(serverId, vhostName, limitType);
   }
 
+  // User Management (Admin Only)
+  async getUsers(serverId: string) {
+    return this.rabbitmqClient.getUsers(serverId);
+  }
+
+  async getUser(serverId: string, username: string) {
+    return this.rabbitmqClient.getUser(serverId, username);
+  }
+
+  async createUser(
+    serverId: string,
+    data: Parameters<RabbitMQApiClient["createUser"]>[1]
+  ) {
+    return this.rabbitmqClient.createUser(serverId, data);
+  }
+
+  async updateUser(
+    serverId: string,
+    username: string,
+    data: Parameters<RabbitMQApiClient["updateUser"]>[2]
+  ) {
+    return this.rabbitmqClient.updateUser(serverId, username, data);
+  }
+
+  async deleteUser(serverId: string, username: string) {
+    return this.rabbitmqClient.deleteUser(serverId, username);
+  }
+
+  async setUserPermissions(
+    serverId: string,
+    username: string,
+    data: Parameters<RabbitMQApiClient["setUserPermissions"]>[2]
+  ) {
+    return this.rabbitmqClient.setUserPermissions(serverId, username, data);
+  }
+
+  async deleteUserPermissions(
+    serverId: string,
+    username: string,
+    vhost: string
+  ) {
+    return this.rabbitmqClient.deleteUserPermissions(serverId, username, vhost);
+  }
+
   // Authentication methods
   async login(credentials: Parameters<AuthApiClient["login"]>[0]) {
     return this.authClient.login(credentials);

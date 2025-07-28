@@ -87,6 +87,12 @@ const menuItems = [
     adminOnly: true,
   },
   {
+    title: "Users",
+    url: "/users",
+    icon: User,
+    adminOnly: true,
+  },
+  {
     title: "Routing",
     url: "/routing",
     icon: GitBranch,

@@ -8,12 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageLoader } from "@/components/PageLoader";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
@@ -257,7 +252,9 @@ export default function VHostsPage() {
                           key={vhost.name}
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() =>
-                            navigate(`/vhosts/${encodeURIComponent(vhost.name)}`)
+                            navigate(
+                              `/vhosts/${encodeURIComponent(vhost.name)}`
+                            )
                           }
                         >
                           <TableCell className="font-medium">

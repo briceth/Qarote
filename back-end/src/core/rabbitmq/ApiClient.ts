@@ -854,4 +854,151 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       throw error;
     }
   }
+
+  // User Management Methods
+  async getUsers(): Promise<any[]> {
+    try {
+      logger.debug("Fetching RabbitMQ users");
+      const users = await this.request("/users");
+      logger.debug("RabbitMQ users fetched successfully", {
+        count: users?.length || 0,
+      });
+      return users;
+    } catch (error) {
+      logger.error({ error }, "Failed to fetch RabbitMQ users");
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getUsers",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async getUser(username: string): Promise<any> {
+    try {
+      const encodedUsername = encodeURIComponent(username);
+      logger.debug("Fetching RabbitMQ user", { username });
+      const user = await this.request(`/users/${encodedUsername}`);
+      logger.debug("RabbitMQ user fetched successfully", { username });
+      return user;
+    } catch (error) {
+      logger.error({ error, username }, "Failed to fetch RabbitMQ user");
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getUser",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async getUserPermissions(username: string): Promise<any[]> {
+    try {
+      const encodedUsername = encodeURIComponent(username);
+      logger.debug("Fetching user permissions", { username });
+      const permissions = await this.request(
+        `/users/${encodedUsername}/permissions`
+      );
+      logger.debug("User permissions fetched successfully", { username });
+      return permissions;
+    } catch (error) {
+      logger.error({ error, username }, "Failed to fetch user permissions");
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getUserPermissions",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async createUser(
+    username: string,
+    userData: { password: string; tags: string }
+  ): Promise<void> {
+    try {
+      const encodedUsername = encodeURIComponent(username);
+      logger.debug("Creating RabbitMQ user", { username });
+
+      await this.request(`/users/${encodedUsername}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          password: userData.password,
+          tags: userData.tags,
+        }),
+      });
+
+      logger.debug("RabbitMQ user created successfully", { username });
+    } catch (error) {
+      logger.error({ error, username }, "Failed to create RabbitMQ user");
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "createUser",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async updateUser(username: string, userData: any): Promise<void> {
+    try {
+      const encodedUsername = encodeURIComponent(username);
+      logger.debug("Updating RabbitMQ user", { username });
+
+      await this.request(`/users/${encodedUsername}`, {
+        method: "PUT",
+        body: JSON.stringify(userData),
+      });
+
+      logger.debug("RabbitMQ user updated successfully", { username });
+    } catch (error) {
+      logger.error({ error, username }, "Failed to update RabbitMQ user");
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "updateUser",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async deleteUser(username: string): Promise<void> {
+    try {
+      const encodedUsername = encodeURIComponent(username);
+      logger.debug("Deleting RabbitMQ user", { username });
+
+      await this.request(`/users/${encodedUsername}`, {
+        method: "DELETE",
+      });
+
+      logger.debug("RabbitMQ user deleted successfully", { username });
+    } catch (error) {
+      logger.error({ error, username }, "Failed to delete RabbitMQ user");
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "deleteUser",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
 }

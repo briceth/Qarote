@@ -34,6 +34,14 @@ import {
   SetVHostPermissionsRequest,
   SetVHostLimitRequest,
 } from "./vhostTypes";
+import {
+  RabbitMQUser,
+  RabbitMQUserPermission,
+  CreateUserRequest,
+  UpdateUserRequest,
+  SetUserPermissionRequest,
+  UserDetailsResponse,
+} from "./userTypes";
 
 export class RabbitMQApiClient extends BaseApiClient {
   // Overview and Metrics
@@ -450,6 +458,88 @@ export class RabbitMQApiClient extends BaseApiClient {
       `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(
         vhostName
       )}/limits/${limitType}`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
+  // User Management (Admin Only)
+  async getUsers(serverId: string): Promise<{ users: RabbitMQUser[] }> {
+    return this.request<{ users: RabbitMQUser[] }>(
+      `/rabbitmq/servers/${serverId}/users`
+    );
+  }
+
+  async getUser(
+    serverId: string,
+    username: string
+  ): Promise<UserDetailsResponse> {
+    return this.request<UserDetailsResponse>(
+      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}`
+    );
+  }
+
+  async createUser(
+    serverId: string,
+    data: CreateUserRequest
+  ): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/rabbitmq/servers/${serverId}/users`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async updateUser(
+    serverId: string,
+    username: string,
+    data: UpdateUserRequest
+  ): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteUser(
+    serverId: string,
+    username: string
+  ): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
+
+  async setUserPermissions(
+    serverId: string,
+    username: string,
+    data: SetUserPermissionRequest
+  ): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}/permissions`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  async deleteUserPermissions(
+    serverId: string,
+    username: string,
+    vhost: string
+  ): Promise<{ message: string }> {
+    return this.request<{ message: string }>(
+      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}/permissions/${encodeURIComponent(vhost)}`,
       {
         method: "DELETE",
       }
