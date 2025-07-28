@@ -2,6 +2,8 @@ import { RabbitMQServer } from "@prisma/client";
 import { prisma } from "@/core/prisma";
 import { RabbitMQClient } from "@/core/rabbitmq/RabbitClient";
 import { EncryptionService } from "@/services/encryption.service";
+import { logger } from "@/core/logger";
+import { QueuePauseState, RabbitMQAmqpClientFactory } from "@/core/rabbitmq";
 
 /**
  * Helper function to decrypt server credentials for RabbitMQ client
@@ -54,4 +56,107 @@ export async function createRabbitMQClient(
 ): Promise<RabbitMQClient> {
   const server = await verifyServerAccess(serverId, workspaceId);
   return new RabbitMQClient(getDecryptedCredentials(server));
+}
+
+/**
+ * Helper function to create AMQP client for queue operations using the factory
+ */
+export async function createAmqpClient(serverId: string, workspaceId: string) {
+  const server = await prisma.rabbitMQServer.findFirst({
+    where: {
+      id: serverId,
+      workspaceId,
+    },
+  });
+
+  if (!server) {
+    throw new Error(`Server with ID ${serverId} not found or access denied`);
+  }
+
+  // Decrypt username and password before creating client
+  let decryptedUsername: string;
+  let decryptedPassword: string;
+
+  try {
+    decryptedUsername = EncryptionService.decrypt(server.username);
+    decryptedPassword = EncryptionService.decrypt(server.password);
+
+    logger.debug(`Decrypted credentials for server ${server.name}`, {
+      serverId: server.id,
+      serverName: server.name,
+      hasUsername: !!decryptedUsername,
+      hasPassword: !!decryptedPassword,
+    });
+  } catch (error) {
+    logger.error(
+      `Failed to decrypt credentials for server ${server.name}:`,
+      error
+    );
+    throw new Error(`Failed to decrypt server credentials for ${server.name}`);
+  }
+
+  // Create client using factory with decrypted credentials
+  const client = await RabbitMQAmqpClientFactory.createClient({
+    id: server.id,
+    name: server.name,
+    host: server.host,
+    port: server.port,
+    username: decryptedUsername, // ✅ Using decrypted username
+    password: decryptedPassword, // ✅ Using decrypted password
+    vhost: server.vhost || "/",
+    sslEnabled: server.sslEnabled,
+  });
+
+  // Set up persistence callback to save pause states to database
+  client.setPersistenceCallback(
+    async (serverId: string, pauseStates: QueuePauseState[]) => {
+      try {
+        await prisma.rabbitMQServer.update({
+          where: { id: serverId },
+          data: {
+            queuePauseStates: JSON.parse(
+              JSON.stringify(
+                pauseStates.reduce(
+                  (acc, state) => {
+                    acc[state.queueName] = state;
+                    return acc;
+                  },
+                  {} as Record<string, QueuePauseState>
+                )
+              )
+            ),
+          },
+        });
+
+        logger.debug(`Persisted pause states for server ${serverId}`, {
+          pausedQueues: pauseStates.filter((s) => s.isPaused).length,
+          totalQueues: pauseStates.length,
+        });
+      } catch (error) {
+        logger.error(
+          `Failed to persist pause states for server ${serverId}:`,
+          error
+        );
+      }
+    }
+  );
+
+  // Load existing pause states from database
+  const existingPauseStates = server.queuePauseStates as Record<
+    string,
+    QueuePauseState
+  > | null;
+
+  if (existingPauseStates) {
+    const pauseStatesArray = Object.values(existingPauseStates).map(
+      (state) => ({
+        ...state,
+        pausedAt: state.pausedAt ? new Date(state.pausedAt) : undefined,
+        resumedAt: state.resumedAt ? new Date(state.resumedAt) : undefined,
+      })
+    );
+    client.loadPauseStates(pauseStatesArray);
+  }
+
+  return client;
 }

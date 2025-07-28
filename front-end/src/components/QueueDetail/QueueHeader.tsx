@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowLeft, Send, Trash2, Lock } from "lucide-react";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
+import { PauseQueueDialog } from "@/components/PauseQueueDialog";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useQueuePauseStatus } from "@/hooks/useApi";
 import { useState } from "react";
 import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 
@@ -12,6 +14,7 @@ interface QueueHeaderProps {
   selectedServerId: string;
   messageCount: number;
   monthlyMessageCount: number;
+  consumerCount?: number;
   onNavigateBack: () => void;
   onRefetch: () => void;
   onDeleteQueue?: () => void;
@@ -22,17 +25,28 @@ export function QueueHeader({
   selectedServerId,
   messageCount,
   monthlyMessageCount,
+  consumerCount = 0,
   onNavigateBack,
   onRefetch,
   onDeleteQueue,
 }: QueueHeaderProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const { canSendMessages, workspacePlan, isPlanLoading } = useWorkspace();
+  const { canSendMessages, workspacePlan } = useWorkspace();
+
+  // Get the actual pause status from the backend
+  const { data: pauseStatus, refetch: refetchPauseStatus } =
+    useQueuePauseStatus(selectedServerId, queueName);
+
 
   const handleSendMessageClick = () => {
     if (!canSendMessages) {
       setShowUpgradeModal(true);
     }
+  };
+
+  const handlePauseSuccess = () => {
+    refetchPauseStatus();
+    onRefetch();
   };
   return (
     <div className="flex items-center justify-between">
@@ -122,6 +136,13 @@ export function QueueHeader({
               Purge Queue
             </Button>
           }
+        />
+
+        <PauseQueueDialog
+          queueName={queueName}
+          consumerCount={consumerCount}
+          isPaused={pauseStatus?.pauseState?.isPaused}
+          onSuccess={handlePauseSuccess}
         />
 
         {/* Delete Queue Button */}

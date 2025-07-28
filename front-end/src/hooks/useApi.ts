@@ -350,6 +350,78 @@ export const useDeleteQueue = () => {
   });
 };
 
+export const usePauseQueue = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      queueName,
+    }: {
+      serverId: string;
+      queueName: string;
+    }) => apiClient.pauseQueue(serverId, queueName),
+    onSuccess: (_, variables) => {
+      // Invalidate queues list and specific queue data to refresh consumer counts
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.queues(variables.serverId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.queue(variables.serverId, variables.queueName),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["queueConsumers", variables.serverId, variables.queueName],
+      });
+      // Also invalidate pause status to refresh button state
+      queryClient.invalidateQueries({
+        queryKey: ["queuePauseStatus", variables.serverId, variables.queueName],
+      });
+    },
+  });
+};
+
+export const useResumeQueue = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      queueName,
+    }: {
+      serverId: string;
+      queueName: string;
+    }) => apiClient.resumeQueue(serverId, queueName),
+    onSuccess: (_, variables) => {
+      // Invalidate queues list and specific queue data
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.queues(variables.serverId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.queue(variables.serverId, variables.queueName),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["queueConsumers", variables.serverId, variables.queueName],
+      });
+      // Also invalidate pause status to refresh button state
+      queryClient.invalidateQueries({
+        queryKey: ["queuePauseStatus", variables.serverId, variables.queueName],
+      });
+    },
+  });
+};
+
+export const useQueuePauseStatus = (serverId: string, queueName: string) => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["queuePauseStatus", serverId, queueName],
+    queryFn: () => apiClient.getQueuePauseStatus(serverId, queueName),
+    enabled: !!serverId && !!queueName && isAuthenticated,
+    staleTime: 5000, // 5 seconds
+    refetchInterval: false, // Don't auto-refetch, let mutations handle updates
+  });
+};
+
 // Profile hooks
 export const useProfile = () => {
   const { isAuthenticated } = useAuth();

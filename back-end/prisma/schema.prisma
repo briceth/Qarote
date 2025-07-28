@@ -266,6 +266,9 @@ model RabbitMQServer {
   queueCountAtConnect Int?        // Number of queues when server was connected
   overLimitWarningShown Boolean   @default(false) // True if warning has been shown to user
   
+  // Queue pause states (JSON field to store pause state per queue)
+  queuePauseStates    Json?       // Stores map of queueName -> QueuePauseState
+  
   workspaceId             String?
   workspace               Workspace?           @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   createdAt               DateTime             @default(now())

@@ -1,0 +1,519 @@
+import * as amqp from "amqplib";
+import { logger } from "@/core/logger";
+import { captureRabbitMQError } from "@/core/sentry";
+
+export interface AMQPConnectionConfig {
+  protocol: "amqp" | "amqps";
+  hostname: string;
+  port: number;
+  username: string;
+  password: string;
+  vhost: string;
+  heartbeat?: number;
+  connectionTimeout?: number;
+  serverId?: string; // Add server ID for tracking
+  serverName?: string; // Add server name for logging
+}
+
+export interface QueuePauseState {
+  queueName: string;
+  vhost: string;
+  isPaused: boolean;
+  pausedAt?: Date;
+  resumedAt?: Date;
+  pausedConsumers: string[];
+  serverId?: string; // Track which server this relates to
+}
+
+/**
+ * Factory class to create AMQP clients for different RabbitMQ servers
+ * Handles dynamic connection creation based on server configuration
+ */
+export class RabbitMQAmqpClientFactory {
+  private static clients = new Map<string, RabbitMQAmqpClient>();
+
+  /**
+   * Create an AMQP client for a specific RabbitMQ server
+   */
+  static async createClient(serverConfig: {
+    id: string;
+    name: string;
+    host: string;
+    port: number;
+    username: string;
+    password: string;
+    vhost: string;
+    sslEnabled: boolean;
+  }): Promise<RabbitMQAmqpClient> {
+    const config: AMQPConnectionConfig = {
+      protocol: serverConfig.sslEnabled ? "amqps" : "amqp",
+      hostname: serverConfig.host,
+      port: serverConfig.port,
+      username: serverConfig.username,
+      password: serverConfig.password,
+      vhost: serverConfig.vhost || "/",
+      heartbeat: 60,
+      connectionTimeout: 30000,
+      serverId: serverConfig.id,
+      serverName: serverConfig.name,
+    };
+
+    // Check if we already have a client for this server
+    const existingClient = this.clients.get(serverConfig.id);
+    if (existingClient && existingClient.isConnectionActive()) {
+      return existingClient;
+    }
+
+    console.log(config);
+
+    // Create new client
+    const client = new RabbitMQAmqpClient(config);
+    this.clients.set(serverConfig.id, client);
+
+    return client;
+  }
+
+  /**
+   * Get existing client for a server
+   */
+  static getClient(serverId: string): RabbitMQAmqpClient | null {
+    return this.clients.get(serverId) || null;
+  }
+
+  /**
+   * Remove client from cache (when disconnected)
+   */
+  static removeClient(serverId: string): void {
+    this.clients.delete(serverId);
+  }
+
+  /**
+   * Cleanup all clients
+   */
+  static async cleanupAll(): Promise<void> {
+    const cleanupPromises = Array.from(this.clients.values()).map((client) =>
+      client
+        .cleanup()
+        .catch((error) => logger.warn("Error cleaning up AMQP client:", error))
+    );
+
+    await Promise.all(cleanupPromises);
+    this.clients.clear();
+  }
+}
+
+/**
+ * AMQP-based RabbitMQ client for direct protocol operations
+ * This client handles operations that require AMQP protocol like consumer management
+ * Supports dynamic connections to different RabbitMQ servers
+ */
+export class RabbitMQAmqpClient {
+  private connection: amqp.ChannelModel | null = null;
+  private channel: amqp.Channel | null = null;
+  private config: AMQPConnectionConfig;
+  private isConnected = false;
+  private consumers: Map<string, amqp.Replies.Consume> = new Map();
+  private pausedQueues: Map<string, QueuePauseState> = new Map();
+  private persistenceCallback?: (
+    serverId: string,
+    pauseStates: QueuePauseState[]
+  ) => Promise<void>;
+
+  constructor(config: AMQPConnectionConfig) {
+    this.config = config;
+  }
+
+  /**
+   * Set callback for persisting pause states to database
+   */
+  setPersistenceCallback(
+    callback: (
+      serverId: string,
+      pauseStates: QueuePauseState[]
+    ) => Promise<void>
+  ): void {
+    this.persistenceCallback = callback;
+  }
+
+  /**
+   * Load existing pause states from database
+   */
+  loadPauseStates(pauseStates: QueuePauseState[]): void {
+    this.pausedQueues.clear();
+    for (const state of pauseStates) {
+      this.pausedQueues.set(state.queueName, state);
+    }
+  }
+
+  /**
+   * Persist pause states to database
+   */
+  private async persistPauseStates(): Promise<void> {
+    if (this.persistenceCallback && this.config.serverId) {
+      const states = Array.from(this.pausedQueues.values());
+      try {
+        await this.persistenceCallback(this.config.serverId, states);
+      } catch (error) {
+        logger.warn("Failed to persist pause states to database:", error);
+      }
+    }
+  }
+
+  /**
+   * Connect to RabbitMQ via AMQP protocol
+   * Creates dynamic connection based on server configuration
+   */
+  async connect(): Promise<void> {
+    try {
+      if (this.isConnected) {
+        return;
+      }
+
+      const connectionUrl = `${this.config.protocol}://${this.config.username}:${this.config.password}@${this.config.hostname}:5679${this.config.vhost}`;
+
+      logger.info("Connecting to RabbitMQ via AMQP", {
+        serverId: this.config.serverId,
+        serverName: this.config.serverName,
+        hostname: this.config.hostname,
+        port: this.config.port,
+        vhost: this.config.vhost,
+        protocol: this.config.protocol,
+      });
+
+      this.connection = await amqp.connect(connectionUrl, {
+        heartbeat: this.config.heartbeat || 60,
+        timeout: this.config.connectionTimeout || 30000,
+      });
+
+      this.channel = await this.connection.createChannel();
+
+      // Set up connection event handlers
+      this.connection.on("error", (error: Error) => {
+        logger.error("AMQP connection error:", {
+          serverId: this.config.serverId,
+          serverName: this.config.serverName,
+          error: error.message,
+        });
+        this.isConnected = false;
+
+        // Remove from factory cache on error
+        if (this.config.serverId) {
+          RabbitMQAmqpClientFactory.removeClient(this.config.serverId);
+        }
+      });
+
+      this.connection.on("close", () => {
+        logger.info("AMQP connection closed", {
+          serverId: this.config.serverId,
+          serverName: this.config.serverName,
+        });
+        this.isConnected = false;
+
+        // Remove from factory cache on close
+        if (this.config.serverId) {
+          RabbitMQAmqpClientFactory.removeClient(this.config.serverId);
+        }
+      });
+
+      this.isConnected = true;
+      logger.info("Successfully connected to RabbitMQ via AMQP", {
+        serverId: this.config.serverId,
+        serverName: this.config.serverName,
+      });
+    } catch (error) {
+      logger.error("Failed to connect to RabbitMQ via AMQP:", {
+        serverId: this.config.serverId,
+        serverName: this.config.serverName,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      this.isConnected = false;
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "amqp_connect",
+          serverId: this.config.serverId || this.config.hostname,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Disconnect from RabbitMQ
+   */
+  async disconnect(): Promise<void> {
+    try {
+      if (this.channel) {
+        await this.channel.close();
+        this.channel = null;
+      }
+
+      if (this.connection) {
+        await this.connection.close();
+        this.connection = null;
+      }
+
+      this.isConnected = false;
+      this.consumers.clear();
+      logger.info("Disconnected from RabbitMQ AMQP");
+    } catch (error) {
+      logger.error("Error disconnecting from RabbitMQ AMQP:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ensure we have an active connection and channel
+   */
+  private async ensureConnection(): Promise<void> {
+    if (!this.isConnected || !this.connection || !this.channel) {
+      await this.connect();
+    }
+  }
+
+  /**
+   * Pause a queue by creating a blocking consumer
+   * This effectively pauses message processing
+   */
+  async pauseQueue(queueName: string): Promise<QueuePauseState> {
+    try {
+      await this.ensureConnection();
+
+      if (!this.channel) {
+        throw new Error("No AMQP channel available");
+      }
+
+      logger.info(`Pausing queue via AMQP: ${queueName}`);
+
+      // Check if queue exists
+      try {
+        await this.channel.checkQueue(queueName);
+      } catch (error) {
+        throw new Error(`Queue "${queueName}" does not exist`);
+      }
+
+      // Get current consumers (for informational purposes)
+      const existingConsumers: string[] = [];
+
+      // Create a blocking consumer with high priority that will consume but not ack messages
+      // This effectively pauses the queue by preventing other consumers from processing
+      const pauseConsumerTag = `pause-${queueName}-${Date.now()}`;
+
+      const consumeResult = await this.channel.consume(
+        queueName,
+        (msg) => {
+          if (msg) {
+            // Don't acknowledge the message - this blocks the queue
+            // The message will be redelivered when we cancel this consumer
+            logger.debug(
+              `Pause consumer received message on ${queueName}, holding without ack`
+            );
+          }
+        },
+        {
+          consumerTag: pauseConsumerTag,
+          priority: 255, // Highest priority to ensure this consumer gets messages first
+          exclusive: false,
+          noAck: false, // Important: we need manual ack control
+        }
+      );
+
+      if (consumeResult) {
+        this.consumers.set(pauseConsumerTag, consumeResult);
+      }
+
+      const pauseState: QueuePauseState = {
+        queueName,
+        vhost: this.config.vhost,
+        isPaused: true,
+        pausedAt: new Date(),
+        pausedConsumers: [pauseConsumerTag],
+        serverId: this.config.serverId,
+      };
+
+      this.pausedQueues.set(queueName, pauseState);
+
+      // Persist to database
+      await this.persistPauseStates();
+
+      logger.info(`Queue ${queueName} paused successfully via AMQP`, {
+        serverId: this.config.serverId,
+        serverName: this.config.serverName,
+        pauseConsumerTag,
+        pausedAt: pauseState.pausedAt,
+      });
+
+      return pauseState;
+    } catch (error) {
+      logger.error(`Failed to pause queue ${queueName} via AMQP:`, error);
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "amqp_pause_queue",
+          queueName,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Resume a queue by cancelling the blocking consumer
+   */
+  async resumeQueue(queueName: string): Promise<QueuePauseState> {
+    try {
+      await this.ensureConnection();
+
+      if (!this.channel) {
+        throw new Error("No AMQP channel available");
+      }
+
+      logger.info(`Resuming queue via AMQP: ${queueName}`);
+
+      const pauseState = this.pausedQueues.get(queueName);
+      if (!pauseState) {
+        throw new Error(`Queue "${queueName}" is not currently paused`);
+      }
+
+      // Cancel all pause consumers for this queue
+      for (const consumerTag of pauseState.pausedConsumers) {
+        try {
+          await this.channel.cancel(consumerTag);
+          this.consumers.delete(consumerTag);
+          logger.debug(`Cancelled pause consumer: ${consumerTag}`);
+        } catch (error) {
+          logger.warn(`Failed to cancel pause consumer ${consumerTag}:`, error);
+        }
+      }
+
+      const resumedState: QueuePauseState = {
+        ...pauseState,
+        isPaused: false,
+        resumedAt: new Date(),
+        pausedConsumers: [],
+      };
+
+      this.pausedQueues.set(queueName, resumedState);
+
+      // Persist to database
+      await this.persistPauseStates();
+
+      logger.info(`Queue ${queueName} resumed successfully via AMQP`, {
+        serverId: this.config.serverId,
+        serverName: this.config.serverName,
+        resumedAt: resumedState.resumedAt,
+        cancelledConsumers: pauseState.pausedConsumers.length,
+      });
+
+      return resumedState;
+    } catch (error) {
+      logger.error(`Failed to resume queue ${queueName} via AMQP:`, error);
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "amqp_resume_queue",
+          queueName,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Get the pause state of a queue
+   */
+  getQueuePauseState(queueName: string): QueuePauseState | null {
+    return this.pausedQueues.get(queueName) || null;
+  }
+
+  /**
+   * Get all paused queues
+   */
+  getAllPausedQueues(): QueuePauseState[] {
+    return Array.from(this.pausedQueues.values()).filter(
+      (state) => state.isPaused
+    );
+  }
+
+  /**
+   * Check if a queue is currently paused
+   */
+  isQueuePaused(queueName: string): boolean {
+    const state = this.pausedQueues.get(queueName);
+    return state?.isPaused || false;
+  }
+
+  /**
+   * Create a basic consumer for testing
+   */
+  async createConsumer(
+    queueName: string,
+    onMessage: (msg: amqp.ConsumeMessage | null) => void,
+    options: amqp.Options.Consume = {}
+  ): Promise<string> {
+    await this.ensureConnection();
+
+    if (!this.channel) {
+      throw new Error("No AMQP channel available");
+    }
+
+    const result = await this.channel.consume(queueName, onMessage, options);
+    const consumerTag = result.consumerTag;
+
+    this.consumers.set(consumerTag, result);
+
+    logger.info(`Created consumer for queue ${queueName}`, { consumerTag });
+
+    return consumerTag;
+  }
+
+  /**
+   * Cancel a consumer
+   */
+  async cancelConsumer(consumerTag: string): Promise<void> {
+    await this.ensureConnection();
+
+    if (!this.channel) {
+      throw new Error("No AMQP channel available");
+    }
+
+    await this.channel.cancel(consumerTag);
+    this.consumers.delete(consumerTag);
+
+    logger.info(`Cancelled consumer: ${consumerTag}`);
+  }
+
+  /**
+   * Get connection status
+   */
+  isConnectionActive(): boolean {
+    return this.isConnected && !!this.connection && !!this.channel;
+  }
+
+  /**
+   * Clean up resources when the client is destroyed
+   */
+  async cleanup(): Promise<void> {
+    try {
+      // Cancel all consumers
+      for (const consumerTag of this.consumers.keys()) {
+        try {
+          await this.cancelConsumer(consumerTag);
+        } catch (error) {
+          logger.warn(
+            `Failed to cancel consumer ${consumerTag} during cleanup:`,
+            error
+          );
+        }
+      }
+
+      // Disconnect
+      await this.disconnect();
+    } catch (error) {
+      logger.error("Error during AMQP client cleanup:", error);
+    }
+  }
+}

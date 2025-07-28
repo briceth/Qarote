@@ -131,6 +131,53 @@ export class RabbitMQApiClient extends BaseApiClient {
     });
   }
 
+  async pauseQueue(
+    serverId: string,
+    queueName: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    cancelledConsumers: number;
+  }> {
+    return this.request<{
+      success: boolean;
+      message: string;
+      cancelledConsumers: number;
+    }>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/pause`,
+      {
+        method: "POST",
+      }
+    );
+  }
+
+  async resumeQueue(
+    serverId: string,
+    queueName: string
+  ): Promise<{ success: boolean; message: string; note: string }> {
+    return this.request<{ success: boolean; message: string; note: string }>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/resume`,
+      {
+        method: "POST",
+      }
+    );
+  }
+
+  async getQueuePauseStatus(serverId: string, queueName: string) {
+    return this.request<{
+      success: boolean;
+      queueName: string;
+      pauseState: {
+        isPaused: boolean;
+        pausedAt?: string;
+        resumedAt?: string;
+        pausedConsumers: string[];
+      };
+    }>(
+      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/pause-status`
+    );
+  }
+
   // Message Management
   async browseQueueMessages(
     serverId: string,

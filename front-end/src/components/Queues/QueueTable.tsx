@@ -36,6 +36,10 @@ export function QueueTable({
     if (queue.messages > 0) {
       return <Badge className="bg-yellow-100 text-yellow-700">Waiting</Badge>;
     }
+    // Check if queue appears to be paused (no consumers but has configuration)
+    if (queue.consumers === 0 && queue.durable) {
+      return <Badge className="bg-gray-100 text-gray-700">Paused</Badge>;
+    }
     return <Badge variant="outline">Idle</Badge>;
   };
 
@@ -100,7 +104,16 @@ export function QueueTable({
                     key={`${queue.name}-${queue.vhost}`}
                     className="hover:bg-gray-50/50"
                   >
-                    <TableCell className="font-medium">{queue.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <button
+                        onClick={() =>
+                          onNavigateToQueue(encodeURIComponent(queue.name))
+                        }
+                        className="text-left font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                      >
+                        {queue.name}
+                      </button>
+                    </TableCell>
                     <TableCell>{getStatusBadge(queue)}</TableCell>
                     <TableCell className="font-mono">
                       {metrics.messages}
@@ -129,22 +142,11 @@ export function QueueTable({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            onNavigateToQueue(encodeURIComponent(queue.name))
-                          }
-                        >
-                          View
-                        </Button>
-                        <PurgeQueueDialog
-                          queueName={queue.name}
-                          messageCount={queue.messages}
-                          onSuccess={() => onRefetch()}
-                        />
-                      </div>
+                      <PurgeQueueDialog
+                        queueName={queue.name}
+                        messageCount={queue.messages}
+                        onSuccess={() => onRefetch()}
+                      />
                     </TableCell>
                   </TableRow>
                 );

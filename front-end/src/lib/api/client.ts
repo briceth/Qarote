@@ -104,6 +104,18 @@ class ApiClient {
     return this.rabbitmqClient.deleteQueue(serverId, queueName, options);
   }
 
+  async pauseQueue(serverId: string, queueName: string) {
+    return this.rabbitmqClient.pauseQueue(serverId, queueName);
+  }
+
+  async resumeQueue(serverId: string, queueName: string) {
+    return this.rabbitmqClient.resumeQueue(serverId, queueName);
+  }
+
+  async getQueuePauseStatus(serverId: string, queueName: string) {
+    return this.rabbitmqClient.getQueuePauseStatus(serverId, queueName);
+  }
+
   async browseQueueMessages(
     serverId: string,
     queueName: string,

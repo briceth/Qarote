@@ -12,7 +12,17 @@ import {
   getWorkspaceResourceCounts,
   validateQueueCreationOnServer,
 } from "@/services/plan/plan.service";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createAmqpClient,
+  createRabbitMQClient,
+  verifyServerAccess,
+} from "./shared";
+import {
+  RabbitMQAmqpClient,
+  RabbitMQAmqpClientFactory,
+  type QueuePauseState,
+} from "@/core/rabbitmq/AmqpClient";
+import { EncryptionService } from "@/services/encryption.service";
 import {
   QueueConsumersResponse,
   QueueCreationResponse,
@@ -409,6 +419,169 @@ queuesController.delete(
         error
       );
       return createErrorResponse(c, error, 500, "Failed to delete queue");
+    }
+  }
+);
+
+/**
+ * Pause a queue using AMQP protocol for better control (ADMIN ONLY)
+ * POST /servers/:serverId/queues/:queueName/pause
+ */
+queuesController.post(
+  "/servers/:serverId/queues/:queueName/pause",
+  authorize([UserRole.ADMIN]),
+  async (c) => {
+    const serverId = c.req.param("serverId");
+    const queueName = c.req.param("queueName");
+    const user = c.get("user");
+
+    let amqpClient: RabbitMQAmqpClient | null = null;
+
+    try {
+      // Verify server access
+      await verifyServerAccess(serverId, user.workspaceId);
+
+      // Create AMQP client for direct queue control
+      amqpClient = await createAmqpClient(serverId, user.workspaceId);
+
+      // Connect and pause the queue
+      await amqpClient.connect();
+      const pauseState = await amqpClient.pauseQueue(queueName);
+
+      logger.info(`Queue ${queueName} paused via AMQP`, {
+        serverId,
+        queueName,
+        pausedAt: pauseState.pausedAt,
+        userId: user.id,
+      });
+
+      return c.json({
+        success: true,
+        message: `Queue "${queueName}" paused successfully using AMQP protocol`,
+        pauseState: {
+          queueName: pauseState.queueName,
+          isPaused: pauseState.isPaused,
+          pausedAt: pauseState.pausedAt,
+          method: "AMQP blocking consumer",
+        },
+      });
+    } catch (error) {
+      logger.error(
+        `Error pausing queue ${queueName} on server ${serverId}:`,
+        error
+      );
+      return createErrorResponse(c, error, 500, "Failed to pause queue");
+    } finally {
+      // Don't disconnect here - keep the connection for resume operations
+      // The client will be cleaned up when the process ends or manually
+    }
+  }
+);
+
+/**
+ * Resume a queue using AMQP protocol (ADMIN ONLY)
+ * POST /servers/:serverId/queues/:queueName/resume
+ */
+queuesController.post(
+  "/servers/:serverId/queues/:queueName/resume",
+  authorize([UserRole.ADMIN]),
+  async (c) => {
+    const serverId = c.req.param("serverId");
+    const queueName = c.req.param("queueName");
+    const user = c.get("user");
+
+    let amqpClient: RabbitMQAmqpClient | null = null;
+
+    try {
+      // Verify server access
+      await verifyServerAccess(serverId, user.workspaceId);
+
+      // Create AMQP client for direct queue control
+      amqpClient = await createAmqpClient(serverId, user.workspaceId);
+
+      // Connect and resume the queue
+      await amqpClient.connect();
+      const resumeState = await amqpClient.resumeQueue(queueName);
+
+      logger.info(`Queue ${queueName} resumed via AMQP`, {
+        serverId,
+        queueName,
+        resumedAt: resumeState.resumedAt,
+        userId: user.id,
+      });
+
+      return c.json({
+        success: true,
+        message: `Queue "${queueName}" resumed successfully using AMQP protocol`,
+        resumeState: {
+          queueName: resumeState.queueName,
+          isPaused: resumeState.isPaused,
+          resumedAt: resumeState.resumedAt,
+          method: "AMQP consumer cancellation",
+        },
+      });
+    } catch (error) {
+      logger.error(
+        `Error resuming queue ${queueName} on server ${serverId}:`,
+        error
+      );
+      return createErrorResponse(c, error, 500, "Failed to resume queue");
+    } finally {
+      // Cleanup the connection after resume
+      if (amqpClient) {
+        try {
+          await amqpClient.disconnect();
+        } catch (cleanupError) {
+          logger.warn("Error cleaning up AMQP connection:", cleanupError);
+        }
+      }
+    }
+  }
+);
+
+/**
+ * Get pause status of a queue (ADMIN ONLY)
+ * GET /servers/:serverId/queues/:queueName/pause-status
+ */
+queuesController.get(
+  "/servers/:serverId/queues/:queueName/pause-status",
+  authorize([UserRole.ADMIN]),
+  async (c) => {
+    const serverId = c.req.param("serverId");
+    const queueName = c.req.param("queueName");
+    const user = c.get("user");
+
+    let amqpClient: RabbitMQAmqpClient | null = null;
+
+    try {
+      // Verify server access
+      await verifyServerAccess(serverId, user.workspaceId);
+
+      // Create AMQP client to check pause status
+      amqpClient = await createAmqpClient(serverId, user.workspaceId);
+      await amqpClient.connect();
+
+      const pauseState = amqpClient.getQueuePauseState(queueName);
+
+      return c.json({
+        success: true,
+        queueName,
+        pauseState: pauseState,
+      });
+    } catch (error) {
+      logger.error(
+        `Error checking pause status for queue ${queueName} on server ${serverId}:`,
+        error
+      );
+      return createErrorResponse(c, error, 500, "Failed to check pause status");
+    } finally {
+      if (amqpClient) {
+        try {
+          await amqpClient.disconnect();
+        } catch (cleanupError) {
+          logger.warn("Error cleaning up AMQP connection:", cleanupError);
+        }
+      }
     }
   }
 );

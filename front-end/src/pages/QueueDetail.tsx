@@ -121,6 +121,7 @@ const QueueDetail = () => {
                 selectedServerId={selectedServerId}
                 messageCount={queue?.messages || 0}
                 monthlyMessageCount={monthlyMessageCount}
+                consumerCount={queue?.consumers || 0}
                 onNavigateBack={handleNavigateBack}
                 onRefetch={refetch}
                 onDeleteQueue={confirmDeleteQueue}
