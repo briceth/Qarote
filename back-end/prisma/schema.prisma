@@ -248,7 +248,8 @@ model RabbitMQServer {
   id                  String      @id @default(uuid())
   name                String
   host                String
-  port                Int
+  port                Int         // Management API port (default: 15672)
+  amqpPort            Int         @default(5672) // AMQP protocol port (default: 5672)
   username            String
   password            String
   vhost               String      @default("/")

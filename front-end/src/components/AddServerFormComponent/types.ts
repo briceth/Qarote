@@ -30,6 +30,7 @@ export interface Server {
   name: string;
   host: string;
   port: number;
+  amqpPort: number;
   username: string;
   vhost: string;
   useHttps: boolean;

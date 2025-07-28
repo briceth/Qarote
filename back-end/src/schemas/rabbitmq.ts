@@ -24,7 +24,8 @@ export const SSLConfigSchema = z.object({
 // Schema for RabbitMQ server credentials
 export const RabbitMQCredentialsSchema = z.object({
   host: HostSchema,
-  port: z.number().int().positive().default(15672),
+  port: z.number().int().positive().default(15672), // Management API port
+  amqpPort: z.number().int().positive().default(5672), // AMQP protocol port
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
   vhost: z.string().default("/"),
@@ -36,7 +37,8 @@ export const RabbitMQCredentialsSchema = z.object({
 export const CreateServerSchema = z.object({
   name: z.string().min(1, "Server name is required"),
   host: HostSchema,
-  port: z.number().int().positive().default(15672),
+  port: z.number().int().positive().default(15672), // Management API port
+  amqpPort: z.number().int().positive().default(5672), // AMQP protocol port
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
   vhost: z.string().default("/"),

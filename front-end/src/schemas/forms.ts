@@ -87,6 +87,10 @@ export const addServerSchema = z.object({
     .number()
     .min(1, "Port must be a positive number")
     .max(65535, "Port must be less than 65536"),
+  amqpPort: z
+    .number()
+    .min(1, "AMQP Port must be a positive number")
+    .max(65535, "AMQP Port must be less than 65536"),
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
   vhost: z.string().default("/"),

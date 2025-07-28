@@ -47,6 +47,7 @@ export class ServerApiClient extends BaseApiClient {
   async testConnection(credentials: {
     host: string;
     port: number;
+    amqpPort: number;
     username: string;
     password: string;
     vhost: string;

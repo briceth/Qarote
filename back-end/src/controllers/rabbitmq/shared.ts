@@ -100,7 +100,8 @@ export async function createAmqpClient(serverId: string, workspaceId: string) {
     id: server.id,
     name: server.name,
     host: server.host,
-    port: server.port,
+    port: server.port, // Management API port
+    amqpPort: server.amqpPort, // AMQP protocol port
     username: decryptedUsername, // ✅ Using decrypted username
     password: decryptedPassword, // ✅ Using decrypted password
     vhost: server.vhost || "/",

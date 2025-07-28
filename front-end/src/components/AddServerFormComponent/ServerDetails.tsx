@@ -49,13 +49,13 @@ export const ServerDetails = ({ form }: ServerDetailsProps) => {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <FormField
           control={form.control}
           name="port"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Management Plugin Port</FormLabel>
+              <FormLabel>Management API Port</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -75,7 +75,32 @@ export const ServerDetails = ({ form }: ServerDetailsProps) => {
                 />
               </FormControl>
               <div className="text-xs text-muted-foreground mt-1">
-                HTTP: 15672, 80, 8080 • HTTPS: 15671, 443, 8443
+                Default: 15672
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amqpPort"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>AMQP Protocol Port</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="5672"
+                  {...field}
+                  onChange={(e) => {
+                    const port = parseInt(e.target.value) || 0;
+                    field.onChange(port);
+                  }}
+                />
+              </FormControl>
+              <div className="text-xs text-muted-foreground mt-1">
+                Default: 5672
               </div>
               <FormMessage />
             </FormItem>

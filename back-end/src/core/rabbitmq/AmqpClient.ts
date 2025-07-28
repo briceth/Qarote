@@ -40,6 +40,7 @@ export class RabbitMQAmqpClientFactory {
     name: string;
     host: string;
     port: number;
+    amqpPort: number;
     username: string;
     password: string;
     vhost: string;
@@ -48,7 +49,7 @@ export class RabbitMQAmqpClientFactory {
     const config: AMQPConnectionConfig = {
       protocol: serverConfig.sslEnabled ? "amqps" : "amqp",
       hostname: serverConfig.host,
-      port: serverConfig.port,
+      port: serverConfig.amqpPort, // Use AMQP port for the connection
       username: serverConfig.username,
       password: serverConfig.password,
       vhost: serverConfig.vhost || "/",
@@ -169,7 +170,7 @@ export class RabbitMQAmqpClient {
         return;
       }
 
-      const connectionUrl = `${this.config.protocol}://${this.config.username}:${this.config.password}@${this.config.hostname}:5679${this.config.vhost}`;
+      const connectionUrl = `${this.config.protocol}://${this.config.username}:${this.config.password}@${this.config.hostname}:${this.config.port}${this.config.vhost}`;
 
       logger.info("Connecting to RabbitMQ via AMQP", {
         serverId: this.config.serverId,

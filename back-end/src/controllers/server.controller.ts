@@ -44,6 +44,7 @@ serverController.get("/", async (c) => {
         name: true,
         host: true,
         port: true,
+        amqpPort: true,
         username: true,
         vhost: true,
         useHttps: true,
@@ -65,6 +66,7 @@ serverController.get("/", async (c) => {
       name: server.name,
       host: server.host,
       port: server.port,
+      amqpPort: server.amqpPort,
       username: EncryptionService.decrypt(server.username), // Decrypt for display
       vhost: server.vhost,
       useHttps: server.useHttps,
@@ -103,6 +105,7 @@ serverController.get("/:id", async (c) => {
         name: true,
         host: true,
         port: true,
+        amqpPort: true,
         username: true,
         vhost: true,
         useHttps: true,
@@ -127,6 +130,7 @@ serverController.get("/:id", async (c) => {
       name: server.name,
       host: server.host,
       port: server.port,
+      amqpPort: server.amqpPort,
       username: EncryptionService.decrypt(server.username), // Decrypt for display
       vhost: server.vhost,
       useHttps: server.useHttps,
@@ -211,6 +215,7 @@ serverController.post(
           name: data.name,
           host: data.host,
           port: data.port,
+          amqpPort: data.amqpPort,
           username: EncryptionService.encrypt(data.username), // Encrypt username
           password: EncryptionService.encrypt(data.password), // Encrypt password
           vhost: data.vhost,
@@ -244,6 +249,7 @@ serverController.post(
             name: server.name,
             host: server.host,
             port: server.port,
+            amqpPort: server.amqpPort,
             username: data.username, // Return original (not encrypted) for UI
             vhost: server.vhost,
             useHttps: server.useHttps,
@@ -332,6 +338,7 @@ serverController.put(
       if (data.name !== undefined) updateData.name = data.name;
       if (data.host !== undefined) updateData.host = data.host;
       if (data.port !== undefined) updateData.port = data.port;
+      if (data.amqpPort !== undefined) updateData.amqpPort = data.amqpPort;
       if (data.username !== undefined)
         updateData.username = EncryptionService.encrypt(data.username);
       if (data.password !== undefined)
@@ -364,6 +371,7 @@ serverController.put(
           name: server.name,
           host: server.host,
           port: server.port,
+          amqpPort: server.amqpPort,
           username: EncryptionService.decrypt(server.username), // Decrypt for display
           vhost: server.vhost,
           useHttps: server.useHttps,
