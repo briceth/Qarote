@@ -29,7 +29,7 @@ import {
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api";
-import { formatTagsDisplay } from "@/lib/formatTags";
+import { formatTagsDisplay, formatVhostsDisplay } from "@/lib/formatTags";
 import { RabbitMQUser } from "@/lib/api/userTypes";
 import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { DeleteUserModal } from "@/components/users/DeleteUserModal";
@@ -48,6 +48,7 @@ export default function UsersPage() {
   const [newUserName, setNewUserName] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserTags, setNewUserTags] = useState("");
+  const [newUserVhost, setNewUserVhost] = useState("/");
 
   const currentServerId = serverId || selectedServerId;
 
@@ -58,6 +59,12 @@ export default function UsersPage() {
   } = useQuery({
     queryKey: ["users", currentServerId],
     queryFn: () => apiClient.getUsers(currentServerId!),
+    enabled: !!currentServerId,
+  });
+
+  const { data: vhostsData } = useQuery({
+    queryKey: ["vhosts", currentServerId],
+    queryFn: () => apiClient.getVHosts(currentServerId!),
     enabled: !!currentServerId,
   });
 
@@ -75,14 +82,31 @@ export default function UsersPage() {
   });
 
   const createUserMutation = useMutation({
-    mutationFn: (data: { username: string; password: string; tags?: string }) =>
-      apiClient.createUser(currentServerId!, data),
+    mutationFn: async (data: {
+      username: string;
+      password: string;
+      tags?: string;
+    }) => {
+      // First create the user
+      await apiClient.createUser(currentServerId!, data);
+
+      // Then set permissions on the selected virtual host
+      await apiClient.setUserPermissions(currentServerId!, data.username, {
+        vhost: newUserVhost,
+        configure: ".*",
+        write: ".*",
+        read: ".*",
+      });
+
+      return data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users", currentServerId] });
       toast.success("User created successfully");
       setNewUserName("");
       setNewUserPassword("");
       setNewUserTags("");
+      setNewUserVhost("/");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create user");
@@ -273,7 +297,9 @@ export default function UsersPage() {
                             <TableCell>
                               {formatTagsDisplay(user.tags)}
                             </TableCell>
-                            <TableCell>-</TableCell>
+                            <TableCell>
+                              {formatVhostsDisplay(user.accessibleVhosts)}
+                            </TableCell>
                             <TableCell>
                               <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             </TableCell>
@@ -343,14 +369,17 @@ export default function UsersPage() {
                         htmlFor="user-password"
                         className="block text-sm font-medium mb-2"
                       >
-                        Password
+                        Password{" "}
+                        <span className="text-muted-foreground">
+                          (optional)
+                        </span>
                       </label>
                       <Input
                         id="user-password"
                         type="password"
                         value={newUserPassword}
                         onChange={(e) => setNewUserPassword(e.target.value)}
-                        placeholder="••••••"
+                        placeholder="Leave empty for certificate-based auth"
                         className="w-full"
                       />
                     </div>
@@ -498,23 +527,43 @@ export default function UsersPage() {
                       </div>
                     </div>
 
+                    {/* Virtual Host Access Section */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Virtual Host Access
+                      </label>
+                      <select
+                        className="w-full p-2 border rounded-md bg-background"
+                        value={newUserVhost}
+                        onChange={(e) => setNewUserVhost(e.target.value)}
+                      >
+                        {vhostsData?.vhosts?.map((vhost) => (
+                          <option key={vhost.name} value={vhost.name}>
+                            {vhost.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        User will be granted full permissions (.*) on the
+                        selected virtual host
+                      </div>
+                    </div>
+
                     <div>
                       <Button
                         onClick={() => {
-                          if (!newUserName.trim() || !newUserPassword.trim()) {
-                            toast.error("Username and password are required");
+                          if (!newUserName.trim()) {
+                            toast.error("Username is required");
                             return;
                           }
                           createUserMutation.mutate({
                             username: newUserName.trim(),
-                            password: newUserPassword,
+                            password: newUserPassword.trim() || undefined,
                             tags: newUserTags.trim() || undefined,
                           });
                         }}
                         disabled={
-                          createUserMutation.isPending ||
-                          !newUserName.trim() ||
-                          !newUserPassword.trim()
+                          createUserMutation.isPending || !newUserName.trim()
                         }
                         className="btn-primary"
                       >

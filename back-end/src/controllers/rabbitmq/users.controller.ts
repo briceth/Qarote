@@ -51,7 +51,7 @@ usersController.get("/servers/:serverId/users/:username", async (c) => {
 // Create user schema
 const createUserSchema = z.object({
   username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Password is required").optional(),
   tags: z.string().optional().default(""),
 });
 

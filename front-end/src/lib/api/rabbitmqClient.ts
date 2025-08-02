@@ -36,6 +36,7 @@ import {
 } from "./vhostTypes";
 import {
   RabbitMQUser,
+  RabbitMQUserPermission,
   CreateUserRequest,
   UpdateUserRequest,
   SetUserPermissionRequest,
@@ -510,9 +511,32 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   // User Management (Admin Only)
   async getUsers(serverId: string): Promise<{ users: RabbitMQUser[] }> {
-    return this.request<{ users: RabbitMQUser[] }>(
+    const response = await this.request<{ users: RabbitMQUser[] }>(
       `/rabbitmq/servers/${serverId}/users`
     );
+
+    // Fetch permissions for each user to determine accessible vhosts
+    const usersWithPermissions = await Promise.all(
+      response.users.map(async (user) => {
+        try {
+          const userDetails = await this.getUser(serverId, user.name);
+          const accessibleVhosts = userDetails.permissions.map((p) => p.vhost);
+          return { ...user, accessibleVhosts };
+        } catch {
+          return { ...user, accessibleVhosts: [] };
+        }
+      })
+    );
+
+    return { users: usersWithPermissions };
+  }
+
+  async getUserPermissions(
+    serverId: string,
+    username: string
+  ): Promise<RabbitMQUserPermission[]> {
+    const userDetails = await this.getUser(serverId, username);
+    return userDetails.permissions;
   }
 
   async getUser(

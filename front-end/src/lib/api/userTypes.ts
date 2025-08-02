@@ -4,6 +4,7 @@ export interface RabbitMQUser {
   hashing_algorithm?: string;
   tags?: string;
   limits?: Record<string, unknown>;
+  accessibleVhosts?: string[];
 }
 
 export interface RabbitMQUserPermission {
@@ -16,7 +17,7 @@ export interface RabbitMQUserPermission {
 
 export interface CreateUserRequest {
   username: string;
-  password: string;
+  password?: string;
   tags?: string;
 }
 

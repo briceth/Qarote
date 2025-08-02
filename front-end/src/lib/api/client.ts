@@ -266,6 +266,10 @@ class ApiClient {
     return this.rabbitmqClient.getUser(serverId, username);
   }
 
+  async getUserPermissions(serverId: string, username: string) {
+    return this.rabbitmqClient.getUserPermissions(serverId, username);
+  }
+
   async createUser(
     serverId: string,
     data: Parameters<RabbitMQApiClient["createUser"]>[1]

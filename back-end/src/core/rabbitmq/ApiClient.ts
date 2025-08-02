@@ -954,7 +954,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
 
   async createUser(
     username: string,
-    userData: { password: string; tags: string }
+    userData: { password?: string; tags: string }
   ): Promise<void> {
     try {
       const encodedUsername = encodeURIComponent(username);

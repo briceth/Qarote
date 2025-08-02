@@ -30,3 +30,16 @@ export function formatTagsDisplay(
 
   return tagArray.join(" • ");
 }
+
+/**
+ * Formats virtual hosts for display
+ * @param vhosts - Array of virtual host names
+ * @returns Formatted string with comma separators
+ */
+export function formatVhostsDisplay(
+  vhosts: string[] | null | undefined
+): string {
+  if (!vhosts || vhosts.length === 0) return "-";
+
+  return vhosts.join(", ");
+}
