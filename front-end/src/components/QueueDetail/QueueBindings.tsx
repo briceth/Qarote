@@ -57,7 +57,7 @@ export function QueueBindings({
             {bindingsData?.bindings?.map((binding, index) => (
               <div
                 key={`${binding.source}-${binding.routing_key}-${index}`}
-                className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-indigo-50"
+                className="border rounded-lg p-4 bg-gradient-to-r from-gray-50 to-slate-50 hover:from-gray-100 hover:to-slate-100 transition-colors"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">

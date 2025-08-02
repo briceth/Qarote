@@ -167,6 +167,7 @@ export function PauseQueueDialog({
             variant={isPaused ? "default" : "secondary"}
             onClick={isPaused ? handleResumeQueue : handlePauseQueue}
             disabled={isLoading}
+            className={"btn-primary text-white"}
           >
             {isLoading
               ? `${isPaused ? "Resuming" : "Pausing"}...`

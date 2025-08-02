@@ -17,9 +17,7 @@ import {
   createRabbitMQClient,
   verifyServerAccess,
 } from "./shared";
-import {
-  RabbitMQAmqpClient,
-} from "@/core/rabbitmq/AmqpClient";
+import { RabbitMQAmqpClient } from "@/core/rabbitmq/AmqpClient";
 import {
   QueueConsumersResponse,
   QueueBindingsResponse,
@@ -43,6 +41,10 @@ queuesController.get("/servers/:id/queues", async (c) => {
   try {
     // Verify the server belongs to the user's workspace and get over-limit info
     const server = await verifyServerAccess(id, user.workspaceId, true);
+
+    if (!server || !server.workspace) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
 
     const client = await createRabbitMQClient(id, user.workspaceId);
     const queues = await client.getQueues();
@@ -149,6 +151,13 @@ queuesController.get("/servers/:id/queues/:queueName", async (c) => {
   const queueName = c.req.param("queueName");
   const user = c.get("user");
 
+  // Verify the server belongs to the user's workspace and get over-limit info
+  const server = await verifyServerAccess(id, user.workspaceId, true);
+
+  if (!server || !server.workspace) {
+    return c.json({ error: "Server not found or access denied" }, 404);
+  }
+
   try {
     const client = await createRabbitMQClient(id, user.workspaceId);
     const queue = await client.getQueue(queueName);
@@ -168,6 +177,12 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
   const id = c.req.param("id");
   const queueName = c.req.param("queueName");
   const user = c.get("user");
+
+  const server = await verifyServerAccess(id, user.workspaceId, true);
+
+  if (!server || !server.workspace) {
+    return c.json({ error: "Server not found or access denied" }, 404);
+  }
 
   try {
     const client = await createRabbitMQClient(id, user.workspaceId);
@@ -202,6 +217,12 @@ queuesController.get("/servers/:id/queues/:queueName/bindings", async (c) => {
   const id = c.req.param("id");
   const queueName = c.req.param("queueName");
   const user = c.get("user");
+
+  const server = await verifyServerAccess(id, user.workspaceId, true);
+
+  if (!server || !server.workspace) {
+    return c.json({ error: "Server not found or access denied" }, 404);
+  }
 
   try {
     const client = await createRabbitMQClient(id, user.workspaceId);

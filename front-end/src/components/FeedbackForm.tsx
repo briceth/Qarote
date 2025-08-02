@@ -347,7 +347,7 @@ export function FeedbackForm({ onSuccess, className }: FeedbackFormProps) {
             <Button
               type="submit"
               disabled={isSubmitting || !form.formState.isValid}
-              className="w-full"
+              className="w-full btn-primary"
             >
               {isSubmitting ? "Submitting..." : "Submit Feedback"}
             </Button>

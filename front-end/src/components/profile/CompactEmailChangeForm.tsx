@@ -109,6 +109,15 @@ export const CompactEmailChangeForm: React.FC<CompactEmailChangeFormProps> = ({
         </Badge>
       </div>
 
+      {/* Security Notice */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <CheckCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-xs text-blue-700">
+          <strong>Security:</strong> We'll send a verification link to your new
+          email. Your current email remains active until verified.
+        </AlertDescription>
+      </Alert>
+
       {/* Pending Email Change Status */}
       {hasPendingEmailChange && pendingEmail && (
         <Alert className="border-orange-200 bg-orange-50">
@@ -216,15 +225,6 @@ export const CompactEmailChangeForm: React.FC<CompactEmailChangeFormProps> = ({
           </Button>
         </form>
       )}
-
-      {/* Security Notice */}
-      <Alert className="border-blue-200 bg-blue-50">
-        <CheckCircle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-xs text-blue-700">
-          <strong>Security:</strong> We'll send a verification link to your new
-          email. Your current email remains active until verified.
-        </AlertDescription>
-      </Alert>
     </div>
   );
 };

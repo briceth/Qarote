@@ -497,6 +497,7 @@ export function AddQueueForm({
                 disabled={
                   createQueueMutation.isPending || !form.formState.isValid
                 }
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white"
               >
                 {createQueueMutation.isPending ? (
                   <>

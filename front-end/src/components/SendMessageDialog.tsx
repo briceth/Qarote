@@ -1212,7 +1212,7 @@ export function SendMessageDialog({
                     !form.watch("exchange") ||
                     !form.watch("payload")
                   }
-                  className="gap-2"
+                  className="gap-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white"
                 >
                   {publishMutation.isPending ? (
                     <>

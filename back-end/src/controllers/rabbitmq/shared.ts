@@ -41,7 +41,7 @@ export async function verifyServerAccess(
   });
 
   if (!server) {
-    throw new Error("Server not found or access denied");
+    return null;
   }
 
   return server;

@@ -190,7 +190,7 @@ export const LiveRatesChart = ({
             <div className="flex items-center justify-center gap-2 -mt-4">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-xs text-gray-500">
-                Live data • Updates every 10 seconds
+                Live data • Updates every 5 seconds
               </span>
             </div>
           </div>
