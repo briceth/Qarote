@@ -344,6 +344,19 @@ class ApiClient {
     return this.authClient.logout();
   }
 
+  // Email verification methods
+  async verifyEmail(token: string) {
+    return this.authClient.verifyEmail(token);
+  }
+
+  async resendVerificationEmail(type?: "SIGNUP" | "EMAIL_CHANGE") {
+    return this.authClient.resendVerificationEmail(type);
+  }
+
+  async getVerificationStatus() {
+    return this.authClient.getVerificationStatus();
+  }
+
   // Password methods
   async changePassword(
     data: Parameters<PasswordApiClient["changePassword"]>[0]
@@ -362,10 +375,6 @@ class ApiClient {
   }
 
   // Email verification and change methods
-  async getVerificationStatus() {
-    return this.authClient.getVerificationStatus();
-  }
-
   async requestEmailChange(
     data: Parameters<AuthApiClient["requestEmailChange"]>[0]
   ) {
