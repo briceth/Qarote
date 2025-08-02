@@ -285,13 +285,33 @@ export interface ObjectTotals {
 }
 
 export interface MessageStats {
+  // Core message operations
+  publish?: number;
+  publish_details?: RateDetail;
+  deliver?: number;
+  deliver_details?: RateDetail;
+  deliver_get?: number;
+  deliver_get_details?: RateDetail;
+  ack?: number;
+  ack_details?: RateDetail;
+  confirm?: number;
+  confirm_details?: RateDetail;
+  get?: number;
+  get_details?: RateDetail;
+  get_no_ack?: number;
+  get_no_ack_details?: RateDetail;
+  redeliver?: number;
+  redeliver_details?: RateDetail;
+  reject?: number;
+  reject_details?: RateDetail;
+  return_unroutable?: number;
+  return_unroutable_details?: RateDetail;
+
+  // Disk operations
   disk_reads: number;
   disk_reads_details: RateDetail;
   disk_writes: number;
   disk_writes_details: RateDetail;
-  publish_details?: RateDetail;
-  deliver_details?: RateDetail;
-  ack_details?: RateDetail;
 }
 
 export interface SocketOpts {

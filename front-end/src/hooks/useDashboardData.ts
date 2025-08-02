@@ -16,7 +16,6 @@ interface ChartData {
 }
 
 export const useDashboardData = (selectedServerId: string | null) => {
-  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("1h");
   const [chartData, setChartData] = useState<ChartData[]>([
     { time: "00:00", published: 0, consumed: 0 },
     { time: "04:00", published: 0, consumed: 0 },
@@ -34,8 +33,8 @@ export const useDashboardData = (selectedServerId: string | null) => {
   const { data: nodesData, isLoading: nodesLoading } =
     useNodes(selectedServerId);
   const { data: enhancedMetricsData } = useMetrics(selectedServerId);
-  const { data: timeSeriesData, isLoading: timeSeriesLoading } =
-    useTimeSeriesMetrics(selectedServerId, selectedTimeRange);
+  const { data: liveRatesData, isLoading: liveRatesLoading } =
+    useTimeSeriesMetrics(selectedServerId);
 
   // Processed data
   const overview = overviewData?.overview;
@@ -45,7 +44,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
 
   // Check for permission status instead of errors
   const metricsPermissionStatus = enhancedMetricsData?.permissionStatus;
-  const timeSeriesPermissionStatus = timeSeriesData?.permissionStatus;
+  const liveRatesPermissionStatus = liveRatesData?.permissionStatus;
   const nodesPermissionStatus = nodesData?.permissionStatus;
 
   // Create error objects for backward compatibility with UI components
@@ -60,12 +59,12 @@ export const useDashboardData = (selectedServerId: string | null) => {
       : null;
 
   const timeSeriesError =
-    timeSeriesPermissionStatus && !timeSeriesPermissionStatus.hasPermission
+    liveRatesPermissionStatus && !liveRatesPermissionStatus.hasPermission
       ? new RabbitMQAuthorizationError({
           error: "insufficient_permissions",
-          message: timeSeriesPermissionStatus.message,
+          message: liveRatesPermissionStatus.message,
           code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
-          requiredPermission: timeSeriesPermissionStatus.requiredPermission,
+          requiredPermission: liveRatesPermissionStatus.requiredPermission,
         })
       : null;
 
@@ -97,14 +96,14 @@ export const useDashboardData = (selectedServerId: string | null) => {
     [overview, enhancedMetrics, nodes]
   );
 
-  // Update chart data from time series API
+  // Update chart data from live rates API
   useEffect(() => {
     if (
-      timeSeriesData?.aggregatedThroughput &&
-      timeSeriesData.aggregatedThroughput.length > 1
+      liveRatesData?.aggregatedThroughput &&
+      liveRatesData.aggregatedThroughput.length > 1
     ) {
       // Filter out data points where both published and consumed are 0
-      const filteredData = timeSeriesData.aggregatedThroughput.filter(
+      const filteredData = liveRatesData.aggregatedThroughput.filter(
         (point) => {
           return point.publishRate > 0 || point.consumeRate > 0;
         }
@@ -112,104 +111,28 @@ export const useDashboardData = (selectedServerId: string | null) => {
 
       // Only update chart data if we have actual activity
       if (filteredData.length > 0) {
-        const formattedData = filteredData.map((point) => {
-          const date = new Date(point.timestamp);
-
-          // Format time based on time range
-          let timeFormat: Intl.DateTimeFormatOptions;
-          if (selectedTimeRange.includes("m")) {
-            // For minute ranges, show seconds
-            timeFormat = {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            };
-          } else if (
-            selectedTimeRange.includes("h") &&
-            parseInt(selectedTimeRange) <= 8
-          ) {
-            // For hour ranges, show hours and minutes
-            timeFormat = {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            };
-          } else {
-            // For day ranges, show date and time
-            timeFormat = {
-              month: "short",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            };
-          }
-
-          const time = date.toLocaleString([], timeFormat);
-
-          return {
-            time,
-            published: Math.round(point.publishRate),
-            consumed: Math.round(point.consumeRate),
-          };
-        });
+        const formattedData = filteredData.map((point) => ({
+          time: new Date(point.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          published: Math.round(point.publishRate * 100) / 100,
+          consumed: Math.round(point.consumeRate * 100) / 100,
+        }));
 
         setChartData(formattedData);
       } else {
         // If no activity, show empty chart data
         setChartData([]);
       }
-    } else if (timeSeriesData?.timeseries) {
-      // Fallback to old format if aggregatedThroughput is not available
-      const filteredData = timeSeriesData.timeseries.filter((point) => {
-        return (point.messages || 0) > 0;
-      });
-
-      if (filteredData.length > 0) {
-        setChartData(
-          filteredData.map((point) => ({
-            time: point.time,
-            published: point.messages || 0,
-            consumed: 0, // Old format doesn't have separate consume data
-          }))
-        );
-      } else {
-        setChartData([]);
-      }
     }
-  }, [timeSeriesData, selectedTimeRange]);
+  }, [liveRatesData]);
 
-  const handleTimeRangeChange = (timeRange: TimeRange) => {
-    setSelectedTimeRange(timeRange);
-  };
-
-  // Convert and filter available time ranges from API response to match TimeRange type
-  const availableTimeRanges = useMemo(() => {
-    const rawRanges = timeSeriesData?.metadata?.allowedTimeRanges;
-    if (!rawRanges) return undefined;
-
-    // Valid TimeRange values
-    const validTimeRanges: TimeRange[] = [
-      "1m",
-      "10m",
-      "1h",
-      "8h",
-      "24h",
-      "7d",
-      "30d",
-      "90d",
-      "1y",
-    ];
-
-    // Filter and cast to ensure type safety
-    return rawRanges.filter((range): range is TimeRange =>
-      validTimeRanges.includes(range as TimeRange)
-    );
-  }, [timeSeriesData?.metadata?.allowedTimeRanges]);
+  // For live data, we don't need time range selection
+  const availableTimeRanges = ["live"] as const;
 
   const isLoading =
-    overviewLoading || queuesLoading || nodesLoading || timeSeriesLoading;
+    overviewLoading || queuesLoading || nodesLoading || liveRatesLoading;
 
   return {
     // Data
@@ -218,22 +141,23 @@ export const useDashboardData = (selectedServerId: string | null) => {
     nodes,
     metrics,
     chartData,
+    liveRates: liveRatesData?.liveRates,
 
     // Loading states
     isLoading,
     overviewLoading,
     queuesLoading,
     nodesLoading,
-    timeSeriesLoading,
+    timeSeriesLoading: liveRatesLoading,
 
     // Error states
     metricsError,
     timeSeriesError,
     nodesError,
 
-    // Chart controls
-    selectedTimeRange,
-    handleTimeRangeChange,
+    // Chart controls - simplified for live data
+    selectedTimeRange: "live" as const,
+    handleTimeRangeChange: () => {}, // No-op for live data
     availableTimeRanges,
   };
 };

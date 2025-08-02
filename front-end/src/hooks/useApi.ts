@@ -276,18 +276,15 @@ export const useRecentAlerts = () => {
   });
 };
 
-export const useTimeSeriesMetrics = (
-  serverId: string,
-  timeRange: string = "1h"
-) => {
+export const useTimeSeriesMetrics = (serverId: string) => {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: [...queryKeys.overview(serverId), "timeseries", timeRange],
-    queryFn: () => apiClient.getTimeSeriesMetrics(serverId, timeRange),
+    queryKey: ["liveRates", serverId],
+    queryFn: () => apiClient.getTimeSeriesMetrics(serverId),
     enabled: !!serverId && isAuthenticated,
-    staleTime: 30000, // 30 seconds for historical data
-    refetchInterval: 60000, // Refetch every minute for historical data
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 5000, // Refresh every 5 seconds for live data
   });
 };
 

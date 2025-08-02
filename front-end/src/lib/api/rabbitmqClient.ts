@@ -14,6 +14,7 @@ import {
   Connection,
   Channel,
   TimeSeriesResponse,
+  LiveRatesResponse,
   NodeMemoryDetailsResponse,
 } from "./rabbitmqTypes";
 import { Exchange, Binding, Consumer } from "./exchangeTypes";
@@ -35,7 +36,6 @@ import {
 } from "./vhostTypes";
 import {
   RabbitMQUser,
-  RabbitMQUserPermission,
   CreateUserRequest,
   UpdateUserRequest,
   SetUserPermissionRequest,
@@ -56,12 +56,9 @@ export class RabbitMQApiClient extends BaseApiClient {
     );
   }
 
-  async getTimeSeriesMetrics(
-    serverId: string,
-    timeRange: string = "1h"
-  ): Promise<TimeSeriesResponse> {
-    return this.request<TimeSeriesResponse>(
-      `/rabbitmq/servers/${serverId}/metrics/timeseries?timeRange=${timeRange}`
+  async getTimeSeriesMetrics(serverId: string): Promise<LiveRatesResponse> {
+    return this.request<LiveRatesResponse>(
+      `/rabbitmq/servers/${serverId}/metrics/timeseries`
     );
   }
 

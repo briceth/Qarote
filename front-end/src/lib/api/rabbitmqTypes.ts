@@ -328,6 +328,41 @@ export interface TimeSeriesResponse {
   permissionStatus?: PermissionStatus;
 }
 
+export interface LiveRatesResponse {
+  serverId: string;
+  dataSource: "live_rates" | "permission_denied";
+  timestamp: string;
+  liveRates: {
+    timestamp: number;
+    rates: {
+      publish: number;
+      deliver: number;
+      ack: number;
+      deliver_get: number;
+      confirm: number;
+      get: number;
+      get_no_ack: number;
+      redeliver: number;
+      reject: number;
+      return_unroutable: number;
+      disk_reads: number;
+      disk_writes: number;
+    };
+  };
+  aggregatedThroughput: Array<{
+    timestamp: number;
+    publishRate: number;
+    consumeRate: number;
+  }>;
+  metadata: {
+    plan: string | null;
+    allowedTimeRanges: string[];
+    updateInterval: string;
+    dataPoints: number;
+  };
+  permissionStatus?: PermissionStatus;
+}
+
 export interface NodeMemoryDetailsResponse {
   node: NodeMemoryDetails;
   planAccess: NodeMemoryPlanAccess;

@@ -12,7 +12,7 @@ import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { AddServerButton } from "@/components/AddServerButton";
 import { PrimaryMetricsCards } from "@/components/PrimaryMetricsCards";
 import { SecondaryMetricsCards } from "@/components/SecondaryMetricsCards";
-import { MessageThroughputChart } from "@/components/MessageThroughputChart";
+import { LiveRatesChart } from "@/components/LiveRatesChart";
 import { QueueDepthsChart } from "@/components/QueueDepthsChart";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
@@ -30,6 +30,7 @@ const Index = () => {
     nodes,
     metrics,
     chartData,
+    liveRates,
     isLoading,
     queuesLoading,
     timeSeriesLoading,
@@ -139,14 +140,11 @@ const Index = () => {
               nodesError={nodesError}
             />
 
-            {/* Message Throughput Chart - Full Width */}
-            <MessageThroughputChart
-              chartData={chartData}
-              timeSeriesLoading={timeSeriesLoading}
-              timeSeriesError={timeSeriesError}
-              selectedTimeRange={selectedTimeRange}
-              onTimeRangeChange={handleTimeRangeChange}
-              availableTimeRanges={availableTimeRanges}
+            {/* Live Message Rates Chart - Full Width */}
+            <LiveRatesChart
+              liveRates={liveRates}
+              isLoading={timeSeriesLoading}
+              error={timeSeriesError}
             />
 
             {/* Queue Depths Chart - Full Width */}

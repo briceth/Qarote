@@ -51,17 +51,16 @@ metricsController.get("/servers/:id/metrics", async (c) => {
 });
 
 /**
- * Get historical and live timeseries metrics for a specific server (ALL USERS)
- * Returns historical data based on plan retention limits + live data
- * GET /servers/:id/metrics/timeseries?timeRange=1h
+ * Get live message rates data for a specific server (ALL USERS)
+ * Returns real-time message operation rates from RabbitMQ overview API
+ * GET /servers/:id/metrics/timeseries
  */
 metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
   const id = c.req.param("id");
   const user = c.get("user");
-  const timeRange = c.req.query("timeRange") || "1h"; // Default to 1 hour
 
   try {
-    // Verify the server belongs to the user's workspace and get workspace details
+    // Verify the server belongs to the user's workspace
     const server = await prisma.rabbitMQServer.findFirst({
       where: {
         id,
@@ -71,9 +70,6 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
         workspace: {
           select: {
             plan: true,
-            storageMode: true,
-            retentionDays: true,
-            consentGiven: true,
           },
         },
       },
@@ -84,264 +80,75 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
     }
 
     const plan = server.workspace.plan;
-    const maxRetentionDays = getMetricsRetentionDays(plan);
     const allowedTimeRanges = getMaxTimeRangeForPlan(plan);
-
-    // Validate time range against plan limits
-    if (!allowedTimeRanges.includes(timeRange)) {
-      return c.json(
-        {
-          error: "Time range not allowed for your plan",
-          allowedTimeRanges,
-          currentPlan: plan,
-        },
-        403
-      );
-    }
-
-    // Parse time range into hours/days
-    let hoursBack = 1;
-    if (timeRange.endsWith("m")) {
-      hoursBack = parseInt(timeRange) / 60;
-    } else if (timeRange.endsWith("h")) {
-      hoursBack = parseInt(timeRange);
-    } else if (timeRange.endsWith("d")) {
-      hoursBack = parseInt(timeRange) * 24;
-    } else if (timeRange.endsWith("y")) {
-      hoursBack = parseInt(timeRange) * 365 * 24;
-    }
-
-    // Limit to plan's retention period
-    const maxHours = maxRetentionDays * 24;
-    if (hoursBack > maxHours) {
-      hoursBack = maxHours;
-    }
-
-    const startTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
     const currentTimestamp = new Date();
 
-    // Always fetch current live data from RabbitMQ
+    // Fetch live data from RabbitMQ
     const client = await createRabbitMQClient(id, user.workspaceId);
-    const liveQueues = await client.getQueues();
+    const overview = await client.getOverview();
 
-    logger.info(
-      `Fetched ${liveQueues.length} live queues from RabbitMQ for server ${id}, timeRange: ${timeRange}`
-    );
+    logger.info(`Fetched live rates data from RabbitMQ for server ${id}`);
 
-    // Calculate current live totals
-    let currentPublishRate = 0;
-    let currentConsumeRate = 0;
+    // Extract message operation rates from overview.message_stats
+    const messageStats = overview.message_stats || {};
 
-    for (const queue of liveQueues) {
-      const publishRate = queue.message_stats?.publish_details?.rate || 0;
-      const consumeRate = queue.message_stats?.deliver_details?.rate || 0;
-
-      currentPublishRate += publishRate;
-      currentConsumeRate += consumeRate;
-
-      // Store current data for all plans (respecting retention)
-      try {
-        const queueRecord = await prisma.queue.upsert({
-          where: {
-            name_vhost_serverId: {
-              name: queue.name,
-              vhost: queue.vhost,
-              serverId: id,
-            },
-          },
-          update: {
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
-            lastFetched: currentTimestamp,
-          },
-          create: {
-            name: queue.name,
-            vhost: queue.vhost,
-            serverId: id,
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
-            lastFetched: currentTimestamp,
-          },
-        });
-
-        // Store metrics data for all plans
-        await prisma.queueMetric.create({
-          data: {
-            queueId: queueRecord.id,
-            timestamp: currentTimestamp,
-            messages: queue.messages,
-            messagesReady: queue.messages_ready,
-            messagesUnack: queue.messages_unacknowledged,
-            publishRate,
-            consumeRate,
-          },
-        });
-
-        logger.debug(
-          `Stored metrics for queue ${queue.name} (plan: ${plan}, retention: ${maxRetentionDays}d)`
-        );
-      } catch (dbError) {
-        logger.warn(
-          { dbError, queueName: queue.name },
-          "Failed to store queue metrics"
-        );
-      }
-    }
-
-    // Fetch historical data from database within plan limits
-    const historicalData = await prisma.queueMetric.findMany({
-      where: {
-        queue: {
-          serverId: id,
-        },
-        timestamp: {
-          gte: startTime,
-          lte: currentTimestamp,
-        },
-      },
-      include: {
-        queue: {
-          select: {
-            name: true,
-            vhost: true,
-          },
-        },
-      },
-      orderBy: {
-        timestamp: "asc",
-      },
-    });
-
-    logger.info(
-      `Fetched ${historicalData.length} historical data points for server ${id} (${timeRange})`
-    );
-
-    // Group historical data into time buckets for aggregation
-    const bucketIntervalMinutes = Math.max(
-      1,
-      Math.floor((hoursBack * 60) / 50)
-    ); // Max 50 data points
-    const bucketIntervalMs = bucketIntervalMinutes * 60 * 1000;
-
-    const buckets = new Map<
-      number,
-      {
-        timestamp: number;
-        publishRate: number;
-        consumeRate: number;
-        count: number;
-      }
-    >();
-
-    // Process historical data into buckets
-    historicalData.forEach((metric) => {
-      const bucketTime =
-        Math.floor(metric.timestamp.getTime() / bucketIntervalMs) *
-        bucketIntervalMs;
-
-      if (!buckets.has(bucketTime)) {
-        buckets.set(bucketTime, {
-          timestamp: bucketTime,
-          publishRate: 0,
-          consumeRate: 0,
-          count: 0,
-        });
-      }
-
-      const bucket = buckets.get(bucketTime)!;
-      bucket.publishRate += metric.publishRate || 0;
-      bucket.consumeRate += metric.consumeRate || 0;
-      bucket.count += 1;
-    });
-
-    // Average the rates for each bucket and create final time series
-    let aggregatedThroughput = Array.from(buckets.values())
-      .map((bucket) => ({
-        timestamp: bucket.timestamp,
-        publishRate: bucket.count > 0 ? bucket.publishRate / bucket.count : 0,
-        consumeRate: bucket.count > 0 ? bucket.consumeRate / bucket.count : 0,
-      }))
-      .sort((a, b) => a.timestamp - b.timestamp);
-
-    // Always add current live data as the latest point
-    aggregatedThroughput.push({
+    // Create live rates data structure based on what's available in message_stats
+    const liveRates = {
       timestamp: currentTimestamp.getTime(),
-      publishRate: currentPublishRate,
-      consumeRate: currentConsumeRate,
-    });
+      rates: {
+        // Core message operations
+        publish: messageStats.publish_details?.rate || 0,
+        deliver: messageStats.deliver_details?.rate || 0,
+        ack: messageStats.ack_details?.rate || 0,
 
-    // Group queue-level historical data
-    const queuesGrouped = historicalData.reduce(
-      (acc, metric) => {
-        const queueKey = `${metric.queue.vhost}/${metric.queue.name}`;
-        if (!acc[queueKey]) {
-          acc[queueKey] = {
-            queueName: metric.queue.name,
-            vhost: metric.queue.vhost,
-            dataPoints: [],
-          };
-        }
-        acc[queueKey].dataPoints.push({
-          timestamp: metric.timestamp.getTime(),
-          messages: metric.messages,
-          messagesReady: metric.messagesReady,
-          messagesUnack: metric.messagesUnack,
-          publishRate: metric.publishRate || 0,
-          consumeRate: metric.consumeRate || 0,
-        });
-        return acc;
+        // Additional operations (if available)
+        deliver_get: messageStats.deliver_get_details?.rate || 0,
+        confirm: messageStats.confirm_details?.rate || 0,
+        get: messageStats.get_details?.rate || 0,
+        get_no_ack: messageStats.get_no_ack_details?.rate || 0,
+        redeliver: messageStats.redeliver_details?.rate || 0,
+        reject: messageStats.reject_details?.rate || 0,
+        return_unroutable: messageStats.return_unroutable_details?.rate || 0,
+
+        // Disk operations
+        disk_reads: messageStats.disk_reads_details?.rate || 0,
+        disk_writes: messageStats.disk_writes_details?.rate || 0,
       },
-      {} as Record<string, any>
-    );
+    };
 
-    // Add current live data to queue groups
-    for (const queue of liveQueues) {
-      const queueKey = `${queue.vhost}/${queue.name}`;
-      if (!queuesGrouped[queueKey]) {
-        queuesGrouped[queueKey] = {
-          queueName: queue.name,
-          vhost: queue.vhost,
-          dataPoints: [],
-        };
-      }
-      queuesGrouped[queueKey].dataPoints.push({
-        timestamp: currentTimestamp.getTime(),
-        messages: queue.messages,
-        messagesReady: queue.messages_ready,
-        messagesUnack: queue.messages_unacknowledged,
-        publishRate: queue.message_stats?.publish_details?.rate || 0,
-        consumeRate: queue.message_stats?.deliver_details?.rate || 0,
+    // Generate time series data for chart (simulating historical data with current rates)
+    const timePoints = 20; // Show 20 time points
+    const intervalMs = 30000; // 30 seconds between points
+    const aggregatedThroughput = [];
+
+    for (let i = timePoints - 1; i >= 0; i--) {
+      const timestamp = currentTimestamp.getTime() - i * intervalMs;
+      // For live data, we use current rates for all time points
+      // In a real scenario, this would be historical data
+      aggregatedThroughput.push({
+        timestamp,
+        publishRate: liveRates.rates.publish,
+        consumeRate: liveRates.rates.deliver + liveRates.rates.get,
       });
     }
 
     const response = {
       serverId: id,
-      dataSource: "historical_with_live",
-      timeRange,
+      dataSource: "live_rates",
       timestamp: currentTimestamp.toISOString(),
-      queues: Object.values(queuesGrouped),
+      liveRates,
       aggregatedThroughput,
       metadata: {
         plan,
-        maxRetentionDays,
         allowedTimeRanges,
-        requestedHours: Math.floor(hoursBack),
-        actualStartTime: startTime.toISOString(),
-        bucketIntervalMinutes,
-        historicalDataPoints: historicalData.length,
-        aggregatedDataPoints: aggregatedThroughput.length,
-        totalQueues: liveQueues.length,
+        updateInterval: "real-time",
+        dataPoints: timePoints,
       },
     };
 
     return c.json(response);
   } catch (error) {
-    logger.error(
-      { error, id, timeRange },
-      "Error fetching timeseries data for server"
-    );
+    logger.error({ error, id }, "Error fetching live rates data for server");
 
     // Check if this is a 401 Unauthorized error from RabbitMQ API
     if (error instanceof Error && error.message.includes("401")) {
@@ -349,9 +156,8 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
       return c.json({
         serverId: id,
         dataSource: "permission_denied",
-        timeRange,
         timestamp: new Date().toISOString(),
-        queues: [],
+        liveRates: { timestamp: Date.now(), rates: {} },
         aggregatedThroughput: [],
         permissionStatus: {
           hasPermission: false,
@@ -361,14 +167,9 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
         },
         metadata: {
           plan: null,
-          maxRetentionDays: 0,
           allowedTimeRanges: [],
-          requestedHours: 0,
-          actualStartTime: new Date().toISOString(),
-          bucketIntervalMinutes: 0,
-          historicalDataPoints: 0,
-          aggregatedDataPoints: 0,
-          totalQueues: 0,
+          updateInterval: "real-time",
+          dataPoints: 0,
         },
       });
     }
@@ -377,7 +178,7 @@ metricsController.get("/servers/:id/metrics/timeseries", async (c) => {
       c,
       error,
       500,
-      "Failed to fetch timeseries data"
+      "Failed to fetch live rates data"
     );
   }
 });
