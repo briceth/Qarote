@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Input } from "@/components/ui/input";
 import { DataStorageWarning } from "@/components/PrivacyNotice";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
@@ -11,7 +12,6 @@ import { useQueues, queryKeys, useMonthlyMessageCount } from "@/hooks/useApi";
 import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { QueueHeader } from "@/components/Queues/QueueHeader";
 import { PlanRestrictions } from "@/components/Queues/PlanRestrictions";
-import { QueueSearchAndStats } from "@/components/Queues/QueueSearchAndStats";
 import { QueueTable } from "@/components/Queues/QueueTable";
 import logger from "@/lib/logger";
 
@@ -24,12 +24,11 @@ const Queues = () => {
     canSendMessages,
     isLoading: workspaceLoading,
   } = useWorkspace();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filterRegex, setFilterRegex] = useState("");
   const [restrictionsDismissed, setRestrictionsDismissed] = useState(false);
   const { selectedServerId, hasServers } = useServerContext();
   const { data: queuesData, isLoading, refetch } = useQueues(selectedServerId);
-  const { data: monthlyMessageData, isLoading: messageCountLoading } =
-    useMonthlyMessageCount();
+  const { data: monthlyMessageData } = useMonthlyMessageCount();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
@@ -73,13 +72,19 @@ const Queues = () => {
   };
 
   const filteredQueues = useMemo(() => {
-    if (!searchTerm) return queues;
-    return queues.filter(
-      (queue) =>
-        queue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        queue.vhost.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [queues, searchTerm]);
+    if (!filterRegex) return queues;
+    return queues.filter((queue) => {
+      try {
+        const regex = new RegExp(filterRegex, "i");
+        return regex.test(queue.name) || regex.test(queue.vhost);
+      } catch {
+        return (
+          queue.name.toLowerCase().includes(filterRegex.toLowerCase()) ||
+          queue.vhost.toLowerCase().includes(filterRegex.toLowerCase())
+        );
+      }
+    });
+  }, [queues, filterRegex]);
 
   if (!hasServers) {
     return (
@@ -111,9 +116,7 @@ const Queues = () => {
                 <div className="flex items-center gap-4">
                   <SidebarTrigger />
                   <div>
-                    <h1 className="title-page">
-                      Queue Management
-                    </h1>
+                    <h1 className="title-page">Queue Management</h1>
                     <p className="text-gray-500">
                       Please select a RabbitMQ server to view queues
                     </p>
@@ -173,18 +176,24 @@ const Queues = () => {
               onManageSettings={() => navigate("/privacy-settings")}
             />
 
-            {/* Search and Stats */}
-            <QueueSearchAndStats
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              queues={queues}
-            />
+            {/* Filter */}
+            <div className="flex items-center gap-4">
+              <Input
+                placeholder="Filter regex"
+                value={filterRegex}
+                onChange={(e) => setFilterRegex(e.target.value)}
+                className="max-w-xs"
+              />
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <span>+/-</span>
+              </div>
+            </div>
 
             {/* Queues Table */}
             <QueueTable
               queues={filteredQueues}
               isLoading={isLoading}
-              searchTerm={searchTerm}
+              searchTerm={filterRegex}
               onNavigateToQueue={(queueName) =>
                 navigate(`/queues/${queueName}`)
               }
