@@ -128,11 +128,10 @@ infrastructureController.delete(
     const id = c.req.param("id");
     const exchangeName = c.req.param("exchangeName");
     const user = c.get("user");
+    const url = new URL(c.req.url);
+    const ifUnused = url.searchParams.get("if_unused") === "true";
 
     try {
-      const url = new URL(c.req.url);
-      const ifUnused = url.searchParams.get("if_unused") === "true";
-
       const client = await createRabbitMQClient(id, user.workspaceId);
       await client.deleteExchange(exchangeName, {
         if_unused: ifUnused,
@@ -147,6 +146,20 @@ infrastructureController.delete(
         `Error deleting exchange "${exchangeName}" for server ${id}:`,
         error
       );
+
+      // Check if this is a 400 error indicating the exchange is in use
+      if (error instanceof Error && error.message.includes("400")) {
+        return c.json(
+          {
+            error: ifUnused
+              ? `Cannot delete exchange "${exchangeName}" because it has bindings or is being used. Try force delete to remove it anyway.`
+              : `Failed to delete exchange "${exchangeName}". It may be in use or there may be a configuration issue.`,
+            code: "EXCHANGE_IN_USE",
+          },
+          { status: 400 }
+        );
+      }
+
       return createErrorResponse(c, error, 500, "Failed to delete exchange");
     }
   }

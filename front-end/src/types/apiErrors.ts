@@ -16,6 +16,18 @@ export interface ApiError {
   code?: string;
 }
 
+export class ApiErrorWithCode extends Error {
+  public readonly code?: string;
+  public readonly originalMessage?: string;
+
+  constructor(message: string, code?: string, originalMessage?: string) {
+    super(message);
+    this.name = "ApiErrorWithCode";
+    this.code = code;
+    this.originalMessage = originalMessage;
+  }
+}
+
 export class RabbitMQAuthorizationError extends Error {
   public readonly code: string;
   public readonly requiredPermission: string;
@@ -55,6 +67,20 @@ export function parseApiError(errorResponse: unknown): Error {
         code: "RABBITMQ_INSUFFICIENT_PERMISSIONS",
         requiredPermission: errorData.requiredPermission,
       });
+    }
+
+    // Handle general API errors with error and code
+    if (typeof errorData.error === "string") {
+      return new ApiErrorWithCode(
+        errorData.error,
+        typeof errorData.code === "string" ? errorData.code : undefined,
+        typeof errorData.message === "string" ? errorData.message : undefined
+      );
+    }
+
+    // Handle message-only errors
+    if (typeof errorData.message === "string") {
+      return new Error(errorData.message);
     }
   }
 

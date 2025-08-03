@@ -12,6 +12,7 @@ export const queryKeys = {
     ["queue", serverId, queueName] as const,
   queueLiveRates: (serverId: string, queueName: string) =>
     ["queueLiveRates", serverId, queueName] as const,
+  exchanges: (serverId: string) => ["exchanges", serverId] as const,
   nodes: (serverId: string) => ["nodes", serverId] as const,
   alerts: ["alerts"] as const,
   recentAlerts: ["alerts", "recent"] as const,
@@ -167,10 +168,10 @@ export const useExchanges = (serverId: string) => {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: ["exchanges", serverId],
+    queryKey: queryKeys.exchanges(serverId),
     queryFn: () => apiClient.getExchanges(serverId),
     enabled: !!serverId && isAuthenticated,
-    staleTime: 10000, // 10 seconds
+    staleTime: 0, // Always consider data stale for immediate updates
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
@@ -186,10 +187,15 @@ export const useCreateExchange = () => {
       serverId: string;
       exchangeData: Parameters<typeof apiClient.createExchange>[1];
     }) => apiClient.createExchange(serverId, exchangeData),
-    onSuccess: (_, variables) => {
-      // Invalidate exchanges list for the specific server
-      queryClient.invalidateQueries({
-        queryKey: ["exchanges", variables.serverId],
+    onSuccess: async (_, variables) => {
+      // Invalidate and refetch exchanges list for the specific server
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.exchanges(variables.serverId),
+      });
+
+      // Force refetch to ensure immediate update
+      await queryClient.refetchQueries({
+        queryKey: queryKeys.exchanges(variables.serverId),
       });
     },
   });
@@ -208,10 +214,15 @@ export const useDeleteExchange = () => {
       exchangeName: string;
       options?: Parameters<typeof apiClient.deleteExchange>[2];
     }) => apiClient.deleteExchange(serverId, exchangeName, options),
-    onSuccess: (_, variables) => {
-      // Invalidate exchanges list for the specific server
-      queryClient.invalidateQueries({
-        queryKey: ["exchanges", variables.serverId],
+    onSuccess: async (_, variables) => {
+      // Invalidate and refetch exchanges list for the specific server
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.exchanges(variables.serverId),
+      });
+
+      // Force refetch to ensure immediate update
+      await queryClient.refetchQueries({
+        queryKey: queryKeys.exchanges(variables.serverId),
       });
     },
   });

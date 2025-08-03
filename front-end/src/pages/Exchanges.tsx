@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/useToast";
 import CreateExchangeDialog from "@/components/ExchangeManagement";
+import { ApiErrorWithCode } from "@/types/apiErrors";
 
 const Exchanges = () => {
   const { selectedServerId, hasServers } = useServerContext();
@@ -51,6 +52,7 @@ const Exchanges = () => {
     useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exchangeToDelete, setExchangeToDelete] = useState<string>("");
+  const [forceDelete, setForceDelete] = useState(false);
 
   const {
     data: exchangesData,
@@ -67,7 +69,7 @@ const Exchanges = () => {
       await deleteExchangeMutation.mutateAsync({
         serverId: selectedServerId,
         exchangeName,
-        options: { if_unused: true },
+        options: forceDelete ? {} : { if_unused: true },
       });
 
       toast({
@@ -77,14 +79,39 @@ const Exchanges = () => {
 
       setDeleteDialogOpen(false);
       setExchangeToDelete("");
+      setForceDelete(false);
     } catch (error) {
       console.error("Failed to delete exchange:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete exchange",
-        variant: "destructive",
-      });
+
+      // Extract error message and code
+      let errorMessage = "Failed to delete exchange";
+      let errorCode = null;
+
+      if (error instanceof ApiErrorWithCode) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      // Show appropriate toast based on error
+      if (
+        errorCode === "EXCHANGE_IN_USE" ||
+        errorMessage.includes("bindings") ||
+        errorMessage.includes("being used")
+      ) {
+        toast({
+          title: "Cannot Delete Exchange",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -622,10 +649,28 @@ const Exchanges = () => {
               exchange is currently in use.
             </DialogDescription>
           </DialogHeader>
+          <div className="flex items-center space-x-2 py-4">
+            <input
+              type="checkbox"
+              id="force-delete"
+              checked={forceDelete}
+              onChange={(e) => setForceDelete(e.target.checked)}
+              className="rounded"
+            />
+            <label
+              htmlFor="force-delete"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Force delete (remove even if exchange has bindings)
+            </label>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setForceDelete(false);
+              }}
               disabled={deleteExchangeMutation.isPending}
             >
               Cancel
@@ -637,7 +682,9 @@ const Exchanges = () => {
             >
               {deleteExchangeMutation.isPending
                 ? "Deleting..."
-                : "Delete Exchange"}
+                : forceDelete
+                  ? "Force Delete Exchange"
+                  : "Delete Exchange"}
             </Button>
           </DialogFooter>
         </DialogContent>

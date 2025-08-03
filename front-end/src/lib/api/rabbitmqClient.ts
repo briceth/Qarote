@@ -7,13 +7,10 @@ import { BaseApiClient } from "./baseClient";
 import { Queue } from "./types";
 import {
   Overview,
-  Node,
   NodesResponse,
-  Metrics,
   MetricsResponse,
   Connection,
   Channel,
-  TimeSeriesResponse,
   LiveRatesResponse,
   NodeMemoryDetailsResponse,
 } from "./rabbitmqTypes";
@@ -25,7 +22,6 @@ import {
   CreateQueueResponse,
 } from "./messageTypes";
 import {
-  VHost,
   VHostsResponse,
   VHostDetailsResponse,
   VHostActionResponse,
