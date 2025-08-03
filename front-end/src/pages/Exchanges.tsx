@@ -166,9 +166,7 @@ const Exchanges = () => {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="title-page">
-                    Exchanges
-                  </h1>
+                  <h1 className="title-page">Exchanges</h1>
                   <p className="text-gray-500">
                     Manage RabbitMQ exchanges and routing
                   </p>
@@ -205,9 +203,7 @@ const Exchanges = () => {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="title-page">
-                    Exchanges
-                  </h1>
+                  <h1 className="title-page">Exchanges</h1>
                   <p className="text-gray-500">
                     Manage RabbitMQ exchanges and routing
                   </p>
@@ -492,6 +488,22 @@ const Exchanges = () => {
                                       </span>{" "}
                                       {exchange.internal ? "Yes" : "No"}
                                     </div>
+                                    {exchange.arguments &&
+                                      Object.keys(exchange.arguments).length >
+                                        0 && (
+                                        <div>
+                                          <span className="text-gray-500">
+                                            Arguments:
+                                          </span>
+                                          <div className="mt-1 p-2 bg-gray-50 rounded text-xs font-mono">
+                                            {JSON.stringify(
+                                              exchange.arguments,
+                                              null,
+                                              2
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
                                   </div>
                                 </div>
                                 <div>

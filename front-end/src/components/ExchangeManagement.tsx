@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCreateExchange, useDeleteExchange } from "@/hooks/useApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -40,6 +41,7 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
   const [durable, setDurable] = useState(true);
   const [autoDelete, setAutoDelete] = useState(false);
   const [internal, setInternal] = useState(false);
+  const [arguments_, setArguments] = useState("");
 
   const createExchangeMutation = useCreateExchange();
 
@@ -53,6 +55,21 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
       return;
     }
 
+    // Parse arguments if provided
+    let parsedArguments = {};
+    if (arguments_.trim()) {
+      try {
+        parsedArguments = JSON.parse(arguments_);
+      } catch (error) {
+        toast({
+          title: "Validation Error",
+          description: "Arguments must be valid JSON",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       await createExchangeMutation.mutateAsync({
         serverId,
@@ -62,6 +79,7 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
           durable,
           auto_delete: autoDelete,
           internal,
+          arguments: parsedArguments,
         },
       });
 
@@ -76,6 +94,7 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
       setDurable(true);
       setAutoDelete(false);
       setInternal(false);
+      setArguments("");
       setOpen(false);
     } catch (error) {
       toast({
@@ -213,6 +232,196 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
                         Internal exchanges cannot be published to directly by
                         clients. They can only receive messages from other
                         exchanges.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Label className="text-base font-medium">Arguments</Label>
+              </div>
+              <Textarea
+                value={arguments_}
+                onChange={(e) => setArguments(e.target.value)}
+                placeholder='{ "key": value }'
+                disabled={createExchangeMutation.isPending}
+                className="min-h-[120px] font-mono text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 focus:ring-offset-0"
+              />
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  Available options:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newArg =
+                            '"alternate-exchange": "exchange-name"';
+                          const currentValue = arguments_.trim();
+                          if (currentValue === "") {
+                            setArguments(`{ ${newArg} }`);
+                          } else if (currentValue === "{}") {
+                            setArguments(`{ ${newArg} }`);
+                          } else {
+                            // Add to existing JSON
+                            const cleanValue = currentValue.replace(/}$/, "");
+                            const separator = cleanValue.endsWith("{")
+                              ? ""
+                              : ", ";
+                            setArguments(
+                              `${cleanValue}${separator}${newArg} }`
+                            );
+                          }
+                        }}
+                        className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                      >
+                        alternate-exchange
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-50">
+                      <p className="max-w-xs">
+                        Specifies an alternate exchange to route messages that
+                        cannot be routed by this exchange
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newArg = '"x-message-deduplication": true';
+                          const currentValue = arguments_.trim();
+                          if (currentValue === "") {
+                            setArguments(`{ ${newArg} }`);
+                          } else if (currentValue === "{}") {
+                            setArguments(`{ ${newArg} }`);
+                          } else {
+                            const cleanValue = currentValue.replace(/}$/, "");
+                            const separator = cleanValue.endsWith("{")
+                              ? ""
+                              : ", ";
+                            setArguments(
+                              `${cleanValue}${separator}${newArg} }`
+                            );
+                          }
+                        }}
+                        className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                      >
+                        x-message-deduplication
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-50">
+                      <p className="max-w-xs">
+                        Enable message deduplication for this exchange
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newArg = '"x-cache-size": 1000';
+                          const currentValue = arguments_.trim();
+                          if (currentValue === "") {
+                            setArguments(`{ ${newArg} }`);
+                          } else if (currentValue === "{}") {
+                            setArguments(`{ ${newArg} }`);
+                          } else {
+                            const cleanValue = currentValue.replace(/}$/, "");
+                            const separator = cleanValue.endsWith("{")
+                              ? ""
+                              : ", ";
+                            setArguments(
+                              `${cleanValue}${separator}${newArg} }`
+                            );
+                          }
+                        }}
+                        className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                      >
+                        x-cache-size
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-50">
+                      <p className="max-w-xs">
+                        Set the deduplication cache size (number of messages to
+                        remember)
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newArg = '"x-cache-ttl": 3600000';
+                          const currentValue = arguments_.trim();
+                          if (currentValue === "") {
+                            setArguments(`{ ${newArg} }`);
+                          } else if (currentValue === "{}") {
+                            setArguments(`{ ${newArg} }`);
+                          } else {
+                            const cleanValue = currentValue.replace(/}$/, "");
+                            const separator = cleanValue.endsWith("{")
+                              ? ""
+                              : ", ";
+                            setArguments(
+                              `${cleanValue}${separator}${newArg} }`
+                            );
+                          }
+                        }}
+                        className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                      >
+                        x-cache-ttl
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-50">
+                      <p className="max-w-xs">
+                        Set the deduplication cache TTL in milliseconds (how
+                        long to remember messages)
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newArg = '"x-cache-persistence": "memory"';
+                          const currentValue = arguments_.trim();
+                          if (currentValue === "") {
+                            setArguments(`{ ${newArg} }`);
+                          } else if (currentValue === "{}") {
+                            setArguments(`{ ${newArg} }`);
+                          } else {
+                            const cleanValue = currentValue.replace(/}$/, "");
+                            const separator = cleanValue.endsWith("{")
+                              ? ""
+                              : ", ";
+                            setArguments(
+                              `${cleanValue}${separator}${newArg} }`
+                            );
+                          }
+                        }}
+                        className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                      >
+                        x-cache-persistence
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-50">
+                      <p className="max-w-xs">
+                        Set the deduplication cache persistence type (memory or
+                        disk)
                       </p>
                     </TooltipContent>
                   </Tooltip>
