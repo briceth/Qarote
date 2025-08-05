@@ -1,4 +1,3 @@
-export { NodesOverview } from "./NodesOverview";
-export { NodeDetailCards } from "./NodeDetailCards";
+export { EnhancedNodesTable } from "./EnhancedNodesTable";
+export { EnhancedNodesOverview } from "./EnhancedNodesOverview";
 export { NodesTable } from "./NodesTable";
-export { NodeMemoryDetails } from "./NodeMemoryDetails";

@@ -102,9 +102,7 @@ const Connections = () => {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="title-page">
-                    Connections
-                  </h1>
+                  <h1 className="title-page">Connections</h1>
                   <p className="text-gray-500">
                     Monitor RabbitMQ connections and channels
                   </p>
@@ -141,9 +139,7 @@ const Connections = () => {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="title-page">
-                    Connections
-                  </h1>
+                  <h1 className="title-page">Connections</h1>
                   <p className="text-gray-500">
                     Monitor RabbitMQ connections and channels
                   </p>

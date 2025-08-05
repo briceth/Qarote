@@ -5,7 +5,8 @@ import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useNodes } from "@/hooks/useApi";
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
-import { NodesOverview, NodeDetailCards, NodesTable } from "@/components/nodes";
+import { EnhancedNodesOverview } from "@/components/nodes/EnhancedNodesOverview";
+import { EnhancedNodesTable } from "@/components/nodes/EnhancedNodesTable";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 
 const Nodes = () => {
@@ -58,9 +59,7 @@ const Nodes = () => {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="title-page">
-                    RabbitMQ Nodes
-                  </h1>
+                  <h1 className="title-page">RabbitMQ Nodes</h1>
                   <p className="text-gray-500">
                     Please select a RabbitMQ server to view its nodes
                   </p>
@@ -84,9 +83,7 @@ const Nodes = () => {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="title-page">
-                    RabbitMQ Nodes
-                  </h1>
+                  <h1 className="title-page">RabbitMQ Nodes</h1>
                   <p className="text-gray-500">
                     Detailed view of cluster nodes and their metrics
                   </p>
@@ -96,23 +93,15 @@ const Nodes = () => {
             </div>
 
             {/* Cluster Overview */}
-            <NodesOverview
+            <EnhancedNodesOverview
               serverId={selectedServerId}
               nodes={nodes}
               isLoading={nodesLoading}
               nodesError={processedNodesError}
             />
 
-            {/* Node Detail Cards */}
-            <NodeDetailCards
-              serverId={selectedServerId}
-              nodes={nodes}
-              isLoading={nodesLoading}
-              nodesError={processedNodesError}
-            />
-
-            {/* Detailed Metrics Table */}
-            <NodesTable
+            {/* Enhanced Node Table with Expandable Details */}
+            <EnhancedNodesTable
               serverId={selectedServerId}
               nodes={nodes}
               isLoading={nodesLoading}
