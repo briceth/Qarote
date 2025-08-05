@@ -34,6 +34,14 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Plus,
   ChevronDown,
@@ -58,6 +66,7 @@ export function AddQueueForm({
 }: AddQueueFormProps) {
   const [open, setOpen] = useState(false);
   const [isAdvancedExpanded, setIsAdvancedExpanded] = useState(false);
+  const [arguments_, setArguments] = useState("");
 
   const createQueueMutation = useCreateQueue();
   const { toast } = useToast();
@@ -100,6 +109,24 @@ export function AddQueueForm({
       queueArguments["x-message-ttl"] = parseInt(data.messageTtl) * 1000; // Convert to milliseconds
     }
 
+    // Parse additional arguments if provided
+    let parsedArguments = {};
+    if (arguments_.trim()) {
+      try {
+        parsedArguments = JSON.parse(arguments_);
+      } catch (error) {
+        toast({
+          title: "Invalid JSON",
+          description: "Arguments must be valid JSON",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Merge all arguments
+    const finalArguments = { ...queueArguments, ...parsedArguments };
+
     createQueueMutation.mutate(
       {
         serverId,
@@ -107,7 +134,7 @@ export function AddQueueForm({
         durable: data.durable,
         autoDelete: data.autoDelete,
         exclusive: data.exclusive,
-        arguments: queueArguments,
+        arguments: finalArguments,
         bindToExchange:
           data.bindToExchange && data.bindToExchange !== "none"
             ? data.bindToExchange
@@ -149,6 +176,7 @@ export function AddQueueForm({
             bindToExchange: "",
             routingKey: "",
           });
+          setArguments("");
           setIsAdvancedExpanded(false);
 
           // Call the success callback to refresh queue data
@@ -253,6 +281,7 @@ export function AddQueueForm({
                           Durable
                         </FormLabel>
                         <span className="text-xs text-gray-500">
+                          {" "}
                           (Queue survives server restarts)
                         </span>
                       </div>
@@ -276,6 +305,7 @@ export function AddQueueForm({
                           Auto-delete
                         </FormLabel>
                         <span className="text-xs text-gray-500">
+                          {" "}
                           (Queue is deleted when last consumer unsubscribes)
                         </span>
                       </div>
@@ -299,6 +329,7 @@ export function AddQueueForm({
                           Exclusive
                         </FormLabel>
                         <span className="text-xs text-gray-500">
+                          {" "}
                           (Queue can only be used by one connection)
                         </span>
                       </div>
@@ -412,6 +443,300 @@ export function AddQueueForm({
                     </AlertDescription>
                   </Alert>
                 )}
+            </div>
+
+            {/* Arguments Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Label className="text-base font-medium">Arguments</Label>
+              </div>
+              <Textarea
+                value={arguments_}
+                onChange={(e) => setArguments(e.target.value)}
+                placeholder='{ "key": value }'
+                disabled={createQueueMutation.isPending}
+                className="min-h-[120px] font-mono text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 focus:ring-offset-0"
+              />
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  Available options:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg = '"x-max-length": 10000';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              // Add to existing JSON
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-max-length
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Maximum number of messages the queue can hold
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg = '"x-message-ttl": 3600000';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-message-ttl
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Time in milliseconds that messages live in the queue
+                          before expiring
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg = '"x-expires": 1800000';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-expires
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Time in milliseconds after which the queue expires if
+                          unused
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg = '"x-max-priority": 10';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-max-priority
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Maximum priority level for messages in this queue
+                          (0-255)
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg = '"x-overflow": "reject-publish"';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-overflow
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Behavior when queue reaches max length: "drop-head",
+                          "reject-publish", or "reject-publish-dlx"
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg =
+                              '"x-dead-letter-exchange": "dlx-exchange"';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-dead-letter-exchange
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Exchange to route dead lettered messages to
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg =
+                              '"x-dead-letter-routing-key": "dlx.routing.key"';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-dead-letter-routing-key
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Routing key to use when dead lettering messages
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArg = '"x-single-active-consumer": true';
+                            const currentValue = arguments_.trim();
+                            if (currentValue === "") {
+                              setArguments(`{ ${newArg} }`);
+                            } else if (currentValue === "{}") {
+                              setArguments(`{ ${newArg} }`);
+                            } else {
+                              const cleanValue = currentValue.replace(/}$/, "");
+                              const separator = cleanValue.endsWith("{")
+                                ? ""
+                                : ", ";
+                              setArguments(
+                                `${cleanValue}${separator}${newArg} }`
+                              );
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-800 rounded-md border hover:border-orange-300 transition-colors"
+                        >
+                          x-single-active-consumer
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="z-50">
+                        <p className="max-w-xs">
+                          Ensure only one consumer is active at a time for
+                          ordered message processing
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
             </div>
 
             {/* Advanced Options */}
