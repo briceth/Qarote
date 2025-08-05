@@ -109,7 +109,7 @@ export function QueueTable({
                         onClick={() =>
                           onNavigateToQueue(encodeURIComponent(queue.name))
                         }
-                        className="text-left font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                        className="text-left font-medium text-orange-600 hover:text-orange-700 hover:underline transition-colors cursor-pointer"
                       >
                         {queue.name}
                       </button>

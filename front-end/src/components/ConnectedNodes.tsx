@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Server, Wifi, HardDrive, Cpu } from "lucide-react";
+import { Server, Wifi, HardDrive, Cpu, ArrowRight } from "lucide-react";
 import { Node } from "@/lib/api";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
 import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
+import { Link } from "react-router-dom";
 
 interface ConnectedNodesProps {
   nodes: Node[];
@@ -65,13 +66,24 @@ export const ConnectedNodes = ({
   return (
     <Card className="border-0 shadow-md bg-card-unified backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Server className="h-5 w-5" />
-          Connected Nodes ({nodes.length})
-        </CardTitle>
-        <p className="text-sm text-gray-500">
-          RabbitMQ cluster node status and metrics
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Server className="h-5 w-5" />
+              Connected Nodes ({nodes.length})
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              RabbitMQ cluster node status and metrics
+            </p>
+          </div>
+          <Link
+            to="/nodes"
+            className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 transition-colors font-medium"
+          >
+            See more
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </CardHeader>
       <CardContent>
         {nodesError && isRabbitMQAuthError(nodesError) ? (
