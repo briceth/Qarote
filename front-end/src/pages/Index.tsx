@@ -20,8 +20,8 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 const Index = () => {
-  const { selectedServerId, hasServers, serverCount } = useServerContext();
-  const { workspacePlan, isLoading: workspaceLoading } = useWorkspace();
+  const { selectedServerId, hasServers } = useServerContext();
+  const { workspacePlan } = useWorkspace();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const {
@@ -29,7 +29,6 @@ const Index = () => {
     queues,
     nodes,
     metrics,
-    chartData,
     liveRates,
     isLoading,
     queuesLoading,
@@ -37,9 +36,6 @@ const Index = () => {
     metricsError,
     timeSeriesError,
     nodesError,
-    selectedTimeRange,
-    handleTimeRangeChange,
-    availableTimeRanges,
   } = useDashboardData(selectedServerId);
 
   if (!hasServers) {

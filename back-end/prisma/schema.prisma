@@ -145,6 +145,9 @@ model Workspace {
   subscription             Subscription?
   payments                 Payment[]
   
+  // Alert preferences
+  alertThresholds          WorkspaceAlertThresholds?
+  
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
   invitations              Invitation[]
@@ -345,6 +348,38 @@ model AlertRule {
   
   // Generated alerts
   alerts      Alert[]
+}
+
+model WorkspaceAlertThresholds {
+  id          String    @id @default(uuid())
+  
+  // Node health thresholds
+  memoryWarning           Float     @default(80.0)   // Memory usage percentage
+  memoryCritical          Float     @default(90.0)
+  diskWarning             Float     @default(80.0)   // Disk usage percentage
+  diskCritical            Float     @default(90.0)
+  fileDescriptorsWarning  Float     @default(80.0)   // File descriptors usage percentage
+  fileDescriptorsCritical Float     @default(90.0)
+  socketsWarning          Float     @default(80.0)   // Socket usage percentage
+  socketsCritical         Float     @default(90.0)
+  processesWarning        Float     @default(80.0)   // Process count percentage
+  processesCritical       Float     @default(90.0)
+  
+  // Queue health thresholds
+  unackedMessagesWarning      Int   @default(1000)   // Unacknowledged messages count
+  unackedMessagesCritical     Int   @default(5000)
+  consumerUtilizationWarning  Float @default(20.0)   // Consumer utilization percentage (low is bad)
+  consumerUtilizationCritical Float @default(10.0)
+  runQueueWarning             Int   @default(50)     // Erlang run queue length
+  runQueueCritical            Int   @default(100)
+  
+  // Relations
+  workspaceId String    @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Feedback {

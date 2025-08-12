@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -30,9 +29,6 @@ import {
   User,
   AlertTriangle,
   Shield,
-  Search,
-  FileText,
-  GitBranch,
   HelpCircle,
   Settings,
   Database,
@@ -86,18 +82,18 @@ const menuItems = [
     icon: User,
     adminOnly: true,
   },
-  {
-    title: "Routing",
-    url: "/routing",
-    icon: GitBranch,
-    isSoon: true,
-  },
-  {
-    title: "Logs",
-    url: "/logs",
-    icon: FileText,
-    isSoon: true,
-  },
+  // {
+  //   title: "Routing",
+  //   url: "/routing",
+  //   icon: GitBranch,
+  //   isSoon: true,
+  // },
+  // {
+  //   title: "Logs",
+  //   url: "/logs",
+  //   icon: FileText,
+  //   isSoon: true,
+  // },
   {
     title: "Alerts",
     url: "/alerts",
@@ -276,10 +272,6 @@ export function AppSidebar() {
                 })
                 .map((item) => {
                   const isActive = location.pathname === item.url;
-                  const isAlertsItem = item.title === "Alerts";
-                  const isSoonItem = item.isSoon;
-                  // Always show "Soon" badge for Alerts, regardless of environment
-                  const showComingSoon = isAlertsItem || isSoonItem;
 
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -297,14 +289,6 @@ export function AppSidebar() {
                         >
                           <item.icon className="w-4 h-4" />
                           <span className="font-medium">{item.title}</span>
-                          {showComingSoon && (
-                            <Badge
-                              variant="secondary"
-                              className="ml-auto text-xs bg-orange-100 text-orange-700 border-orange-200"
-                            >
-                              Soon
-                            </Badge>
-                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

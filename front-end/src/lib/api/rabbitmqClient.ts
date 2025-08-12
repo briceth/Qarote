@@ -38,6 +38,14 @@ import {
   SetUserPermissionRequest,
   UserDetailsResponse,
 } from "./userTypes";
+import {
+  AlertThresholds,
+  AlertsResponse,
+  AlertsSummaryResponse,
+  ThresholdsResponse,
+  UpdateThresholdsResponse,
+  HealthResponse,
+} from "@/types/alerts";
 
 export class RabbitMQApiClient extends BaseApiClient {
   // Overview and Metrics
@@ -608,5 +616,51 @@ export class RabbitMQApiClient extends BaseApiClient {
         method: "DELETE",
       }
     );
+  }
+
+  // Alert Management
+  async getServerAlerts(
+    serverId: string,
+    thresholds?: AlertThresholds
+  ): Promise<AlertsResponse> {
+    let queryString = "";
+    if (thresholds) {
+      const params = new URLSearchParams();
+      Object.entries(thresholds).forEach(([key, value]) => {
+        if (value !== undefined) {
+          params.append(key, String(value));
+        }
+      });
+      queryString = params.toString();
+    }
+
+    const url = `/rabbitmq/servers/${serverId}/alerts${queryString ? `?${queryString}` : ""}`;
+    return this.request<AlertsResponse>(url);
+  }
+
+  async getServerAlertsSummary(
+    serverId: string
+  ): Promise<AlertsSummaryResponse> {
+    return this.request<AlertsSummaryResponse>(
+      `/rabbitmq/servers/${serverId}/alerts/summary`
+    );
+  }
+
+  async getServerHealth(serverId: string): Promise<HealthResponse> {
+    return this.request<HealthResponse>(`/rabbitmq/servers/${serverId}/health`);
+  }
+
+  // Threshold Management
+  async getWorkspaceThresholds(): Promise<ThresholdsResponse> {
+    return this.request<ThresholdsResponse>("/rabbitmq/thresholds");
+  }
+
+  async updateWorkspaceThresholds(
+    thresholds: Partial<AlertThresholds>
+  ): Promise<UpdateThresholdsResponse> {
+    return this.request<UpdateThresholdsResponse>("/rabbitmq/thresholds", {
+      method: "PUT",
+      body: JSON.stringify({ thresholds }),
+    });
   }
 }

@@ -12,7 +12,6 @@ import { serverConfig } from "@/config";
 
 import serverController from "@/controllers/server.controller";
 import rabbitmqController from "@/controllers/rabbitmq.controller";
-import alertController from "@/controllers/alert.controller";
 import authController from "@/controllers/auth.controller";
 import userController from "@/controllers/user.controller";
 import workspaceController from "@/controllers/workspace.controller";
@@ -49,7 +48,6 @@ app.use("*", standardRateLimiter);
 // endpoint routes
 app.route("/api/servers", serverController);
 app.route("/api/rabbitmq", rabbitmqController);
-app.route("/api/alerts", alertController);
 app.route("/api/auth", authController);
 app.route("/api/users", userController);
 app.route("/api/workspaces", workspaceController);

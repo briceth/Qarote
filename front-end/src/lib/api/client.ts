@@ -16,6 +16,7 @@ import { PasswordApiClient } from "./passwordClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 import type { FeedbackRequest } from "@/types/feedback";
 import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
+import { AlertThresholds } from "@/types/alerts";
 
 class ApiClient {
   private serverClient: ServerApiClient;
@@ -622,6 +623,28 @@ class ApiClient {
     billingInterval?: Parameters<PaymentApiClient["renewSubscription"]>[1]
   ) {
     return this.paymentClient.renewSubscription(plan, billingInterval);
+  }
+
+  // RabbitMQ Alert methods
+  async getRabbitMQAlerts(serverId: string, thresholds?: AlertThresholds) {
+    return this.rabbitmqClient.getServerAlerts(serverId, thresholds);
+  }
+
+  async getRabbitMQAlertsSummary(serverId: string) {
+    return this.rabbitmqClient.getServerAlertsSummary(serverId);
+  }
+
+  async getRabbitMQHealth(serverId: string) {
+    return this.rabbitmqClient.getServerHealth(serverId);
+  }
+
+  // RabbitMQ Threshold methods
+  async getWorkspaceThresholds() {
+    return this.rabbitmqClient.getWorkspaceThresholds();
+  }
+
+  async updateWorkspaceThresholds(thresholds: AlertThresholds) {
+    return this.rabbitmqClient.updateWorkspaceThresholds(thresholds);
   }
 }
 

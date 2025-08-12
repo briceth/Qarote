@@ -20,14 +20,14 @@ const Queues = lazy(() => import("./pages/Queues"));
 const QueueDetail = lazy(() => import("./pages/QueueDetail"));
 const Connections = lazy(() => import("./pages/Connections"));
 const Exchanges = lazy(() => import("./pages/Exchanges"));
-const Channels = lazy(() => import("./pages/Channels"));
 const Nodes = lazy(() => import("./pages/Nodes"));
 const VHosts = lazy(() => import("./pages/VHostsPage"));
 const VHostDetails = lazy(() => import("./pages/VHostDetailsPage"));
 const Users = lazy(() => import("./pages/UsersPage"));
 const UserDetails = lazy(() => import("./pages/UserDetailsPage"));
-const Routing = lazy(() => import("./pages/Routing"));
-const Logs = lazy(() => import("./pages/Logs"));
+// const Channels = lazy(() => import("./pages/Channels"));
+// const Routing = lazy(() => import("./pages/Routing"));
+// const Logs = lazy(() => import("./pages/Logs"));
 const Alerts = lazy(() => import("./pages/Alerts"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Plans = lazy(() => import("./pages/Plans"));
@@ -214,15 +214,15 @@ const AppCore = () => (
                       </ProtectedRoute>
                     }
                   />
-                  <Route
+                  {/* <Route
                     path="/routing"
                     element={
                       <ProtectedRoute>
                         <Routing />
                       </ProtectedRoute>
                     }
-                  />
-                  <Route
+                  /> */}
+                  {/* <Route
                     path="/channels"
                     element={
                       <ProtectedRoute>
@@ -231,15 +231,15 @@ const AppCore = () => (
                         </Layout>
                       </ProtectedRoute>
                     }
-                  />
-                  <Route
+                  /> */}
+                  {/* <Route
                     path="/logs"
                     element={
                       <ProtectedRoute>
                         <Logs />
                       </ProtectedRoute>
                     }
-                  />
+                  /> */}
                   <Route
                     path="/alerts"
                     element={

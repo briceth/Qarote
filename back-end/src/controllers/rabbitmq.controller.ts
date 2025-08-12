@@ -10,6 +10,7 @@ import memoryController from "./rabbitmq/memory.controller";
 import adminController from "./rabbitmq/admin.controller";
 import vhostController from "./rabbitmq/vhost.controller";
 import usersController from "./rabbitmq/users.controller";
+import alertsController from "./rabbitmq/alerts.controller";
 
 const rabbitmqController = new Hono();
 
@@ -27,5 +28,6 @@ rabbitmqController.route("/", memoryController);
 rabbitmqController.route("/", adminController);
 rabbitmqController.route("/", vhostController);
 rabbitmqController.route("/", usersController);
+rabbitmqController.route("/", alertsController);
 
 export default rabbitmqController;

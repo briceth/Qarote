@@ -10,7 +10,7 @@ export interface Workspace {
   name: string;
   contactEmail: string;
   logoUrl?: string;
-  plan: string; // e.g., "FREE", "PRO", "ENTERPRISE"
+  plan: string;
   createdAt: string;
   updatedAt: string;
   privacySettings: WorkspacePrivacySettings;

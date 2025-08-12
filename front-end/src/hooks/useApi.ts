@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { AlertThresholds } from "@/types/alerts";
 
 // Query keys
 export const queryKeys = {
@@ -642,5 +643,76 @@ export const useAcceptInvitation = () => {
         firstName: data.firstName,
         lastName: data.lastName,
       }),
+  });
+};
+
+// RabbitMQ Alert hooks
+export const useRabbitMQAlerts = (
+  serverId: string,
+  thresholds?: AlertThresholds
+) => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["rabbitmqAlerts", serverId, thresholds],
+    queryFn: () => apiClient.getRabbitMQAlerts(serverId, thresholds),
+    enabled: !!serverId && isAuthenticated,
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+export const useRabbitMQAlertsSummary = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["rabbitmqAlertsSummary", serverId],
+    queryFn: () => apiClient.getRabbitMQAlertsSummary(serverId),
+    enabled: !!serverId && isAuthenticated,
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+export const useRabbitMQHealth = (serverId: string) => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["rabbitmqHealth", serverId],
+    queryFn: () => apiClient.getRabbitMQHealth(serverId),
+    enabled: !!serverId && isAuthenticated,
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+};
+
+// RabbitMQ Threshold hooks
+export const useWorkspaceThresholds = () => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ["workspaceThresholds"],
+    queryFn: () => apiClient.getWorkspaceThresholds(),
+    enabled: isAuthenticated,
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+export const useUpdateWorkspaceThresholds = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (thresholds: AlertThresholds) =>
+      apiClient.updateWorkspaceThresholds(thresholds),
+    onSuccess: () => {
+      // Invalidate and refetch threshold data
+      queryClient.invalidateQueries({
+        queryKey: ["workspaceThresholds"],
+      });
+      // Also invalidate alerts since thresholds affect alert calculations
+      queryClient.invalidateQueries({
+        queryKey: ["rabbitmqAlerts"],
+      });
+    },
   });
 };
