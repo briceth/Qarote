@@ -1,6 +1,6 @@
 /**
  * Workspace API Client
- * Handles Workspace privacy settings and data management
+ * Handles workspace data management
  */
 
 import { BaseApiClient } from "./baseClient";
@@ -13,26 +13,6 @@ export interface Workspace {
   plan: string;
   createdAt: string;
   updatedAt: string;
-  privacySettings: WorkspacePrivacySettings;
-}
-
-export interface WorkspacePrivacySettings {
-  id: string;
-  planType: string;
-  storageMode: string;
-  retentionDays: number;
-  encryptData: boolean;
-  autoDelete: boolean;
-  consentGiven: boolean;
-  consentDate?: string;
-}
-
-export interface UpdatePrivacySettingsRequest {
-  storageMode: "MEMORY_ONLY" | "TEMPORARY" | "HISTORICAL";
-  retentionDays: number;
-  encryptData: boolean;
-  autoDelete: boolean;
-  consentGiven: boolean;
 }
 
 export class WorkspaceApiClient extends BaseApiClient {
@@ -40,24 +20,6 @@ export class WorkspaceApiClient extends BaseApiClient {
     workspace: Workspace;
   }> {
     return this.request("/workspaces/current");
-  }
-
-  async getWorkspacePrivacySettings(WorkspaceId: string): Promise<{
-    privacy: WorkspacePrivacySettings;
-  }> {
-    return this.request(`/workspaces/${WorkspaceId}/privacy`);
-  }
-
-  async updateWorkspacePrivacySettings(
-    WorkspaceId: string,
-    settings: UpdatePrivacySettingsRequest
-  ): Promise<{
-    privacy: WorkspacePrivacySettings;
-  }> {
-    return this.request(`/workspaces/${WorkspaceId}/privacy`, {
-      method: "PUT",
-      body: JSON.stringify(settings),
-    });
   }
 
   async exportWorkspaceData(WorkspaceId: string): Promise<Blob> {

@@ -35,8 +35,6 @@ registrationController.post(
           data: {
             name: workspaceName,
             contactEmail: email,
-            consentGiven: acceptTerms || false,
-            consentDate: acceptTerms ? new Date() : null,
           },
         });
         const workspaceId = workspace.id;

@@ -96,13 +96,6 @@ const quickLinks = [
     external: false,
   },
   {
-    title: "Privacy Settings",
-    description: "Manage your data privacy and retention settings",
-    icon: FileText,
-    link: "/privacy-settings",
-    external: false,
-  },
-  {
     title: "RabbitMQ Documentation",
     description: "Official RabbitMQ documentation and guides",
     icon: Book,

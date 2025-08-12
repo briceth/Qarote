@@ -326,9 +326,6 @@ metricsController.get("/servers/:id/metrics/historical", async (c) => {
         workspace: {
           select: {
             plan: true,
-            storageMode: true,
-            retentionDays: true,
-            consentGiven: true,
           },
         },
       },
@@ -345,16 +342,6 @@ metricsController.get("/servers/:id/metrics/historical", async (c) => {
           error: "Historical data access requires a higher plan",
           currentPlan: server.workspace.plan,
           requiredFeature: "Message history access",
-        },
-        403
-      );
-    }
-
-    if (!server.workspace.consentGiven) {
-      return c.json(
-        {
-          error: "Data storage consent required for historical data",
-          storageMode: server.workspace.storageMode,
         },
         403
       );
@@ -449,8 +436,6 @@ metricsController.get("/servers/:id/metrics/historical", async (c) => {
       aggregatedThroughput,
       metadata: {
         plan: server.workspace.plan,
-        storageMode: server.workspace.storageMode,
-        retentionDays: server.workspace.retentionDays,
         dataPoints: historicalData.length,
       },
     });

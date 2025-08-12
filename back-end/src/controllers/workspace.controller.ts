@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { authenticate } from "@/core/auth";
 import coreRoutes from "./workspace/core.controller";
-import privacyRoutes from "./workspace/privacy.controller";
 import statsRoutes from "./workspace/stats.controller";
 import dataRoutes from "./workspace/data.controller";
 import planRoutes from "./workspace/plan.controller";
@@ -15,7 +14,6 @@ workspaceController.use("*", authenticate);
 // IMPORTANT: Mount specific routes BEFORE the catch-all /:id route
 // Plan routes must come before core routes because core has /:id catch-all
 workspaceController.route("/", planRoutes);
-workspaceController.route("/", privacyRoutes);
 workspaceController.route("/", statsRoutes);
 workspaceController.route("/", dataRoutes);
 // Core routes last because it contains the catch-all /:id route

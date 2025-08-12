@@ -20,18 +20,8 @@ export function Layout({ children }: LayoutProps) {
       <footer className="border-t bg-gray-50/80 backdrop-blur-sm ml-0 md:ml-64 transition-[margin] duration-200 ease-linear">
         <div className="max-w-5xl mx-auto px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Left side - Privacy Settings and Help */}
+            {/* Left side - Help */}
             <div className="flex items-center gap-4">
-              <Link to="/privacy-settings">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-600 hover:text-gray-900 gap-2"
-                >
-                  <Shield className="w-4 h-4" />
-                  Privacy Settings
-                </Button>
-              </Link>
               <Link to="/help">
                 <Button
                   variant="ghost"
@@ -48,12 +38,6 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-500">
               <span>RabbitMQ Dashboard</span>
               <div className="flex items-center gap-4">
-                <Link
-                  to="/privacy-settings"
-                  className="hover:text-gray-700 transition-colors"
-                >
-                  Data Privacy
-                </Link>
                 <a
                   href="https://www.rabbitmq.com/documentation.html"
                   target="_blank"

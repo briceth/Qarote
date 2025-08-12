@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Input } from "@/components/ui/input";
-import { DataStorageWarning } from "@/components/PrivacyNotice";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -167,14 +166,6 @@ const Queues = () => {
                 onDismiss={() => setRestrictionsDismissed(true)}
               />
             )}
-
-            {/* Privacy Notice */}
-            <DataStorageWarning
-              isActive={false}
-              dataTypes={[]}
-              retentionDays={0}
-              onManageSettings={() => navigate("/privacy-settings")}
-            />
 
             {/* Filter */}
             <div className="flex items-center gap-4">

@@ -10,7 +10,6 @@ import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PublicRoute from "@/components/PublicRoute";
 import { PageLoader } from "@/components/PageLoader";
-import { ConsentBanner } from "@/components/PrivacyNotice";
 import { Layout } from "@/components/Layout";
 import { SentryErrorBoundary, withSentryProfiling } from "@/lib/sentry";
 
@@ -34,7 +33,6 @@ const Plans = lazy(() => import("./pages/Plans"));
 const Billing = lazy(() => import("./pages/Billing"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled"));
-const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
 const TermsOfService = lazy(() => import("./pages/public/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/public/PrivacyPolicy"));
 const HelpSupport = lazy(() => import("./pages/HelpSupport"));
@@ -54,7 +52,6 @@ const AppCore = () => (
       <WorkspaceProvider>
         <ServerProvider>
           <TooltipProvider>
-            <ConsentBanner />
             <Toaster />
             <Sonner />
             <BrowserRouter
@@ -293,16 +290,6 @@ const AppCore = () => (
                     element={
                       <ProtectedRoute>
                         <PaymentCancelled />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/privacy-settings"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <PrivacySettings />
-                        </Layout>
                       </ProtectedRoute>
                     }
                   />

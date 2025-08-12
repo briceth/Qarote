@@ -38,7 +38,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLogout } from "@/hooks/useAuth";
 import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerFormComponent";
-import { PrivacyNotice } from "@/components/PrivacyNotice";
 import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { useLocation, Link } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -103,11 +102,6 @@ const menuItems = [
     title: "Profile",
     url: "/profile",
     icon: User,
-  },
-  {
-    title: "Privacy Settings",
-    url: "/privacy-settings",
-    icon: Shield,
   },
   {
     title: "Help & Support",
@@ -300,11 +294,6 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-gray-100 p-4 space-y-4">
-        {/* Privacy Status */}
-        <div className="px-2">
-          <PrivacyNotice variant="compact" />
-        </div>
-
         {/* User section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">

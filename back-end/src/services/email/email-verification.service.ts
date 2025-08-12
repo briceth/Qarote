@@ -57,14 +57,12 @@ export class EmailVerificationService {
     userName?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      logger.info("Sending verification email", {
+      logger.debug("Sending verification email", {
         email,
         type,
         userName,
         tokenLength: token.length,
       });
-
-      console.log("email", email);
 
       const result = await EmailService.sendVerificationEmail({
         to: email,
@@ -72,8 +70,6 @@ export class EmailVerificationService {
         verificationToken: token,
         type,
       });
-
-      console.log("Email sent result:", result);
 
       if (!result.success) {
         logger.error("Failed to send verification email", {

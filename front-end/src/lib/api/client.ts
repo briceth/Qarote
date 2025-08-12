@@ -486,22 +486,6 @@ class ApiClient {
     return this.workspaceClient.getCurrentWorkspace();
   }
 
-  async getWorspacePrivacySettings(companyId: string) {
-    return this.workspaceClient.getWorkspacePrivacySettings(companyId);
-  }
-
-  async updateWorkspacePrivacySettings(
-    companyId: string,
-    settings: Parameters<
-      WorkspaceApiClient["updateWorkspacePrivacySettings"]
-    >[1]
-  ) {
-    return this.workspaceClient.updateWorkspacePrivacySettings(
-      companyId,
-      settings
-    );
-  }
-
   async exportWorkspaceData(companyId: string) {
     return this.workspaceClient.exportWorkspaceData(companyId);
   }

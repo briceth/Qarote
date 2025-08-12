@@ -28,19 +28,7 @@ export const UpdateWorkspaceSchema = z.object({
   logoUrl: z.string().url("Invalid URL").optional(),
 });
 
-// Schema for updating workspace privacy settings
-export const updateWorkspacePrivacySchema = z.object({
-  storageMode: z.enum(["MEMORY_ONLY", "TEMPORARY", "HISTORICAL"]),
-  retentionDays: z.number().min(0).max(365),
-  encryptData: z.boolean(),
-  autoDelete: z.boolean(),
-  consentGiven: z.boolean(),
-});
-
 // Types derived from schemas
 export type CreateWorkspaceInput = z.infer<typeof CreateWorkspaceSchema>;
 export type UpdateWorkspaceInput = z.infer<typeof UpdateWorkspaceSchema>;
-export type UpdateWorkspacePrivacyInput = z.infer<
-  typeof updateWorkspacePrivacySchema
->;
 export type WorkspacePlan = z.infer<typeof WorkspacePlanSchema>;
