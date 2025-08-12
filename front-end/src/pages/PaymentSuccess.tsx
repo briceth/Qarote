@@ -39,7 +39,7 @@ const PaymentSuccess: React.FC = () => {
   }, [sessionId]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-page flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 text-center">
         <div className="mb-6">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -70,7 +70,7 @@ const PaymentSuccess: React.FC = () => {
         <div className="space-y-3">
           <button
             onClick={() => navigate("/queues")}
-            className="w-full btn-primary py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center"
+            className="w-full bg-gradient-button hover:bg-gradient-button-hover text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center"
           >
             Explore Your Dashboard
             <ArrowRight className="w-4 h-4 ml-2" />
