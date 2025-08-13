@@ -17,14 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlanBadge } from "@/components/ui/PlanBadge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageLoader } from "@/components/PageLoader";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
+import { AddUserButton } from "@/components/users/AddUserButton";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import {
   Table,
   TableBody,
@@ -58,6 +55,7 @@ export default function UsersPage() {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserTags, setNewUserTags] = useState("");
   const [newUserVhost, setNewUserVhost] = useState("/");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const currentServerId = serverId || selectedServerId;
 
@@ -437,133 +435,6 @@ export default function UsersPage() {
                         placeholder="policymaker, monitoring, management"
                         className="w-full"
                       />
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className="font-medium cursor-pointer hover:text-foreground transition-colors"
-                              onClick={() => {
-                                const tag = "administrator";
-                                if (newUserTags.trim()) {
-                                  setNewUserTags(newUserTags + ", " + tag);
-                                } else {
-                                  setNewUserTags(tag);
-                                }
-                              }}
-                            >
-                              Administrator
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              Full management access to all RabbitMQ features
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>{" "}
-                        |{" "}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className="font-medium cursor-pointer hover:text-foreground transition-colors"
-                              onClick={() => {
-                                const tag = "policymaker";
-                                if (newUserTags.trim()) {
-                                  setNewUserTags(newUserTags + ", " + tag);
-                                } else {
-                                  setNewUserTags(tag);
-                                }
-                              }}
-                            >
-                              Policymaker
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              Can set policies and manage
-                              vhosts/exchanges/queues
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>{" "}
-                        |{" "}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className="font-medium cursor-pointer hover:text-foreground transition-colors"
-                              onClick={() => {
-                                const tag = "monitoring";
-                                if (newUserTags.trim()) {
-                                  setNewUserTags(newUserTags + ", " + tag);
-                                } else {
-                                  setNewUserTags(tag);
-                                }
-                              }}
-                            >
-                              Monitoring
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Read-only access for monitoring and metrics</p>
-                          </TooltipContent>
-                        </Tooltip>{" "}
-                        |{" "}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className="font-medium cursor-pointer hover:text-foreground transition-colors"
-                              onClick={() => {
-                                const tag = "management";
-                                if (newUserTags.trim()) {
-                                  setNewUserTags(newUserTags + ", " + tag);
-                                } else {
-                                  setNewUserTags(tag);
-                                }
-                              }}
-                            >
-                              Management
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Access to the management UI and HTTP API</p>
-                          </TooltipContent>
-                        </Tooltip>{" "}
-                        |{" "}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className="font-medium cursor-pointer hover:text-foreground transition-colors"
-                              onClick={() => {
-                                const tag = "impersonator";
-                                if (newUserTags.trim()) {
-                                  setNewUserTags(newUserTags + ", " + tag);
-                                } else {
-                                  setNewUserTags(tag);
-                                }
-                              }}
-                            >
-                              Impersonator
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Can impersonate other users for connections</p>
-                          </TooltipContent>
-                        </Tooltip>{" "}
-                        |{" "}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className="font-medium cursor-pointer hover:text-foreground transition-colors"
-                              onClick={() => {
-                                setNewUserTags("");
-                              }}
-                            >
-                              None
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Regular user with no special privileges</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
                     </div>
 
                     {/* Virtual Host Access Section */}
@@ -589,27 +460,20 @@ export default function UsersPage() {
                     </div>
 
                     <div>
-                      <Button
-                        onClick={() => {
-                          if (!newUserName.trim()) {
-                            toast.error("Username is required");
-                            return;
-                          }
-                          createUserMutation.mutate({
-                            username: newUserName.trim(),
-                            password: newUserPassword.trim() || undefined,
-                            tags: newUserTags.trim() || undefined,
-                          });
+                      <AddUserButton
+                        serverId={currentServerId}
+                        onUpgradeClick={() => setShowUpgradeModal(true)}
+                        onSuccess={() => {
+                          setNewUserName("");
+                          setNewUserPassword("");
+                          setNewUserTags("");
+                          setNewUserVhost("/");
                         }}
-                        disabled={
-                          createUserMutation.isPending || !newUserName.trim()
-                        }
-                        className="btn-primary"
-                      >
-                        {createUserMutation.isPending
-                          ? "Adding..."
-                          : "Add user"}
-                      </Button>
+                        initialName={newUserName}
+                        initialPassword={newUserPassword}
+                        initialTags={newUserTags}
+                        initialVhost={newUserVhost}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -642,6 +506,13 @@ export default function UsersPage() {
                   isLoading={deleteUserMutation.isPending}
                 />
               )}
+
+              <PlanUpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                currentPlan={workspacePlan}
+                feature="User Management"
+              />
             </div>
           </main>
         </div>

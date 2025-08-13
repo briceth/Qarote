@@ -19,6 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { PageLoader } from "@/components/PageLoader";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
+import { AddVirtualHostButton } from "@/components/AddVirtualHostButton";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import {
   Table,
   TableBody,
@@ -48,6 +50,7 @@ export default function VHostsPage() {
   const [deleteVHost, setDeleteVHost] = useState<VHost | null>(null);
   const [filterRegex, setFilterRegex] = useState("");
   const [newVHostName, setNewVHostName] = useState("");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const currentServerId = serverId || selectedServerId;
 
@@ -373,12 +376,12 @@ export default function VHostsPage() {
                       className="max-w-md"
                     />
                   </div>
-                  <Button
-                    onClick={() => setShowCreateModal(true)}
-                    className="btn-primary"
-                  >
-                    Add virtual host
-                  </Button>
+                  <AddVirtualHostButton
+                    serverId={currentServerId}
+                    onUpgradeClick={() => setShowUpgradeModal(true)}
+                    onSuccess={() => setNewVHostName("")}
+                    initialName={newVHostName}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -401,6 +404,14 @@ export default function VHostsPage() {
                 isLoading={deleteVHostMutation.isPending}
               />
             )}
+
+            {/* Plan Upgrade Modal */}
+            <PlanUpgradeModal
+              isOpen={showUpgradeModal}
+              onClose={() => setShowUpgradeModal(false)}
+              currentPlan={workspacePlan}
+              feature="virtual host creation"
+            />
           </div>
         </main>
       </div>

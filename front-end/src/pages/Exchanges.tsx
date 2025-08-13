@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/useToast";
 import CreateExchangeDialog from "@/components/ExchangeManagement";
+import { AddExchangeButton } from "@/components/AddExchangeButton";
+import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { ApiErrorWithCode } from "@/types/apiErrors";
 
 const Exchanges = () => {
@@ -53,6 +55,7 @@ const Exchanges = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exchangeToDelete, setExchangeToDelete] = useState<string>("");
   const [forceDelete, setForceDelete] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const {
     data: exchangesData,
@@ -238,7 +241,13 @@ const Exchanges = () => {
               </div>
               <div className="flex items-center gap-4">
                 <PlanBadge workspacePlan={workspacePlan} />
-                <CreateExchangeDialog serverId={selectedServerId} />
+                <AddExchangeButton
+                  onUpgradeClick={() => setShowUpgradeModal(true)}
+                  onAddClick={() => {
+                    // Handle add click for Pro users
+                    console.log("Add exchange clicked");
+                  }}
+                />
               </div>
             </div>
 
@@ -689,6 +698,13 @@ const Exchanges = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PlanUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={workspacePlan}
+        feature="Exchange Management"
+      />
     </SidebarProvider>
   );
 };

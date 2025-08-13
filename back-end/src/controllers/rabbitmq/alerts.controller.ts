@@ -22,7 +22,6 @@ alertsController.get(
   zValidator("query", AlertsQuerySchema),
   async (c) => {
     const { id } = c.req.valid("param");
-    const query = c.req.valid("query");
     const user = c.get("user");
 
     try {
