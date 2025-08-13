@@ -18,7 +18,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { PageLoader } from "@/components/PageLoader";
-import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import {
   Table,
@@ -237,7 +236,6 @@ export default function VHostsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <PlanBadge workspacePlan={workspacePlan} />
-                <ConnectionStatus />
               </div>
             </div>
 

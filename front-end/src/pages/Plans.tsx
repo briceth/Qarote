@@ -359,7 +359,8 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                 <div>
                   <h1 className="title-page">Choose Your Plan</h1>
                   <p className="text-gray-500">
-                    Scale your RabbitMQ monitoring with plans designed for teams of all sizes.
+                    Scale your RabbitMQ monitoring with plans designed for teams
+                    of all sizes.
                   </p>
                 </div>
               </div>
@@ -373,7 +374,8 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                   Scale your RabbitMQ monitoring
                 </h2>
                 <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-                  From individual developers to enterprise teams, we have you covered.
+                  From individual developers to enterprise teams, we have you
+                  covered.
                 </p>
 
                 {/* Feature Highlights */}
@@ -455,7 +457,9 @@ export const PlansPage: React.FC<PlansPageProps> = ({
                     Yearly
                   </span>
                   {billingPeriod === "yearly" && (
-                    <Badge className="bg-green-100 text-green-800">Save 20%</Badge>
+                    <Badge className="bg-green-100 text-green-800">
+                      Save 20%
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -491,7 +495,12 @@ const Plans: React.FC = () => {
   const { handleUpgrade } = usePlanUpgrade();
   const { workspace } = useWorkspace();
 
-  return <PlansPage currentPlan={workspace?.plan as WorkspacePlan} onUpgrade={handleUpgrade} />;
+  return (
+    <PlansPage
+      currentPlan={workspace?.plan as WorkspacePlan}
+      onUpgrade={handleUpgrade}
+    />
+  );
 };
 
 export default Plans;

@@ -24,7 +24,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PageLoader } from "@/components/PageLoader";
-import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import {
   Table,
@@ -279,7 +278,6 @@ export default function UsersPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <PlanBadge workspacePlan={workspacePlan} />
-                  <ConnectionStatus />
                 </div>
               </div>
 
