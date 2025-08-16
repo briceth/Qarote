@@ -70,15 +70,6 @@ jobs:
           ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
           git_push_flags: "--force"
 
-      # - name: 🔄 Restart application to pick up new variables
-      #   run: |
-      #     ssh dokku@${vars.DOKKU_HOST }} ps:restart ${nv.APP_NAME }}
-
-      ## - name: 🔒 Configure SSL
-      #   run: |
-      #     ssh dokku@$ vars.DOKKU_HOST letsencrypt:set ${env.APP_NAME }} email tessierhuort@gmail.com
-      #     ssh dokku@$ vars.DOKKU_HOST letsencrypt:enable ${env.APP_NAME }}
-
       - name: 🔍 Debug Dokku Environment
         run: |
           echo "Checking environment variables in Dokku..."

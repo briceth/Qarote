@@ -271,14 +271,16 @@ export async function executeRemoteCommands(
         `rabbithq@${serverIP}`,
         combinedCommand,
       ],
-      { stdio: "pipe" }
+      { stdio: "inherit" }
     );
 
     if (result.exitCode !== 0) {
-      throw new Error(`Command execution failed: ${result.stderr}`);
+      throw new Error(
+        `Command execution failed with exit code ${result.exitCode}`
+      );
     }
 
-    return result.stdout;
+    return result.stdout || "Command completed successfully";
   } catch (error) {
     throw new Error(
       `Failed to execute remote commands: ${

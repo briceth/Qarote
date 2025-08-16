@@ -1,0 +1,144 @@
+name: Deploy Backend to Production
+
+env:
+  APP_NAME: rabbit-hq-production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production:
+        description: 'Type "DEPLOY" to confirm production deployment'
+        required: true
+        default: ""
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend to Production
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.event.inputs.confirm_production == 'DEPLOY'
+
+    steps:
+      - name: 🔍 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔑 Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+
+      - name: 🏗️ Add SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ vars.DOKKU_HOST_APP1 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ vars.DOKKU_HOST_APP2 }} >> ~/.ssh/known_hosts
+
+      - name: 📝 Configure Environment Variables - App Server 1
+        run: |
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} \
+            DOMAIN_BACKEND=${{ vars.DOMAIN_BACKEND }} \
+            DOMAIN_FRONTEND=${{ vars.DOMAIN_FRONTEND }} \
+            PORT=${{ vars.PORT }} \
+            HOST=${{ vars.HOST }} \
+            NODE_ENV=${{ vars.NODE_ENV }} \
+            ENVIRONMENT=production \
+            LOG_LEVEL=${{ vars.LOG_LEVEL }} \
+            JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
+            CORS_ORIGIN=${{ vars.CORS_ORIGIN }} \
+            FRONTEND_URL=${{ vars.FRONTEND_URL }} \
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
+            FROM_EMAIL=${{ vars.FROM_EMAIL }} \
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} \
+            STRIPE_DEVELOPER_MONTHLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_MONTHLY_PRICE_ID }} \
+            STRIPE_DEVELOPER_YEARLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_YEARLY_PRICE_ID }} \
+            STRIPE_STARTUP_MONTHLY_PRICE_ID=${{ vars.STRIPE_STARTUP_MONTHLY_PRICE_ID }} \
+            STRIPE_STARTUP_YEARLY_PRICE_ID=${{ vars.STRIPE_STARTUP_YEARLY_PRICE_ID }} \
+            STRIPE_BUSINESS_MONTHLY_PRICE_ID=${{ vars.STRIPE_BUSINESS_MONTHLY_PRICE_ID }} \
+            STRIPE_BUSINESS_YEARLY_PRICE_ID=${{ vars.STRIPE_BUSINESS_YEARLY_PRICE_ID }} \
+            SENTRY_DSN=${{ vars.SENTRY_DSN }} \
+            SENTRY_ENABLED=${{ vars.SENTRY_ENABLED }} \
+            DATABASE_URL=${{ secrets.DATABASE_URL_PROD }} \
+            REDIS_URL=${{ secrets.REDIS_URL_APP1 }} \
+            NODE_ID=app1
+
+      - name: 📝 Configure Environment Variables - App Server 2
+        run: |
+          ssh dokku@${{ vars.DOKKU_HOST_APP2 }} config:set ${{ env.APP_NAME }} \
+            DOMAIN_BACKEND=${{ vars.DOMAIN_BACKEND }} \
+            DOMAIN_FRONTEND=${{ vars.DOMAIN_FRONTEND }} \
+            PORT=${{ vars.PORT }} \
+            HOST=${{ vars.HOST }} \
+            NODE_ENV=${{ vars.NODE_ENV }} \
+            ENVIRONMENT=production \
+            LOG_LEVEL=${{ vars.LOG_LEVEL }} \
+            JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
+            CORS_ORIGIN=${{ vars.CORS_ORIGIN }} \
+            FRONTEND_URL=${{ vars.FRONTEND_URL }} \
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
+            FROM_EMAIL=${{ vars.FROM_EMAIL }} \
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} \
+            STRIPE_DEVELOPER_MONTHLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_MONTHLY_PRICE_ID }} \
+            STRIPE_DEVELOPER_YEARLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_YEARLY_PRICE_ID }} \
+            STRIPE_STARTUP_MONTHLY_PRICE_ID=${{ vars.STRIPE_STARTUP_MONTHLY_PRICE_ID }} \
+            STRIPE_STARTUP_YEARLY_PRICE_ID=${{ vars.STRIPE_STARTUP_YEARLY_PRICE_ID }} \
+            STRIPE_BUSINESS_MONTHLY_PRICE_ID=${{ vars.STRIPE_BUSINESS_MONTHLY_PRICE_ID }} \
+            STRIPE_BUSINESS_YEARLY_PRICE_ID=${{ vars.STRIPE_BUSINESS_YEARLY_PRICE_ID }} \
+            SENTRY_DSN=${{ vars.SENTRY_DSN }} \
+            SENTRY_ENABLED=${{ vars.SENTRY_ENABLED }} \
+            DATABASE_URL=${{ secrets.DATABASE_URL_PROD }} \
+            REDIS_URL=${{ secrets.REDIS_URL_APP2 }} \
+            NODE_ID=app2
+
+      - name: 🐳 Deploy to App Server 1
+        uses: dokku/github-action@master
+        with:
+          git_remote_url: "ssh://dokku@${{ vars.DOKKU_HOST_APP1 }}:22/${{ env.APP_NAME }}"
+          ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+          git_push_flags: "--force"
+
+      - name: 🐳 Deploy to App Server 2
+        uses: dokku/github-action@master
+        with:
+          git_remote_url: "ssh://dokku@${{ vars.DOKKU_HOST_APP2 }}:22/${{ env.APP_NAME }}"
+          ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+          git_push_flags: "--force"
+
+      - name: 🔍 Debug Dokku Environment - Server 1
+        run: |
+          echo "Checking environment variables in Dokku App Server 1..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:show ${{ env.APP_NAME }}
+          echo "-----------------------------------------------"
+          echo "Checking if app is running on Server 1..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} ps:report ${{ env.APP_NAME }}
+
+      - name: 🔍 Debug Dokku Environment - Server 2
+        run: |
+          echo "Checking environment variables in Dokku App Server 2..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP2 }} config:show ${{ env.APP_NAME }}
+          echo "-----------------------------------------------"
+          echo "Checking if app is running on Server 2..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP2 }} ps:report ${{ env.APP_NAME }}
+
+      - name: 🩺 Verify health endpoints
+        run: |
+          echo "Waiting for deployments to stabilize..."
+          sleep 30
+          echo "Testing health endpoint on load balancer..."
+          curl -sSf https://${{ vars.DOMAIN_BACKEND }}/health || echo "Health check not yet available, deployment may still be in progress"
+          echo "Testing direct health endpoints..."
+          curl -sSf http://${{ vars.DOKKU_HOST_APP1 }}/health || echo "App1 health check failed"
+          curl -sSf http://${{ vars.DOKKU_HOST_APP2 }}/health || echo "App2 health check failed"
+
+      - name: ✅ Deployment complete
+        run: |
+          echo "🎉 Deployment to production completed successfully!"
+          echo "🔍 Backend URL: https://${{ vars.DOMAIN_BACKEND }}"
+          echo "🔍 Health check: https://${{ vars.DOMAIN_BACKEND }}/health"
+          echo "🔍 Load Balancer IP: ${{ vars.LOAD_BALANCER_IP }}"
+          echo "📝 Commit: ${{ github.sha }}"

@@ -13,9 +13,9 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "setup": "tsx scripts/setup-server.ts",
-    "setup:staging": "tsx scripts/setup-server.ts staging",
-    "setup:production": "tsx scripts/setup-server.ts production",
+    "setup": "tsx scripts/setup/index.ts",
+    "setup:staging": "tsx scripts/setup/index.ts staging",
+    "setup:production": "tsx scripts/setup/index.ts production",
     "status:staging": "tsx scripts/status.ts staging",
     "status:production": "tsx scripts/status.ts production",
     "logs:staging": "tsx scripts/logs.ts staging",
