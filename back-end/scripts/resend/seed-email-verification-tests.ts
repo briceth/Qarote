@@ -10,9 +10,9 @@
  */
 
 import { PrismaClient, WorkspacePlan, UserRole } from "@prisma/client";
-import { hashPassword } from "../src/core/auth";
-import { logger } from "../src/core/logger";
-import { EmailVerificationService } from "../src/services/email/email-verification.service";
+import { hashPassword } from "../../src/core/auth";
+import { logger } from "../../src/core/logger";
+import { EmailVerificationService } from "../../src/services/email/email-verification.service";
 import { addHours, subHours } from "date-fns";
 
 const prisma = new PrismaClient();

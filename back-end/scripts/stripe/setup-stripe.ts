@@ -80,7 +80,10 @@ class StripeSetup {
   private checkLogin() {
     try {
       const result = execSync("stripe config --list", { encoding: "utf8" });
-      if (result.includes("test_mode_api_key")) {
+      if (
+        result.includes("test_mode_api_key") ||
+        result.includes("live_mode_api_key")
+      ) {
         console.log("✅ Logged into Stripe");
         return true;
       }
@@ -95,31 +98,84 @@ class StripeSetup {
   }
 
   private checkMode() {
-    try {
-      const config = execSync("stripe config --list", { encoding: "utf8" });
+    // Load .env file to check for live key
+    this.loadEnvFile();
 
-      if (config.includes("test_mode_api_key")) {
-        console.log("🧪 Currently in TEST mode");
-        console.log("   - Safe for development");
-        console.log("   - Use test cards (4242 4242 4242 4242)");
-        console.log("   - No real money charged");
-        return "test";
-      } else if (config.includes("live_mode_api_key")) {
-        console.log("🚀 Currently in LIVE mode");
-        console.log("   - ⚠️  REAL MONEY WILL BE CHARGED");
-        console.log("   - Use real payment methods");
-        console.log("   - Production environment");
-        return "live";
-      } else {
+    const envStripeKey = process.env.STRIPE_SECRET_KEY;
+
+    if (envStripeKey?.startsWith("sk_live_")) {
+      console.log("🚀 Currently in LIVE mode");
+      console.log("   - ⚠️  REAL MONEY WILL BE CHARGED");
+      console.log("   - Use real payment methods");
+      console.log("   - Production environment");
+      console.log(`   - Using env key: ${envStripeKey.substring(0, 20)}...`);
+      return "live";
+    } else if (envStripeKey?.startsWith("sk_test_")) {
+      console.log("🧪 Currently in TEST mode");
+      console.log("   - Safe for development");
+      console.log("   - Use test cards (4242 4242 4242 4242)");
+      console.log("   - No real money charged");
+      console.log(`   - Using env key: ${envStripeKey.substring(0, 20)}...`);
+      return "test";
+    } else {
+      // Fallback to CLI config
+      try {
+        const config = execSync("stripe config --list", { encoding: "utf8" });
+
+        if (config.includes("test_mode_api_key")) {
+          console.log("🧪 Currently in TEST mode (CLI)");
+          console.log("   - Safe for development");
+          console.log("   - Use test cards (4242 4242 4242 4242)");
+          console.log("   - No real money charged");
+          return "test";
+        } else if (config.includes("live_mode_api_key")) {
+          console.log("🚀 Currently in LIVE mode (CLI)");
+          console.log("   - ⚠️  REAL MONEY WILL BE CHARGED");
+          console.log("   - Use real payment methods");
+          console.log("   - Production environment");
+          return "live";
+        } else {
+          console.log("❓ Could not determine mode");
+          console.log("   - Please run 'stripe login' first");
+          return "unknown";
+        }
+      } catch (error) {
         console.log("❓ Could not determine mode");
-        console.log("   - Please run 'stripe login' first");
-        return "unknown";
+        console.log("   - Stripe CLI may not be configured");
+        return "error";
       }
-    } catch (error) {
-      console.log("❓ Could not determine mode");
-      console.log("   - Stripe CLI may not be configured");
-      return "error";
     }
+  }
+
+  private loadEnvFile() {
+    if (existsSync(this.envPath)) {
+      const envContent = readFileSync(this.envPath, "utf8");
+      const envLines = envContent.split("\n");
+
+      for (const line of envLines) {
+        if (line.includes("=") && !line.startsWith("#")) {
+          const [key, ...valueParts] = line.split("=");
+          if (key && valueParts.length > 0) {
+            const value = valueParts.join("=").trim();
+            process.env[key.trim()] = value;
+          }
+        }
+      }
+    }
+  }
+
+  private getStripeCommand(command: string): string {
+    this.loadEnvFile();
+    const envStripeKey = process.env.STRIPE_SECRET_KEY;
+
+    if (
+      envStripeKey?.startsWith("sk_live_") ||
+      envStripeKey?.startsWith("sk_test_")
+    ) {
+      return `STRIPE_API_KEY=${envStripeKey} ${command}`;
+    }
+
+    return command;
   }
 
   private async createAll() {
@@ -136,20 +192,24 @@ class StripeSetup {
       console.log(`\n🏷️  Creating ${config.name}...`);
 
       try {
-        // Create product (without metadata - use JSON approach instead)
+        // Create product (using env-based API key)
         console.log(`  🔨 Creating product...`);
         const productResult = execSync(
-          `stripe products create --name "${config.name}" --description "${config.description}"`,
+          this.getStripeCommand(
+            `stripe products create --name "${config.name}" --description "${config.description}"`
+          ),
           { encoding: "utf8" }
         );
 
         const productId = this.extractId(productResult);
         console.log(`  ✅ Product: ${productId}`);
 
-        // Create monthly price (using correct recurring syntax)
+        // Create monthly price (using env-based API key)
         console.log(`  🔨 Creating monthly price...`);
         const monthlyResult = execSync(
-          `stripe prices create --unit-amount ${config.monthly} --currency usd --recurring.interval month --product ${productId}`,
+          this.getStripeCommand(
+            `stripe prices create --unit-amount ${config.monthly} --currency usd --recurring.interval month --product ${productId}`
+          ),
           { encoding: "utf8" }
         );
 
@@ -158,10 +218,12 @@ class StripeSetup {
           `  💰 Monthly: ${monthlyPriceId} ($${config.monthly / 100})`
         );
 
-        // Create yearly price (using correct recurring syntax)
+        // Create yearly price (using env-based API key)
         console.log(`  🔨 Creating yearly price...`);
         const yearlyResult = execSync(
-          `stripe prices create --unit-amount ${config.yearly} --currency usd --recurring.interval year --product ${productId}`,
+          this.getStripeCommand(
+            `stripe prices create --unit-amount ${config.yearly} --currency usd --recurring.interval year --product ${productId}`
+          ),
           { encoding: "utf8" }
         );
 
@@ -217,15 +279,21 @@ class StripeSetup {
     console.log("📋 Current Stripe products:\n");
 
     try {
-      const result = execSync("stripe products list --limit 20", {
-        encoding: "utf8",
-      });
+      const result = execSync(
+        this.getStripeCommand("stripe products list --limit 20"),
+        {
+          encoding: "utf8",
+        }
+      );
       console.log(result);
 
       console.log("\n💰 Current prices:");
-      const pricesResult = execSync("stripe prices list --limit 20", {
-        encoding: "utf8",
-      });
+      const pricesResult = execSync(
+        this.getStripeCommand("stripe prices list --limit 20"),
+        {
+          encoding: "utf8",
+        }
+      );
       console.log(pricesResult);
     } catch (error) {
       console.error("Failed to list products:", error);
@@ -240,9 +308,12 @@ class StripeSetup {
 
     try {
       // List products with metadata
-      const result = execSync("stripe products list --limit 100", {
-        encoding: "utf8",
-      });
+      const result = execSync(
+        this.getStripeCommand("stripe products list --limit 100"),
+        {
+          encoding: "utf8",
+        }
+      );
       const products = JSON.parse(result);
 
       if (products.data) {
@@ -266,9 +337,14 @@ class StripeSetup {
           console.log(`🗑️  Archiving: ${product.name} (${product.id})`);
 
           try {
-            execSync(`stripe products update ${product.id} --active false`, {
-              stdio: "ignore",
-            });
+            execSync(
+              this.getStripeCommand(
+                `stripe products update ${product.id} --active false`
+              ),
+              {
+                stdio: "ignore",
+              }
+            );
             console.log(`  ✅ Archived ${product.id}`);
           } catch (error) {
             console.log(`  ❌ Failed to archive ${product.id}`);
@@ -316,6 +392,9 @@ class StripeSetup {
     this.checkStripeCli();
     this.checkLogin();
 
+    // Load environment variables
+    this.loadEnvFile();
+
     // Check environment variables
     const requiredVars = [
       "STRIPE_SECRET_KEY",
@@ -324,22 +403,6 @@ class StripeSetup {
       "STRIPE_ENTERPRISE_MONTHLY_PRICE_ID",
       "STRIPE_ENTERPRISE_YEARLY_PRICE_ID",
     ];
-
-    // Load .env if it exists
-    if (existsSync(this.envPath)) {
-      const envContent = readFileSync(this.envPath, "utf8");
-      const envLines = envContent.split("\n");
-
-      for (const line of envLines) {
-        if (line.includes("=") && !line.startsWith("#")) {
-          const [key, ...valueParts] = line.split("=");
-          if (key && valueParts.length > 0) {
-            const value = valueParts.join("=").trim();
-            process.env[key.trim()] = value;
-          }
-        }
-      }
-    }
 
     let allValid = true;
 
@@ -352,7 +415,9 @@ class StripeSetup {
         // Verify price IDs exist in Stripe
         if (varName.includes("PRICE_ID")) {
           try {
-            execSync(`stripe prices retrieve ${value}`, { stdio: "ignore" });
+            execSync(this.getStripeCommand(`stripe prices retrieve ${value}`), {
+              stdio: "ignore",
+            });
             console.log(`   ✅ Price exists in Stripe`);
           } catch {
             console.log(`   ❌ Price not found in Stripe`);

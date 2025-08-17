@@ -13,8 +13,8 @@
  */
 
 import { PrismaClient, WorkspacePlan, UserRole } from "@prisma/client";
-import { hashPassword } from "../src/core/auth";
-import { logger } from "../src/core/logger";
+import { hashPassword } from "../../src/core/auth";
+import { logger } from "../../src/core/logger";
 
 const prisma = new PrismaClient();
 

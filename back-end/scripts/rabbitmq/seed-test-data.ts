@@ -7,10 +7,10 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { logger } from "../src/core/logger";
+import { logger } from "../../src/core/logger";
 import { seedTestUsers } from "./seed-test-users";
 import { seedLimitTests } from "./seed-limit-tests";
-import { seedEmailVerificationTests } from "./seed-email-verification-tests";
+import { seedEmailVerificationTests } from "../resend/seed-email-verification-tests";
 
 const prisma = new PrismaClient();
 
