@@ -9,13 +9,28 @@ echo "🌐 Testing network connectivity..."
 ping -c 1 8.8.8.8
 nslookup google.com
 
-# Update system (idempotent)
+# Update system (idempotent with lock waiting)
 echo "📦 Updating system packages..."
+
+# Wait for APT lock to be released
+echo "⏳ Waiting for APT lock to be released..."
+while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+  echo "APT is locked, waiting 10 seconds..."
+  sleep 10
+done
+
 apt-get update
 apt-get upgrade -y
 
-# Install dependencies (idempotent)
+# Install dependencies (idempotent with lock waiting)
 echo "📦 Installing dependencies..."
+
+# Wait for APT lock again before installing
+while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+  echo "APT is locked, waiting 10 seconds..."
+  sleep 10
+done
+
 apt-get install -y curl wget git ufw dnsutils
 
 # Configure firewall for application server (idempotent)

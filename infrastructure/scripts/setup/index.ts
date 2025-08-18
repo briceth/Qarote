@@ -1,17 +1,15 @@
 /**
  * Main entry point for the server setup script
  */
+import { config } from "dotenv";
 import { Command } from "commander";
 import { Environment, Logger, validateEnvironment } from "../utils";
 import { InfrastructureResult, SetupOptions } from "./common";
 import { ensureSSHKey, getOrCreateHetznerLoadBalancer } from "./hetzner";
-import {
-  getServerConfig,
-  provisionApplicationServer,
-  provisionDatabaseServer,
-  configureApplicationServer,
-  configureDatabaseServer,
-} from "./servers";
+import { setupInfrastructure as setupInfrastructureRouter } from "./servers";
+
+// Load environment variables from .env file
+config({ path: ".env" });
 
 /**
  * Main setup function
@@ -27,26 +25,20 @@ export async function setupInfrastructure(
     const sshKey = await ensureSSHKey();
     Logger.success(`Using SSH key: ${sshKey.name}`);
 
-    // Provision application server
-    const appServer = await provisionApplicationServer(environment, sshKey.id);
+    // Use the router to set up infrastructure based on environment
+    const { appServer, dbServer } = await setupInfrastructureRouter(environment, sshKey.id);
+    
     Logger.success(
       `Application server ${appServer.name} is ready at ${appServer.public_net.ipv4.ip}`
     );
-
-    // Provision database server
-    const dbServer = await provisionDatabaseServer(environment, sshKey.id);
     Logger.success(
       `Database server ${dbServer.name} is ready at ${dbServer.public_net.ipv4.ip}`
     );
 
-    // Configure the servers to work together
-    await configureApplicationServer(appServer);
-    await configureDatabaseServer(dbServer, appServer.public_net.ipv4.ip);
-
-    // Setup load balancer if required
-    const config = getServerConfig(environment);
+    // Setup load balancer
+    const lbName = `rabbithq-lb-${environment}`;
     const loadBalancer = await getOrCreateHetznerLoadBalancer(
-      config.loadBalancer.name,
+      lbName,
       [appServer.id],
       environment
     );
@@ -145,6 +137,6 @@ Examples:
 // Use the last part of the script path to check if we're the main module
 const scriptPath = process.argv[1] || "";
 const scriptName = scriptPath.split("/").pop();
-if (scriptName === "index.js") {
+if (scriptName === "index.js" || scriptName === "index.ts") {
   main();
 }

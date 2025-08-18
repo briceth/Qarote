@@ -9,7 +9,19 @@ import { HetznerServer, HetznerLoadBalancer, HetznerSSHKey } from "./common";
  * Hetzner Cloud API Configuration
  */
 const HETZNER_API_URL = "https://api.hetzner.cloud/v1";
-const HETZNER_API_TOKEN = process.env.HETZNER_API_TOKEN;
+
+/**
+ * Get Hetzner API token (checked dynamically)
+ */
+function getHetznerApiToken(): string {
+  const token = process.env.HETZNER_API_TOKEN;
+  if (!token) {
+    throw new Error(
+      "HETZNER_API_TOKEN environment variable is not set. Please set it in your .env file."
+    );
+  }
+  return token;
+}
 
 /**
  * Make a request to Hetzner Cloud API using fetch
@@ -18,11 +30,7 @@ export async function hetznerApiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  if (!HETZNER_API_TOKEN) {
-    throw new Error(
-      "HETZNER_API_TOKEN environment variable is not set. Please set it in your .env file."
-    );
-  }
+  const HETZNER_API_TOKEN = getHetznerApiToken();
 
   const url = `${HETZNER_API_URL}${endpoint}`;
   const headers = {
@@ -83,50 +91,46 @@ export async function ensureSSHKey(): Promise<HetznerSSHKey> {
       "/ssh_keys"
     );
 
-    // Check if our public key already exists
+    // First, try exact public key match
+    const normalizedLocalKey = localPublicKey.trim().replace(/\s+/g, ' ');
+    
     for (const key of response.ssh_keys) {
-      if (
-        key.public_key.trim() === localPublicKey.trim() ||
-        key.name.startsWith("rabbithq-main-")
-      ) {
-        Logger.success(`Found existing SSH key: ${key.name}`);
+      const normalizedRemoteKey = key.public_key.trim().replace(/\s+/g, ' ');
+      
+      if (normalizedRemoteKey === normalizedLocalKey) {
+        Logger.success(`Found existing SSH key with exact public key match: ${key.name} (ID: ${key.id})`);
         return key;
       }
     }
-  } catch (error) {
-    Logger.warning(
-      `Failed to get SSH keys: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
-    Logger.info("Will create new SSH key instead.");
-  }
 
-  // Create new SSH key with unique name
-  Logger.info(`Creating new SSH key using ${keyUsed}...`);
-
-  const timestamp = Date.now();
-  const keyName = `rabbithq-main-${
-    keyUsed.includes("main") ? "standard" : "fallback"
-  }-${timestamp}`;
-
-  try {
-    const response = await hetznerApiRequest<{ ssh_key: HetznerSSHKey }>(
-      "/ssh_keys",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          name: keyName,
-          public_key: localPublicKey.trim(),
-        }),
+    // If no exact match, try to find any rabbithq key
+    for (const key of response.ssh_keys) {
+      if (key.name.includes("rabbithq") || key.name.startsWith("rabbithq-main-")) {
+        Logger.success(`Found existing RabbitHQ SSH key: ${key.name} (ID: ${key.id})`);
+        Logger.info("Using this key for infrastructure setup.");
+        return key;
       }
+    }
+
+    // If no rabbithq keys, use the first available key
+    if (response.ssh_keys.length > 0) {
+      const firstKey = response.ssh_keys[0];
+      Logger.success(`Using first available SSH key: ${firstKey.name} (ID: ${firstKey.id})`);
+      return firstKey;
+    }
+
+    // No SSH keys found at all
+    throw new Error(
+      "No SSH keys found in your Hetzner Cloud account. Please add an SSH key manually through the Hetzner Cloud Console first."
     );
 
-    Logger.success(`Created new SSH key: ${keyName}`);
-    return response.ssh_key;
   } catch (error) {
+    if (error instanceof Error && error.message.includes("No SSH keys found")) {
+      throw error; // Re-throw our custom error
+    }
+    
     throw new Error(
-      `Failed to create SSH key: ${
+      `Failed to retrieve SSH keys: ${
         error instanceof Error ? error.message : String(error)
       }`
     );
