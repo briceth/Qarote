@@ -110,8 +110,8 @@ async function main() {
       "after",
       `
 Examples:
-  npm run setup-server -- staging
-  npm run setup-server -- production
+  npm run setup:staging
+  npm run setup:production
 `
     )
     .action(async (env) => {

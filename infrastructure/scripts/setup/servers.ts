@@ -36,8 +36,7 @@ export function getServerConfig(environment: string): ServerConfig {
  * Set up an application server with Dokku
  */
 export async function setupApplicationServer(
-  server: HetznerServer,
-  environment: string
+  server: HetznerServer
 ): Promise<void> {
   const serverIP = server.public_net.ipv4.ip;
   Logger.info(`Setting up application server at ${serverIP}...`);
@@ -53,7 +52,7 @@ export async function setupApplicationServer(
   Logger.info("Running application server setup script...");
   const scriptOutput = await executeRemoteCommands(serverIP, [
     "sudo chmod +x /tmp/application-setup.sh",
-    `sudo ENV=${environment} /tmp/application-setup.sh`, // ??
+    `sudo /tmp/application-setup.sh`, // ??
   ]);
 
   if (scriptOutput.toLowerCase().includes("error")) {
@@ -69,8 +68,7 @@ export async function setupApplicationServer(
  * Set up a database server with PostgreSQL
  */
 export async function setupDatabaseServer(
-  server: HetznerServer,
-  environment: string
+  server: HetznerServer
 ): Promise<void> {
   const serverIP = server.public_net.ipv4.ip;
   Logger.info(`Setting up database server at ${serverIP}...`);
@@ -86,7 +84,7 @@ export async function setupDatabaseServer(
   Logger.info("Running database server setup script...");
   const scriptOutput = await executeRemoteCommands(serverIP, [
     "sudo chmod +x /tmp/database-setup.sh",
-    `sudo ENV=${environment} /tmp/database-setup.sh`,
+    `sudo /tmp/database-setup.sh`,
   ]);
 
   if (scriptOutput.toLowerCase().includes("error")) {
@@ -122,7 +120,7 @@ export async function provisionApplicationServer(
   await waitForServerReady(server.id);
 
   // Set up application server
-  await setupApplicationServer(server, environment);
+  await setupApplicationServer(server);
 
   return server;
 }
@@ -151,7 +149,7 @@ export async function provisionDatabaseServer(
   await waitForServerReady(server.id);
 
   // Set up database server
-  await setupDatabaseServer(server, environment);
+  await setupDatabaseServer(server);
 
   return server;
 }
