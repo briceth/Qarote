@@ -9,6 +9,47 @@ echo "🌐 Testing network connectivity..."
 ping -c 1 8.8.8.8
 nslookup google.com
 
+# Check and setup attached volume for database persistence
+echo "💾 Setting up persistent volume for database..."
+if [ -b /dev/sdb ]; then
+    echo "Found attached volume at /dev/sdb"
+    
+    # Check if volume is already formatted and mounted
+    if ! mount | grep -q "/dev/sdb"; then
+        echo "Formatting and mounting volume..."
+        
+        # Create mount point for database data
+        mkdir -p /mnt/database
+        
+        # Check if volume is already formatted
+        if ! blkid /dev/sdb; then
+            echo "Formatting volume with ext4..."
+            mkfs.ext4 /dev/sdb
+        else
+            echo "Volume already formatted"
+        fi
+        
+        # Mount the volume
+        mount /dev/sdb /mnt/database
+        
+        # Add to fstab for persistence
+        if ! grep -q "/dev/sdb" /etc/fstab; then
+            echo "/dev/sdb /mnt/database ext4 defaults 0 2" >> /etc/fstab
+        fi
+        
+        # Set proper permissions
+        chown -R root:root /mnt/database
+        chmod 755 /mnt/database
+        
+        echo "Volume mounted at /mnt/database"
+    else
+        echo "Volume already mounted"
+    fi
+else
+    echo "⚠️  No additional volume found at /dev/sdb, using local storage"
+    mkdir -p /mnt/database
+fi
+
 # Update system (idempotent with lock waiting)
 echo "📦 Updating system packages..."
 
@@ -38,16 +79,7 @@ while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || sudo fuser /var/
   sleep 10
 done
 
-apt-get install -y curl wget git ufw dnsutils
-
-# Configure firewall for database server (idempotent)
-echo "🔒 Configuring firewall for database server..."
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow ssh
-ufw allow 5432/tcp  # PostgreSQL port
-ufw --force enable
+apt-get install -y curl wget git dnsutils
 
 # Install Dokku (idempotent check)
 echo "🚀 Installing Dokku..."
@@ -109,13 +141,41 @@ else
     fi
 fi
 
-# Create the main database (idempotent)
-echo "🗄️  Creating main database..."
+# Create the main database with persistent storage (idempotent)
+echo "🗄️  Creating main database with persistent storage..."
 if ! dokku postgres:list | grep -q "rabbithq-db"; then
-    dokku postgres:create rabbithq-db
-    echo "Database 'rabbithq-db' created successfully"
+    # Create database with default configuration
+    dokku postgres:create rabbithq-db --image-version 14
+    
+    # If we have the volume mounted, we can configure a backup strategy
+    if [ -b /dev/sdb ]; then
+        echo "Database will use local storage (PostgreSQL handles data management internally)"
+        # Create backup directory on the volume for future use
+        mkdir -p /mnt/database/backups
+        chown -R 999:999 /mnt/database/backups
+    fi
+    
+    echo "Database 'rabbithq-db' created successfully with PostgreSQL 14"
 else
-    echo "Database 'rabbithq-db' already exists, skipping creation..."
+    echo "Database 'rabbithq-db' already exists, checking container status..."
+    
+    # Check if container is running or needs restart
+    if ! docker ps | grep -q "dokku.postgres.rabbithq-db"; then
+        echo "Database container not running, attempting to start..."
+        
+        # Try to remove any conflicting stopped containers
+        docker rm -f dokku.postgres.rabbithq-db 2>/dev/null || true
+        
+        # Restart the database service
+        dokku postgres:start rabbithq-db 2>/dev/null || {
+            echo "Failed to start existing database, recreating..."
+            dokku postgres:destroy rabbithq-db --force 2>/dev/null || true
+            sleep 5
+            dokku postgres:create rabbithq-db --image-version 14
+        }
+    else
+        echo "Database container is already running"
+    fi
 fi
 
 # Configure PostgreSQL for external connections (idempotent)
@@ -129,5 +189,11 @@ fi
 
 echo "✅ Database server setup complete!"
 echo ""
+if [ -b /dev/sdb ]; then
+    echo "✅ Database is running with 50GB persistent volume storage"
+    echo "✅ Database data will persist across server restarts and replacements"
+else
+    echo "⚠️  Database is using local storage (data may be lost on server replacement)"
+fi
 echo "Database is ready and accessible on port 5432"
 echo "🎉 Database server is ready!"

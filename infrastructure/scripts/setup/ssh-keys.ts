@@ -2,24 +2,24 @@
 
 /**
  * Setup SSH keys for both rabbithq and dokku users
- * This script adds the main SSH key to both users on existing servers
+ * This script adds the deployment SSH key to both users on existing servers
  */
 
 import fs from "node:fs/promises";
 import { Logger, executeCommand, Paths } from "../utils";
 
 /**
- * Add main SSH key to both users on a server
+ * Add deployment SSH key to both users on a server
  */
 async function setupSSHKeysOnServer(serverIp: string): Promise<void> {
   Logger.info(`Setting up SSH keys on server: ${serverIp}`);
 
-  const sshKeyPath = Paths.sshKeyPath;
-  const mainKeyPubPath = Paths.sshKeyPublicPath;
+  const sshKeyPath = Paths.sshKeyPath; // This points to id_rsa_deploy
+  const deployKeyPubPath = Paths.sshKeyPublicPath; // This points to id_rsa_deploy.pub
 
   try {
-    // Read the public key
-    const localPublicKey = await fs.readFile(mainKeyPubPath, "utf-8");
+    // Read the deployment public key
+    const localPublicKey = await fs.readFile(deployKeyPubPath, "utf-8");
     const publicKeyContent = localPublicKey.trim();
 
     // Test connection with rabbithq user
@@ -47,8 +47,8 @@ async function setupSSHKeysOnServer(serverIp: string): Promise<void> {
 
     Logger.success("RabbitHQ user connection works");
 
-    // Add main SSH key to dokku user
-    Logger.info("Adding main SSH key to dokku user...");
+    // Add deployment SSH key to dokku user
+    Logger.info("Adding deployment SSH key to dokku user...");
     const dokkuSetupResult = await executeCommand("ssh", [
       "-i",
       sshKeyPath,

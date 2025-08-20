@@ -6,7 +6,6 @@ packages:
   - wget # For downloading files
   - git # Version control system
   - vim # Text editor
-  - ufw # Uncomplicated Firewall
   - sudo # For user management
   - fail2ban # SSH protection
   - unattended-upgrades # Automatic security updates
@@ -37,16 +36,6 @@ ssh_config:
   ClientAliveCountMax: 2
 
 runcmd:
-  # Configure firewall
-  - ufw --force reset
-  - ufw default deny incoming
-  - ufw default allow outgoing
-  - ufw allow ssh
-  - ufw allow 80/tcp # HTTP
-  - ufw allow 443/tcp # HTTPS
-  - ufw allow 5432/tcp # PostgreSQL
-  - ufw --force enable
-
   # Restart SSH to apply configuration
   - systemctl restart sshd
 

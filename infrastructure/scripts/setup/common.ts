@@ -67,6 +67,108 @@ export interface HetznerSSHKey {
 }
 
 /**
+ * Hetzner Cloud firewall interface
+ */
+export interface HetznerFirewall {
+  id: number;
+  name: string;
+  labels: Record<string, string>;
+  created: string;
+  rules: Array<{
+    description?: string;
+    direction: "in" | "out";
+    source_ips: string[];
+    destination_ips: string[];
+    protocol: "tcp" | "udp" | "icmp" | "esp" | "gre";
+    port?: string;
+  }>;
+  applied_to: Array<{
+    type: "server" | "label_selector";
+    server?: {
+      id: number;
+    };
+    label_selector?: {
+      selector: string;
+    };
+    applied_to_resources: Array<{
+      type: "server";
+      server: {
+        id: number;
+      };
+    }>;
+  }>;
+}
+
+/**
+ * Hetzner Cloud create server request interface
+ */
+export interface CreateServerRequest {
+  name: string;
+  server_type: string;
+  image: string;
+  ssh_keys: Array<string | number>;
+  location?: string;
+  datacenter?: string;
+  start_after_create?: boolean;
+  placement_group?: number;
+  volumes?: number[];
+  networks?: number[];
+  firewalls?: Array<{
+    firewall: number;
+  }>;
+  user_data?: string;
+  labels?: Record<string, string>;
+  automount?: boolean;
+  public_net?: {
+    enable_ipv4?: boolean;
+    enable_ipv6?: boolean;
+    ipv4?: number | null;
+    ipv6?: number | null;
+  };
+}
+
+/**
+ * Hetzner Cloud volume interface
+ */
+export interface HetznerVolume {
+  id: number;
+  name: string;
+  size: number;
+  server?: number | null;
+  location: {
+    id: number;
+    name: string;
+    description: string;
+    country: string;
+    city: string;
+    latitude: number;
+    longitude: number;
+    network_zone: string;
+  };
+  linux_device?: string;
+  protection: {
+    delete: boolean;
+  };
+  labels: Record<string, string>;
+  status: "creating" | "available" | "attached";
+  format?: string;
+  created: string;
+}
+
+/**
+ * Hetzner Cloud create volume request interface
+ */
+export interface CreateVolumeRequest {
+  size: number;
+  name: string;
+  labels?: Record<string, string>;
+  automount?: boolean;
+  format?: "xfs" | "ext4";
+  location?: string;
+  server?: number;
+}
+
+/**
  * Setup infrastructure result
  */
 export interface InfrastructureResult {
@@ -219,6 +321,8 @@ export async function waitForSSH(
       const result = await executeCommand(
         "ssh",
         [
+          "-i",
+          `${process.env.HOME}/.ssh/id_rsa_deploy`, // Use deployment key explicitly
           "-o",
           "StrictHostKeyChecking=no",
           "-o",

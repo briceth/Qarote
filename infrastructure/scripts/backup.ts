@@ -18,7 +18,7 @@ import {
   Paths,
   type Environment,
   type EnvConfig,
-} from "./utils.js";
+} from "./utils";
 
 interface BackupOptions {
   environment: Environment;
@@ -96,7 +96,7 @@ async function createBackup(options: BackupOptions): Promise<void> {
     const downloadResult = await sshCommand(
       config.DOKKU_HOST,
       `cat ${remoteBackupPath}`,
-      "dokku"
+      { stdio: "inherit" }
     );
     if (downloadResult.exitCode !== 0) {
       throw new Error(`Failed to download backup: ${downloadResult.stderr}`);
@@ -214,7 +214,7 @@ async function restoreBackup(
     const uploadResult = await sshCommand(
       config.DOKKU_HOST,
       `cat > ${remoteBackupPath}`,
-      "dokku"
+      { stdio: "inherit" }
     );
     if (uploadResult.exitCode !== 0) {
       throw new Error(`Failed to upload backup: ${uploadResult.stderr}`);

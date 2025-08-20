@@ -16,7 +16,7 @@ import {
   getAppNames,
   type Environment,
   type EnvConfig,
-} from "./utils.js";
+} from "./utils";
 
 /**
  * Check backend application status

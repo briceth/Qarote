@@ -47,7 +47,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy front-end/dist --project-name=rabbithq-production --branch=main --compatibility-date=2024-01-01
+          command: pages deploy front-end/dist --project-name=rabbithq-production --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |

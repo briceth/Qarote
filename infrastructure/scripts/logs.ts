@@ -15,7 +15,7 @@ import {
   getAppNames,
   type Environment,
   type EnvConfig,
-} from "./utils.js";
+} from "./utils";
 
 interface LogsOptions {
   environment: Environment;

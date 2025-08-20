@@ -3,10 +3,18 @@
  */
 import fs from "node:fs/promises";
 import { Logger, Paths } from "../utils";
-import { HetznerServer, HetznerLoadBalancer, HetznerSSHKey } from "./common";
+import {
+  HetznerServer,
+  HetznerLoadBalancer,
+  HetznerSSHKey,
+  HetznerFirewall,
+  CreateServerRequest,
+  CreateVolumeRequest,
+  HetznerVolume,
+} from "./common";
 
 /**
- * Hetzner Cloud API Configuration
+ * Hetzner Cloud API configuration
  */
 const HETZNER_API_URL = "https://api.hetzner.cloud/v1";
 
@@ -68,20 +76,19 @@ export async function hetznerApiRequest<T>(
 export async function ensureSSHKey(): Promise<HetznerSSHKey> {
   Logger.info("Checking SSH key in Hetzner Cloud...");
 
-  // Check for local SSH key first - use main id_rsa key
-  const mainKeyPath = `${process.env.HOME || ""}/.ssh/id_rsa.pub`;
+  // Check for deployment SSH key first - use dedicated id_rsa_deploy key
   let localPublicKey: string;
   let keyUsed: string;
 
   try {
-    localPublicKey = await fs.readFile(mainKeyPath, "utf-8");
-    keyUsed = "main";
-    Logger.info("Using main SSH key from: " + mainKeyPath);
+    localPublicKey = await fs.readFile(Paths.sshKeyPublicPath, "utf-8");
+    keyUsed = "deployment";
+    Logger.info("Using deployment SSH key from: " + Paths.sshKeyPublicPath);
   } catch (error) {
     throw new Error(
-      `Failed to read SSH public key from ${mainKeyPath}: ${
+      `Failed to read deployment SSH public key from ${Paths.sshKeyPublicPath}: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }. Please run 'tsx create-deploy-key.ts' first to create the deployment key.`
     );
   }
 
@@ -107,10 +114,7 @@ export async function ensureSSHKey(): Promise<HetznerSSHKey> {
 
     // If no exact match, try to find any rabbithq key
     for (const key of response.ssh_keys) {
-      if (
-        key.name.includes("rabbithq") ||
-        key.name.startsWith("rabbithq-main-")
-      ) {
+      if (key.name.includes("rabbithq") || key.name.startsWith("rabbithq")) {
         Logger.success(
           `Found existing RabbitHQ SSH key: ${key.name} (ID: ${key.id})`
         );
@@ -152,7 +156,8 @@ export async function getOrCreateHetznerServer(
   name: string,
   serverType: string,
   sshKeyId: number,
-  environment: string
+  environment: string,
+  firewallId?: number
 ): Promise<HetznerServer> {
   Logger.info(`Checking if server '${name}' exists...`);
 
@@ -170,12 +175,24 @@ export async function getOrCreateHetznerServer(
       Logger.success(
         `Found existing server '${name}' with ID ${existingServer.id} at IP ${existingServer.public_net.ipv4.ip}`
       );
+
+      // Apply firewall to existing server if provided and not already applied
+      if (firewallId) {
+        await applyFirewallToServer(firewallId, existingServer.id);
+      }
+
       return existingServer;
     }
 
     // Create server if it doesn't exist
     Logger.info(`Server '${name}' not found, creating new one...`);
-    return await createHetznerServer(name, serverType, sshKeyId, environment);
+    return await createHetznerServer(
+      name,
+      serverType,
+      sshKeyId,
+      environment,
+      firewallId
+    );
   } catch (error) {
     throw new Error(
       `Failed to check or create server '${name}': ${
@@ -207,51 +224,59 @@ export async function loadCloudConfig(publicKey: string): Promise<string> {
 }
 
 /**
- * Create a server in Hetzner Cloud with rabbithq user
+ * Create a server in Hetzner Cloud with rabbithq user and firewall
  */
 export async function createHetznerServer(
   name: string,
   serverType: string,
   sshKeyId: number,
-  environment: string
+  environment: string,
+  firewallId?: number
 ): Promise<HetznerServer> {
   Logger.info(`Creating ${serverType} server: ${name} with rabbithq user...`);
 
-  // Read local SSH public key for cloud-config - use main id_rsa key
-  const mainKeyPath = `${process.env.HOME || ""}/.ssh/id_rsa.pub`;
+  // Read deployment SSH public key for cloud-config - use dedicated id_rsa_deploy key
   let localPublicKey: string;
 
   try {
-    localPublicKey = await fs.readFile(mainKeyPath, "utf-8");
+    localPublicKey = await fs.readFile(Paths.sshKeyPublicPath, "utf-8");
   } catch (error) {
     throw new Error(
-      `Failed to read SSH public key from ${mainKeyPath}: ${
+      `Failed to read deployment SSH public key from ${Paths.sshKeyPublicPath}: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }. Please run 'tsx create-deploy-key.ts' first to create the deployment key.`
     );
   }
 
   // Load and customize cloud-config
   const cloudConfig = await loadCloudConfig(localPublicKey);
 
+  const requestBody: CreateServerRequest = {
+    name,
+    server_type: serverType,
+    image: "ubuntu-24.04",
+    ssh_keys: [sshKeyId],
+    location: "nbg1", // Use Nuremberg for all resources
+    labels: {
+      project: "rabbithq",
+      environment,
+      created_by: "setup-script",
+    },
+    user_data: cloudConfig,
+  };
+
+  // Add firewall if provided
+  if (firewallId) {
+    requestBody.firewalls = [{ firewall: firewallId }];
+    Logger.info(`Server will be created with firewall ${firewallId}`);
+  }
+
   const server = await hetznerApiRequest<{
     server: HetznerServer;
     action: unknown;
   }>("/servers", {
     method: "POST",
-    body: JSON.stringify({
-      name,
-      server_type: serverType,
-      image: "ubuntu-24.04",
-      ssh_keys: [sshKeyId],
-      location: "nbg1",
-      labels: {
-        project: "rabbithq",
-        environment,
-        created_by: "setup-script",
-      },
-      user_data: cloudConfig,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   Logger.success(`Server created with rabbithq user, ID: ${server.server.id}`);
@@ -396,4 +421,498 @@ export async function waitForServerReady(
   }
 
   throw new Error("Server did not become ready within the expected time");
+}
+
+/**
+ * Create or get existing firewall for production application servers
+ */
+export async function ensureProductionApplicationFirewall(): Promise<HetznerFirewall> {
+  const firewallName = "rabbithq-app-production";
+
+  Logger.info(`Ensuring application firewall '${firewallName}' exists...`);
+
+  try {
+    // Check if firewall already exists
+    const response = await hetznerApiRequest<{ firewalls: HetznerFirewall[] }>(
+      "/firewalls"
+    );
+
+    const existingFirewall = response.firewalls.find(
+      (fw) => fw.name === firewallName
+    );
+    if (existingFirewall) {
+      Logger.success(
+        `Found existing application firewall: ${existingFirewall.name} (ID: ${existingFirewall.id})`
+      );
+      return existingFirewall;
+    }
+
+    // Create new firewall for application servers
+    Logger.info(`Creating application firewall: ${firewallName}`);
+    const firewall = await hetznerApiRequest<{ firewall: HetznerFirewall }>(
+      "/firewalls",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: firewallName,
+          labels: {
+            project: "rabbithq",
+            environment: "production",
+            server_type: "application",
+            created_by: "setup-script",
+          },
+          rules: [
+            {
+              description: "Allow SSH",
+              direction: "in",
+              source_ips: ["0.0.0.0/0", "::/0"],
+              protocol: "tcp",
+              port: "22",
+            },
+            {
+              description: "Allow HTTP",
+              direction: "in",
+              source_ips: ["0.0.0.0/0", "::/0"],
+              protocol: "tcp",
+              port: "80",
+            },
+            {
+              description: "Allow HTTPS",
+              direction: "in",
+              source_ips: ["0.0.0.0/0", "::/0"],
+              protocol: "tcp",
+              port: "443",
+            },
+            {
+              description: "Allow private network communication",
+              direction: "in",
+              source_ips: ["10.0.0.0/16"],
+              protocol: "tcp",
+              port: "1-65535",
+            },
+          ],
+        }),
+      }
+    );
+
+    Logger.success(
+      `Application firewall created with ID: ${firewall.firewall.id}`
+    );
+    return firewall.firewall;
+  } catch (error) {
+    throw new Error(
+      `Failed to ensure application firewall: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Create or get existing firewall for production database servers
+ */
+export async function ensureProductionDatabaseFirewall(): Promise<HetznerFirewall> {
+  const firewallName = "rabbithq-db-production";
+
+  Logger.info(`Ensuring database firewall '${firewallName}' exists...`);
+
+  try {
+    // Check if firewall already exists
+    const response = await hetznerApiRequest<{ firewalls: HetznerFirewall[] }>(
+      "/firewalls"
+    );
+
+    const existingFirewall = response.firewalls.find(
+      (fw) => fw.name === firewallName
+    );
+    if (existingFirewall) {
+      Logger.success(
+        `Found existing database firewall: ${existingFirewall.name} (ID: ${existingFirewall.id})`
+      );
+      return existingFirewall;
+    }
+
+    // Create new firewall for database servers
+    Logger.info(`Creating database firewall: ${firewallName}`);
+    const firewall = await hetznerApiRequest<{ firewall: HetznerFirewall }>(
+      "/firewalls",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: firewallName,
+          labels: {
+            project: "rabbithq",
+            environment: "production",
+            server_type: "database",
+            created_by: "setup-script",
+          },
+          rules: [
+            {
+              description: "Allow SSH",
+              direction: "in",
+              source_ips: ["0.0.0.0/0", "::/0"],
+              protocol: "tcp",
+              port: "22",
+            },
+            {
+              description: "Allow PostgreSQL from private network",
+              direction: "in",
+              source_ips: ["10.0.0.0/16"],
+              protocol: "tcp",
+              port: "5432",
+            },
+            {
+              description: "Allow private network communication",
+              direction: "in",
+              source_ips: ["10.0.0.0/16"],
+              protocol: "tcp",
+              port: "1-65535",
+            },
+          ],
+        }),
+      }
+    );
+
+    Logger.success(
+      `Database firewall created with ID: ${firewall.firewall.id}`
+    );
+    return firewall.firewall;
+  } catch (error) {
+    throw new Error(
+      `Failed to ensure database firewall: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Apply firewall to a server
+ */
+export async function applyFirewallToServer(
+  firewallId: number,
+  serverId: number
+): Promise<void> {
+  Logger.info(`Applying firewall ${firewallId} to server ${serverId}...`);
+
+  try {
+    await hetznerApiRequest<{ actions: unknown[] }>(
+      `/firewalls/${firewallId}/actions/apply_to_resources`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          apply_to: [
+            {
+              type: "server",
+              server: {
+                id: serverId,
+              },
+            },
+          ],
+        }),
+      }
+    );
+
+    Logger.success(`Firewall ${firewallId} applied to server ${serverId}`);
+  } catch (error) {
+    // Check if firewall is already applied
+    if (
+      error instanceof Error &&
+      (error.message.includes("already applied") ||
+        error.message.includes("firewall_already_applied"))
+    ) {
+      Logger.info(
+        `Firewall ${firewallId} is already applied to server ${serverId}`
+      );
+      return;
+    }
+
+    throw new Error(
+      `Failed to apply firewall to server: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Wait for a Hetzner action to complete
+ */
+async function waitForAction(
+  actionId: number,
+  timeoutMs = 300000
+): Promise<void> {
+  const apiToken = process.env.HETZNER_API_TOKEN;
+  if (!apiToken) {
+    throw new Error("HETZNER_API_TOKEN environment variable is required");
+  }
+
+  const startTime = Date.now();
+  const pollInterval = 2000; // 2 seconds
+
+  while (Date.now() - startTime < timeoutMs) {
+    try {
+      const response = await fetch(`${HETZNER_API_URL}/actions/${actionId}`, {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get action status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const action = data.action;
+
+      if (action.status === "success") {
+        Logger.info(`Action ${actionId} completed successfully`);
+        return;
+      }
+
+      if (action.status === "error") {
+        throw new Error(
+          `Action ${actionId} failed: ${action.error?.message || "Unknown error"}`
+        );
+      }
+
+      if (action.status === "running") {
+        Logger.info(
+          `Action ${actionId} is still running... (${action.progress || 0}%)`
+        );
+      }
+
+      // Wait before polling again
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("failed")) {
+        throw error;
+      }
+      Logger.warning(`Error checking action status: ${error}, retrying...`);
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+  }
+
+  throw new Error(`Action ${actionId} did not complete within ${timeoutMs}ms`);
+}
+
+/**
+ * Create a volume on Hetzner Cloud
+ */
+export async function createHetznerVolume(
+  request: CreateVolumeRequest
+): Promise<HetznerVolume> {
+  const apiToken = process.env.HETZNER_API_TOKEN;
+  if (!apiToken) {
+    throw new Error("HETZNER_API_TOKEN environment variable is required");
+  }
+
+  try {
+    Logger.info(`Creating volume: ${request.name} (${request.size}GB)`);
+
+    const response = await fetch(`${HETZNER_API_URL}/volumes`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to create volume: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+      );
+    }
+
+    const data = await response.json();
+    Logger.info(
+      `Volume created successfully: ${data.volume.name} (ID: ${data.volume.id})`
+    );
+    return data.volume;
+  } catch (error) {
+    throw new Error(
+      `Failed to create volume: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Attach a volume to a server
+ */
+export async function attachVolumeToServer(
+  volumeId: number,
+  serverId: number,
+  automount = true
+): Promise<void> {
+  const apiToken = process.env.HETZNER_API_TOKEN;
+  if (!apiToken) {
+    throw new Error("HETZNER_API_TOKEN environment variable is required");
+  }
+
+  try {
+    Logger.info(`Attaching volume ${volumeId} to server ${serverId}`);
+
+    const response = await fetch(
+      `${HETZNER_API_URL}/volumes/${volumeId}/actions/attach`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          server: serverId,
+          automount,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to attach volume: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+      );
+    }
+
+    const data = await response.json();
+    Logger.info(`Volume attachment action started: ${data.action.id}`);
+
+    // Wait for the action to complete
+    await waitForAction(data.action.id);
+    Logger.info(
+      `Volume ${volumeId} successfully attached to server ${serverId}`
+    );
+  } catch (error) {
+    throw new Error(
+      `Failed to attach volume to server: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Get volume by name
+ */
+export async function getVolumeByName(
+  name: string
+): Promise<HetznerVolume | null> {
+  const apiToken = process.env.HETZNER_API_TOKEN;
+  if (!apiToken) {
+    throw new Error("HETZNER_API_TOKEN environment variable is required");
+  }
+
+  try {
+    const response = await fetch(
+      `${HETZNER_API_URL}/volumes?name=${encodeURIComponent(name)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to get volumes: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return data.volumes.length > 0 ? data.volumes[0] : null;
+  } catch (error) {
+    throw new Error(
+      `Failed to get volume by name: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Ensure a production database volume exists and is properly configured
+ */
+export async function ensureProductionDatabaseVolume(): Promise<HetznerVolume> {
+  const volumeName = "rabbithq-db-prod";
+  const volumeSize = 50; // 50GB for database storage
+
+  try {
+    // Check if volume already exists
+    let volume = await getVolumeByName(volumeName);
+
+    if (volume) {
+      Logger.info(
+        `Database volume already exists: ${volume.name} (ID: ${volume.id})`
+      );
+      return volume;
+    }
+
+    // Create new volume
+    const createRequest: CreateVolumeRequest = {
+      size: volumeSize,
+      name: volumeName,
+      location: "nbg1",
+      format: "ext4", // Better for database workloads
+      labels: {
+        project: "rabbithq",
+        environment: "production",
+        type: "database",
+        created_by: "infrastructure-setup",
+      },
+    };
+
+    volume = await createHetznerVolume(createRequest);
+    Logger.info(
+      `Created database volume: ${volume.name} with ${volume.size}GB capacity`
+    );
+
+    return volume;
+  } catch (error) {
+    throw new Error(
+      `Failed to ensure database volume: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+}
+
+/**
+ * Attach database volume to database server if not already attached
+ */
+export async function ensureVolumeAttachedToServer(
+  volume: HetznerVolume,
+  server: HetznerServer
+): Promise<void> {
+  try {
+    // Check if volume is already attached to this server
+    if (volume.server === server.id) {
+      Logger.info(
+        `Volume ${volume.name} is already attached to server ${server.name}`
+      );
+      return;
+    }
+
+    // If volume is attached to a different server, that's an error
+    if (volume.server && volume.server !== server.id) {
+      throw new Error(
+        `Volume ${volume.name} is already attached to a different server (ID: ${volume.server})`
+      );
+    }
+
+    // Attach the volume to the server
+    await attachVolumeToServer(volume.id, server.id, true);
+    Logger.info(
+      `Successfully attached volume ${volume.name} to server ${server.name}`
+    );
+  } catch (error) {
+    throw new Error(
+      `Failed to ensure volume attachment: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
 }

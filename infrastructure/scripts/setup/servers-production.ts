@@ -13,6 +13,10 @@ import {
   getOrCreateHetznerServer,
   waitForServerReady,
   hetznerApiRequest,
+  ensureProductionApplicationFirewall,
+  ensureProductionDatabaseFirewall,
+  ensureProductionDatabaseVolume,
+  ensureVolumeAttachedToServer,
 } from "./hetzner";
 
 /**
@@ -157,27 +161,28 @@ export async function ensureProductionPrivateNetwork(): Promise<{
 }
 
 /**
- * Assign private IP to server
+ * Attach server to private network with IP
  */
-export async function assignPrivateIP(
+export async function attachServerToNetwork(
   serverId: number,
   networkId: number,
   privateIP: string
 ): Promise<void> {
   try {
-    await hetznerApiRequest(`/servers/${serverId}/actions/assign_private_ip`, {
+    await hetznerApiRequest(`/servers/${serverId}/actions/attach_to_network`, {
       method: "POST",
       body: JSON.stringify({
-        assignee: serverId,
         network: networkId,
         ip: privateIP,
       }),
     });
 
-    Logger.success(`Assigned private IP ${privateIP} to server ${serverId}`);
+    Logger.success(
+      `Attached server ${serverId} to network with IP ${privateIP}`
+    );
   } catch (error) {
     throw new Error(
-      `Failed to assign private IP: ${
+      `Failed to attach server to network: ${
         error instanceof Error ? error.message : String(error)
       }`
     );
@@ -198,28 +203,37 @@ export async function setupProductionApplicationServer(
   const scriptPath = `${Paths.scriptDir}/setup/application-setup.sh`;
   await uploadFile(serverIP, scriptPath, "/tmp/application-setup.sh");
 
-  // Configure private network interface
   const scriptOutput = await executeRemoteCommands(serverIP, [
     "sudo chmod +x /tmp/application-setup.sh",
     `sudo /tmp/application-setup.sh`,
-    // Configure private network interface
-    `sudo tee /etc/netplan/60-private.yaml > /dev/null << 'EOF'
-network:
-  version: 2
-  ethernets:
-    eth1:
-      addresses:
-        - 10.0.0.20/16
-EOF`,
-    "sudo netplan apply",
-    "sleep 5", // Wait for network to be ready
-    "ping -c 1 10.0.0.10 || echo 'Private network connectivity will be available after DB setup'",
+    "sleep 5", // Wait for setup to complete
   ]);
 
   if (scriptOutput.toLowerCase().includes("error")) {
     Logger.error("Production application server setup encountered errors:");
     Logger.error(scriptOutput);
     throw new Error("Production application server setup failed");
+  }
+
+  // Add deployment SSH key to dokku user for GitHub Actions
+  Logger.info(
+    "Setting up SSH key for dokku user (GitHub Actions deployment)..."
+  );
+  try {
+    await executeRemoteCommands(serverIP, [
+      // Add the authorized_keys content to dokku ssh-keys
+      "cat ~/.ssh/authorized_keys | sudo dokku ssh-keys:add github-actions",
+      // Verify the key was added
+      "sudo dokku ssh-keys:list | grep github-actions || echo 'Key verification failed'",
+    ]);
+    Logger.success("SSH key added to dokku user successfully!");
+  } catch (error) {
+    Logger.warning(
+      "Failed to add SSH key to dokku user. You may need to add it manually."
+    );
+    Logger.info(
+      "Manual command: cat ~/.ssh/authorized_keys | sudo dokku ssh-keys:add github-actions"
+    );
   }
 
   Logger.success("Production application server setup completed successfully!");
@@ -242,20 +256,7 @@ export async function setupProductionDatabaseServer(
   const scriptOutput = await executeRemoteCommands(serverIP, [
     "sudo chmod +x /tmp/database-setup.sh",
     `sudo /tmp/database-setup.sh`,
-    // Configure private network interface
-    `sudo tee /etc/netplan/60-private.yaml > /dev/null << 'EOF'
-network:
-  version: 2
-  ethernets:
-    eth1:
-      addresses:
-        - 10.0.0.10/16
-EOF`,
-    "sudo netplan apply",
-    "sleep 5", // Wait for network to be ready
-    // Configure firewall for private network access only
-    "sudo ufw allow from 10.0.0.0/16 to any port 5432",
-    "sudo ufw --force enable",
+    "sleep 5", // Wait for setup to complete
   ]);
 
   if (scriptOutput.toLowerCase().includes("error")) {
@@ -278,31 +279,25 @@ export async function provisionProductionApplicationServer(
 
   const config = getProductionServerConfig();
 
+  // Ensure application firewall exists
+  const appFirewall = await ensureProductionApplicationFirewall();
+
   const server = await getOrCreateHetznerServer(
     config.applicationServer.name,
     config.applicationServer.type,
     sshKeyId,
-    "production"
+    "production",
+    appFirewall.id
   );
 
   await waitForServerReady(server.id);
 
   // Attach to private network first
   try {
-    await hetznerApiRequest(`/servers/${server.id}/actions/attach_to_network`, {
-      method: "POST",
-      body: JSON.stringify({
-        network: privateNetworkId,
-        ip: "10.0.0.20",
-      }),
-    });
-    Logger.success("Application server attached to private network");
+    await attachServerToNetwork(server.id, privateNetworkId, "10.0.0.20");
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.includes("server_already_attached")
-    ) {
-      Logger.info("Application server is already attached to the network");
+    if (error instanceof Error && error.message.includes("already attached")) {
+      Logger.info("Server is already attached to the private network");
     } else {
       throw error;
     }
@@ -325,16 +320,29 @@ export async function provisionProductionDatabaseServer(
 
   const config = getProductionServerConfig();
 
+  // Step 1: Ensure database volume exists (create persistent storage for database)
+  Logger.info("Step 1: Creating/ensuring database volume exists...");
+  const dbVolume = await ensureProductionDatabaseVolume();
+
+  // Step 2: Ensure database firewall exists
+  const dbFirewall = await ensureProductionDatabaseFirewall();
+
+  // Step 3: Create the database server
   const server = await getOrCreateHetznerServer(
     config.databaseServer.name,
     config.databaseServer.type,
     sshKeyId,
-    "production"
+    "production",
+    dbFirewall.id
   );
 
   await waitForServerReady(server.id);
 
-  // Attach to private network first
+  // Step 4: Attach volume to database server
+  Logger.info("Step 4: Attaching database volume to server...");
+  await ensureVolumeAttachedToServer(dbVolume, server);
+
+  // Step 5: Attach to private network
   try {
     await hetznerApiRequest(`/servers/${server.id}/actions/attach_to_network`, {
       method: "POST",
@@ -355,9 +363,12 @@ export async function provisionProductionDatabaseServer(
     }
   }
 
-  // Setup database server
+  // Step 6: Setup database server with volume configuration
   await setupProductionDatabaseServer(server);
 
+  Logger.success(
+    `Database server provisioned with ${dbVolume.size}GB persistent volume`
+  );
   return server;
 }
 
@@ -540,9 +551,8 @@ export async function setupProductionInfrastructure(sshKeyId: number): Promise<{
     networkId
   );
 
-  // Step 3: Configure load balancer and add app server as target
-  Logger.info("Step 3: Configuring load balancer...");
-  await configureProductionLoadBalancer(appServer, networkId);
+  // Step 3: Load balancer configuration will be handled by main setup
+  Logger.info("Step 3: Load balancer will be configured by main setup...");
 
   // Step 4: Final configuration
   Logger.info("Step 4: Final server configuration...");

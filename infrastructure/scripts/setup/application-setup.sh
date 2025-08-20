@@ -31,17 +31,7 @@ while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || sudo fuser /var/
   sleep 10
 done
 
-apt-get install -y curl wget git ufw dnsutils
-
-# Configure firewall for application server (idempotent)
-echo "🔒 Configuring firewall for application server..."
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow ssh
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw --force enable
+apt-get install -y curl wget git dnsutils
 
 # Install Dokku (idempotent check)
 echo "🚀 Installing Dokku..."
@@ -93,6 +83,26 @@ else
     echo "Let's Encrypt email already configured, skipping..."
 fi
 
+# Setup SSH key for GitHub Actions deployment (idempotent)
+echo "🔑 Setting up SSH key for GitHub Actions deployment..."
+if ! dokku ssh-keys:list | grep -q "github-actions"; then
+    if [ -f /home/rabbithq/.ssh/authorized_keys ]; then
+        echo "Adding deployment SSH key to dokku user..."
+        cat /home/rabbithq/.ssh/authorized_keys | dokku ssh-keys:add github-actions
+        echo "SSH key added to dokku user for GitHub Actions deployment"
+    else
+        echo "⚠️ Warning: authorized_keys file not found, skipping SSH key setup"
+        echo "You may need to manually add the SSH key with:"
+        echo "cat ~/.ssh/authorized_keys | sudo dokku ssh-keys:add github-actions"
+    fi
+else
+    echo "GitHub Actions SSH key already configured, skipping..."
+fi
+
+# Verify SSH key setup
+echo "🔍 Verifying SSH key setup..."
+dokku ssh-keys:list | grep github-actions && echo "✅ GitHub Actions SSH key verified" || echo "⚠️ GitHub Actions SSH key not found"
+
 # Create a swap file for application server (idempotent)
 echo "💾 Creating swap file for application server..."
 if [ ! -f /swapfile ]; then
@@ -127,4 +137,5 @@ echo "✅ Application server setup complete!"
 echo ""
 echo "Application server is ready for deployment"
 echo "Database connection configured to: ${DB_SERVER_IP}"
+echo "GitHub Actions deployment SSH key: $(dokku ssh-keys:list | grep github-actions | wc -l) key(s) configured"
 echo "🎉 Application server is ready!"

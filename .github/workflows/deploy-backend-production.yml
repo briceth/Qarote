@@ -34,57 +34,88 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ vars.DOKKU_HOST_APP1 }} >> ~/.ssh/known_hosts
 
-      - name: 📝 Configure Environment Variables - App Server 1
+      - name: 🏗️ Ensure app exists
         run: |
-          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} \
-            DOMAIN_BACKEND=${{ vars.DOMAIN_BACKEND }} \
-            DOMAIN_FRONTEND=${{ vars.DOMAIN_FRONTEND }} \
-            PORT=${{ vars.PORT }} \
-            HOST=${{ vars.HOST }} \
-            NODE_ENV=${{ vars.NODE_ENV }} \
-            ENVIRONMENT=production \
-            LOG_LEVEL=${{ vars.LOG_LEVEL }} \
-            JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
-            CORS_ORIGIN=${{ vars.CORS_ORIGIN }} \
-            FRONTEND_URL=${{ vars.FRONTEND_URL }} \
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
-            FROM_EMAIL=${{ vars.FROM_EMAIL }} \
-            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
-            STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} \
-            STRIPE_DEVELOPER_MONTHLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_MONTHLY_PRICE_ID }} \
-            STRIPE_DEVELOPER_YEARLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_YEARLY_PRICE_ID }} \
-            STRIPE_ENTERPRISE_MONTHLY_PRICE_ID=${{ vars.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID }} \
-            STRIPE_ENTERPRISE_YEARLY_PRICE_ID=${{ vars.STRIPE_ENTERPRISE_YEARLY_PRICE_ID }} \
-            SENTRY_DSN=${{ vars.SENTRY_DSN }} \
-            SENTRY_ENABLED=${{ vars.SENTRY_ENABLED }} \
-            DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            NODE_ID=app1
-      - name: 🐳 Deploy to App Server 1
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} "apps:exists ${{ env.APP_NAME }} || apps:create ${{ env.APP_NAME }}"
+
+      # Configure all environment variables
+      - name: 📝 Configure Environment Variables
+        run: |
+          echo "Setting environment variables one by one..."
+          echo "1/23: Setting DATABASE_URL (CRITICAL)..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} DATABASE_URL=${{ secrets.DATABASE_URL }}
+          echo "2/23: Setting DOMAIN_BACKEND..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} DOMAIN_BACKEND=${{ vars.DOMAIN_BACKEND }}
+          echo "3/23: Setting DOMAIN_FRONTEND..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} DOMAIN_FRONTEND=${{ vars.DOMAIN_FRONTEND }}
+          echo "4/23: Setting PORT..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} PORT=${{ vars.PORT }}
+          echo "5/23: Setting HOST..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} HOST=${{ vars.HOST }}
+          echo "6/23: Setting NODE_ENV..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} NODE_ENV=${{ vars.NODE_ENV }}
+          echo "7/23: Setting ENVIRONMENT..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} ENVIRONMENT=production
+          echo "8/23: Setting LOG_LEVEL..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} LOG_LEVEL=${{ vars.LOG_LEVEL }}
+          echo "9/23: Setting JWT_SECRET..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} JWT_SECRET=${{ secrets.JWT_SECRET }}
+          echo "10/23: Setting ENCRYPTION_KEY..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          echo "11/23: Setting CORS_ORIGIN..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} CORS_ORIGIN=${{ vars.CORS_ORIGIN }}
+          echo "12/23: Setting FRONTEND_URL..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} FRONTEND_URL=${{ vars.FRONTEND_URL }}
+          echo "13/23: Setting RESEND_API_KEY..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          echo "14/23: Setting FROM_EMAIL..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} FROM_EMAIL=${{ vars.FROM_EMAIL }}
+          echo "15/23: Setting STRIPE_SECRET_KEY..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          echo "16/23: Setting STRIPE_WEBHOOK_SECRET..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          echo "17/23: Setting STRIPE_DEVELOPER_MONTHLY_PRICE_ID..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} STRIPE_DEVELOPER_MONTHLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_MONTHLY_PRICE_ID }}
+          echo "18/23: Setting STRIPE_DEVELOPER_YEARLY_PRICE_ID..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} STRIPE_DEVELOPER_YEARLY_PRICE_ID=${{ vars.STRIPE_DEVELOPER_YEARLY_PRICE_ID }}
+          echo "19/23: Setting STRIPE_ENTERPRISE_MONTHLY_PRICE_ID..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} STRIPE_ENTERPRISE_MONTHLY_PRICE_ID=${{ vars.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID }}
+          echo "20/23: Setting STRIPE_ENTERPRISE_YEARLY_PRICE_ID..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} STRIPE_ENTERPRISE_YEARLY_PRICE_ID=${{ vars.STRIPE_ENTERPRISE_YEARLY_PRICE_ID }}
+          echo "21/23: Setting SENTRY_DSN..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} SENTRY_DSN=${{ vars.SENTRY_DSN }}
+          echo "22/23: Setting SENTRY_ENABLED..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} SENTRY_ENABLED=${{ vars.SENTRY_ENABLED }}
+          echo "23/23: Setting NODE_ID..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:set ${{ env.APP_NAME }} NODE_ID=app1
+          echo "✅ All environment variables configured successfully!"
+
+      # Deploy the application
+      - name: 🐳 Deploy to Dokku
         uses: dokku/github-action@master
         with:
           git_remote_url: "ssh://dokku@${{ vars.DOKKU_HOST_APP1 }}:22/${{ env.APP_NAME }}"
           ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
           git_push_flags: "--force"
 
-      - name: 🔍 Debug Dokku Environment - Server 1
+      - name: 🔍 Debug Dokku Environment
         run: |
-          echo "Checking environment variables in Dokku App Server 1..."
+          echo "Checking environment variables in Dokku..."
           ssh dokku@${{ vars.DOKKU_HOST_APP1 }} config:show ${{ env.APP_NAME }}
+          echo "-----------------------------------------------"
+          echo "Checking if app is running..."
+          ssh dokku@${{ vars.DOKKU_HOST_APP1 }} ps:report ${{ env.APP_NAME }}
 
       - name: 🩺 Verify health endpoints
         run: |
-          echo "Waiting for deployments to stabilize..."
+          echo "Waiting for deployment to stabilize..."
           sleep 30
-          echo "Testing health endpoint on load balancer..."
+          echo "Testing health endpoint..."
           curl -sSf https://${{ vars.DOMAIN_BACKEND }}/health || echo "Health check not yet available, deployment may still be in progress"
-          echo "Testing direct health endpoints..."
-          curl -sSf http://${{ vars.DOKKU_HOST_APP1 }}/health || echo "App1 health check failed"
 
       - name: ✅ Deployment complete
         run: |
           echo "🎉 Deployment to production completed successfully!"
           echo "🔍 Backend URL: https://${{ vars.DOMAIN_BACKEND }}"
           echo "🔍 Health check: https://${{ vars.DOMAIN_BACKEND }}/health"
-          echo "🔍 Load Balancer IP: ${{ vars.LOAD_BALANCER_IP }}"
           echo "📝 Commit: ${{ github.sha }}"
