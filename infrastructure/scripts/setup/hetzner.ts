@@ -92,21 +92,28 @@ export async function ensureSSHKey(): Promise<HetznerSSHKey> {
     );
 
     // First, try exact public key match
-    const normalizedLocalKey = localPublicKey.trim().replace(/\s+/g, ' ');
-    
+    const normalizedLocalKey = localPublicKey.trim().replace(/\s+/g, " ");
+
     for (const key of response.ssh_keys) {
-      const normalizedRemoteKey = key.public_key.trim().replace(/\s+/g, ' ');
-      
+      const normalizedRemoteKey = key.public_key.trim().replace(/\s+/g, " ");
+
       if (normalizedRemoteKey === normalizedLocalKey) {
-        Logger.success(`Found existing SSH key with exact public key match: ${key.name} (ID: ${key.id})`);
+        Logger.success(
+          `Found existing SSH key with exact public key match: ${key.name} (ID: ${key.id})`
+        );
         return key;
       }
     }
 
     // If no exact match, try to find any rabbithq key
     for (const key of response.ssh_keys) {
-      if (key.name.includes("rabbithq") || key.name.startsWith("rabbithq-main-")) {
-        Logger.success(`Found existing RabbitHQ SSH key: ${key.name} (ID: ${key.id})`);
+      if (
+        key.name.includes("rabbithq") ||
+        key.name.startsWith("rabbithq-main-")
+      ) {
+        Logger.success(
+          `Found existing RabbitHQ SSH key: ${key.name} (ID: ${key.id})`
+        );
         Logger.info("Using this key for infrastructure setup.");
         return key;
       }
@@ -115,7 +122,9 @@ export async function ensureSSHKey(): Promise<HetznerSSHKey> {
     // If no rabbithq keys, use the first available key
     if (response.ssh_keys.length > 0) {
       const firstKey = response.ssh_keys[0];
-      Logger.success(`Using first available SSH key: ${firstKey.name} (ID: ${firstKey.id})`);
+      Logger.success(
+        `Using first available SSH key: ${firstKey.name} (ID: ${firstKey.id})`
+      );
       return firstKey;
     }
 
@@ -123,12 +132,11 @@ export async function ensureSSHKey(): Promise<HetznerSSHKey> {
     throw new Error(
       "No SSH keys found in your Hetzner Cloud account. Please add an SSH key manually through the Hetzner Cloud Console first."
     );
-
   } catch (error) {
     if (error instanceof Error && error.message.includes("No SSH keys found")) {
       throw error; // Re-throw our custom error
     }
-    
+
     throw new Error(
       `Failed to retrieve SSH keys: ${
         error instanceof Error ? error.message : String(error)

@@ -3,19 +3,19 @@
  */
 import { Logger } from "../utils";
 import { HetznerServer } from "./common";
-import { 
+import {
   setupStagingInfrastructure,
   provisionStagingApplicationServer,
   provisionStagingDatabaseServer,
   configureStagingApplicationServer,
-  configureStagingDatabaseServer 
+  configureStagingDatabaseServer,
 } from "./servers-staging";
-import { 
+import {
   setupProductionInfrastructure,
   provisionProductionApplicationServer,
   provisionProductionDatabaseServer,
   configureProductionApplicationServer,
-  configureProductionDatabaseServer 
+  configureProductionDatabaseServer,
 } from "./servers-production";
 
 /**
@@ -24,15 +24,18 @@ import {
 export async function setupInfrastructure(
   environment: string,
   sshKeyId: number
-): Promise<{ appServer: HetznerServer; dbServer: HetznerServer; databaseUrl?: string }> {
+): Promise<{
+  appServer: HetznerServer;
+  dbServer: HetznerServer;
+  databaseUrl?: string;
+}> {
   Logger.info(`Setting up ${environment} infrastructure...`);
 
   if (environment === "production") {
     const result = await setupProductionInfrastructure(sshKeyId);
-    return { 
-      appServer: result.appServer, 
-      dbServer: result.dbServer, 
-      // databaseUrl: result.databaseUrl 
+    return {
+      appServer: result.appServer,
+      dbServer: result.dbServer,
     };
   } else if (environment === "staging") {
     return await setupStagingInfrastructure(sshKeyId);
@@ -48,7 +51,7 @@ export {
   provisionStagingDatabaseServer,
   configureStagingApplicationServer,
   configureStagingDatabaseServer,
-  
+
   // Production exports
   provisionProductionApplicationServer,
   provisionProductionDatabaseServer,
