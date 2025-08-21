@@ -59,7 +59,7 @@ const EMAIL_VERIFICATION_SCENARIOS: EmailVerificationScenario[] = [
   },
   {
     name: "Email Change - Pending",
-    plan: WorkspacePlan.STARTUP,
+    plan: WorkspacePlan.DEVELOPER,
     description: "Verified user requesting email change",
     email: "verified.changing@test.com",
     password: "password123",
@@ -72,7 +72,7 @@ const EMAIL_VERIFICATION_SCENARIOS: EmailVerificationScenario[] = [
   },
   {
     name: "Verified User",
-    plan: WorkspacePlan.BUSINESS,
+    plan: WorkspacePlan.ENTERPRISE,
     description: "Fully verified user with no pending changes",
     email: "verified.user@test.com",
     password: "password123",
@@ -95,7 +95,7 @@ const EMAIL_VERIFICATION_SCENARIOS: EmailVerificationScenario[] = [
   },
   {
     name: "Expired Token - Email Change",
-    plan: WorkspacePlan.STARTUP,
+    plan: WorkspacePlan.DEVELOPER,
     description: "User with expired email change token",
     email: "expired.change@test.com",
     password: "password123",
@@ -122,7 +122,7 @@ const EMAIL_VERIFICATION_SCENARIOS: EmailVerificationScenario[] = [
   },
   {
     name: "Business User - Team Admin",
-    plan: WorkspacePlan.BUSINESS,
+    plan: WorkspacePlan.ENTERPRISE,
     description: "Business plan admin managing team email verifications",
     email: "business.admin@test.com",
     password: "password123",
@@ -144,8 +144,6 @@ async function createEmailVerificationScenario(
         name: `${scenario.name} Workspace`,
         contactEmail: scenario.email,
         plan: scenario.plan,
-        consentGiven: true,
-        consentDate: new Date(),
       },
     });
 
@@ -213,8 +211,8 @@ async function createEmailVerificationScenario(
 
     // Add some additional users for multi-user scenarios
     if (
-      scenario.plan === WorkspacePlan.BUSINESS ||
-      scenario.plan === WorkspacePlan.STARTUP
+      scenario.plan === WorkspacePlan.ENTERPRISE ||
+      scenario.plan === WorkspacePlan.DEVELOPER
     ) {
       // Create a few team members with different verification states
       const teamMembers = [

@@ -1,7 +1,8 @@
-import { z } from "zod/v4";
+import path from "node:path";
 import dotenv from "dotenv";
+import { z } from "zod/v4";
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 // Environment validation schema
 const envSchema = z.object({

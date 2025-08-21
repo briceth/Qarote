@@ -11,15 +11,17 @@ export class PasswordResetEmailService {
     resetToken: string,
     userName?: string
   ): Promise<void> {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     const expiresAt = new Date(
       Date.now() + 24 * 60 * 60 * 1000
     ).toLocaleString(); // 24 hours from now
 
+    const { frontendUrl } = CoreEmailService.getConfig();
+
     const emailTemplate = React.createElement(PasswordResetEmail, {
       userName,
-      resetUrl,
       expiresAt,
+      frontendUrl,
+      token: resetToken,
     });
 
     await CoreEmailService.sendEmail({

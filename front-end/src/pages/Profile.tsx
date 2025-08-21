@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -32,7 +33,18 @@ import {
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 
+// Valid tab values - defined outside component to avoid dependency issues
+const VALID_TABS = [
+  "personal",
+  "workspace",
+  "plans",
+  "team",
+  "feedback",
+] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
 const Profile = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { planData, workspacePlan } = useWorkspace();
   const { data: profileData, isLoading: profileLoading } = useProfile();
   const { data: workspaceUsersData, isLoading: usersLoading } =
@@ -51,6 +63,25 @@ const Profile = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
+  // Get initial tab from URL parameter or default to 'personal'
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<TabValue>(
+    VALID_TABS.includes(initialTab as TabValue)
+      ? (initialTab as TabValue)
+      : "personal"
+  );
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    const newTab = value as TabValue;
+    setActiveTab(newTab);
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("tab", newTab);
+      return newParams;
+    });
+  };
 
   // Profile form state
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
@@ -102,10 +133,22 @@ const Profile = () => {
         name: workspace.name || "",
         contactEmail: workspace.contactEmail || "",
         logoUrl: workspace.logoUrl || "",
-        plan: workspace.plan,
+        plan: workspace.plan as "FREE" | "DEVELOPER" | "STARTUP" | "BUSINESS",
       });
     }
   }, [profile, workspace]);
+
+  // Sync tab state with URL parameter changes
+  useEffect(() => {
+    const urlTab = searchParams.get("tab");
+    if (
+      urlTab &&
+      VALID_TABS.includes(urlTab as TabValue) &&
+      urlTab !== activeTab
+    ) {
+      setActiveTab(urlTab as TabValue);
+    }
+  }, [searchParams, activeTab]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -263,12 +306,14 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <SidebarTrigger />
               <User className="h-8 w-8" />
-              <h1 className="title-page">
-                Profile
-              </h1>
+              <h1 className="title-page">Profile</h1>
             </div>
 
-            <Tabs defaultValue="personal" className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={handleTabChange}
+              className="space-y-6"
+            >
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="personal">Personal Info</TabsTrigger>
                 <TabsTrigger value="workspace">Workspace</TabsTrigger>

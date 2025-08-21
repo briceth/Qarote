@@ -31,6 +31,10 @@
     "seed:publish": "tsx scripts/rabbitmq/seed-publish-messages.ts",
     "seed:consume": "tsx scripts/rabbitmq/seed-consume-messages.ts",
     "seed:email:send": "tsx scripts/resend/seed-email-verification-tests.ts",
+    "email:dev": "email dev --dir ./scripts/resend/emails --port 3001",
+    "email:preview": "cd scripts/resend && email preview",
+    "email:export": "cd scripts/resend && email export",
+    "email:test": "tsx scripts/resend/test-email-rendering.ts",
     "stripe:set-up": "tsx scripts/stripe/setup-stripe.ts",
     "stripe:create": "tsx scripts/stripe/setup-stripe.ts create",
     "stripe:migrate": "tsx scripts/stripe/setup-stripe.ts migrate",
@@ -79,6 +83,7 @@
     "zod": "^3.25.56"
   },
   "devDependencies": {
+    "@react-email/preview-server": "^4.2.8",
     "@types/amqplib": "^0.10.7",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",

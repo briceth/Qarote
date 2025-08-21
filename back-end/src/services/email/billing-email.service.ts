@@ -33,11 +33,14 @@ export class BillingEmailService {
   ): Promise<EmailResult> {
     const { to, userName, workspaceName, plan, billingInterval } = params;
 
+    const { frontendUrl } = CoreEmailService.getConfig();
+
     const template = React.createElement(UpgradeConfirmationEmail, {
       userName,
       workspaceName,
       plan,
       billingInterval,
+      frontendUrl,
     });
 
     const result = await CoreEmailService.sendEmail({
@@ -72,12 +75,15 @@ export class BillingEmailService {
       previousCancelDate,
     } = params;
 
+    const { frontendUrl } = CoreEmailService.getConfig();
+
     const template = React.createElement(WelcomeBackEmail, {
       userName,
       workspaceName,
       plan,
       billingInterval,
       previousCancelDate,
+      frontendUrl,
     });
 
     const result = await CoreEmailService.sendEmail({

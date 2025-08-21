@@ -7,286 +7,152 @@ import {
   Hr,
   Html,
   Img,
+  Link,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 import { WorkspacePlan } from "@prisma/client";
-import { emailConfig } from "@/config";
+import { getPlanFeatures } from "@/services/plan/plan.service";
+import {
+  baseStyles,
+  headerStyles,
+  contentStyles,
+  buttonStyles,
+  textStyles,
+  utilityStyles,
+  sectionStyles,
+} from "../shared/styles";
 
 interface UpgradeConfirmationEmailProps {
   userName: string;
   workspaceName: string;
   plan: WorkspacePlan;
   billingInterval: "monthly" | "yearly";
+  frontendUrl: string;
 }
-
-const getPlanDisplayName = (plan: WorkspacePlan) => {
-  switch (plan) {
-    case WorkspacePlan.DEVELOPER:
-      return "Developer";
-    case WorkspacePlan.ENTERPRISE:
-      return "Enterprise";
-    case WorkspacePlan.FREE:
-    default:
-      return "Free";
-  }
-};
-
-const getPlanFeatures = (plan: WorkspacePlan) => {
-  switch (plan) {
-    case WorkspacePlan.DEVELOPER:
-      return [
-        "3 RabbitMQ servers",
-        "25 message queues",
-        "100K messages per month",
-        "Advanced memory analysis",
-        "Data export capabilities",
-        "Email support",
-      ];
-    case WorkspacePlan.ENTERPRISE:
-      return [
-        "Unlimited RabbitMQ servers",
-        "Unlimited message queues",
-        "Unlimited messages per month",
-        "All memory optimization features",
-        "Custom integrations",
-        "SOC 2 compliance",
-        "Dedicated account manager",
-        "Phone support",
-      ];
-    case WorkspacePlan.FREE:
-    default:
-      return [
-        "1 RabbitMQ server",
-        "5 message queues",
-        "10K messages per month",
-        "Basic monitoring",
-        "Community support",
-      ];
-  }
-};
 
 export const UpgradeConfirmationEmail = ({
   userName,
   workspaceName,
   plan,
   billingInterval,
+  frontendUrl,
 }: UpgradeConfirmationEmailProps) => {
-  const planName = getPlanDisplayName(plan);
-  const features = getPlanFeatures(plan);
-  const baseUrl = emailConfig.frontendUrl;
+  const planDisplayName = plan.charAt(0) + plan.slice(1).toLowerCase();
+  const planFeatures = getPlanFeatures(plan);
 
   return (
     <Html>
       <Head />
-      <Preview>Welcome to {planName} Plan! Your upgrade is confirmed.</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Img
-            src={`${baseUrl}/icon_rabbit.svg`}
-            width="50"
-            height="50"
-            alt="RabbitHQ"
-            style={logo}
-          />
+      <Preview>
+        Welcome to {planDisplayName} Plan! Your upgrade is confirmed.
+      </Preview>
+      <Body style={baseStyles.main}>
+        <Container style={baseStyles.container}>
+          <Section style={headerStyles.header}>
+            <Img
+              src={`${frontendUrl}/icon_rabbit.png`}
+              width="50"
+              height="50"
+              alt="RabbitHQ"
+              style={headerStyles.logo}
+            />
+          </Section>
 
-          <Heading style={heading}>🎉 Welcome to {planName} Plan!</Heading>
-
-          <Text style={paragraph}>Hi {userName},</Text>
-
-          <Text style={paragraph}>
-            Great news! Your workspace "{workspaceName}" has been successfully
-            upgraded to the {planName} plan. You now have access to all the
-            powerful features that will help you monitor and optimize your
-            RabbitMQ infrastructure.
-          </Text>
-
-          <Section style={featuresSection}>
-            <Heading as="h2" style={featuresHeading}>
-              What's included in your {planName} plan:
+          <Section style={contentStyles.contentPadded}>
+            <Heading style={contentStyles.title}>
+              🎉 Welcome to {planDisplayName} Plan!
             </Heading>
-            {features.map((feature, index) => (
-              <Text key={index} style={featureItem}>
-                ✅ {feature}
+          </Section>
+
+          <Section style={contentStyles.content}>
+            <Text style={contentStyles.paragraph}>Hi {userName},</Text>
+
+            <Text style={contentStyles.paragraph}>
+              Great news! Your workspace "{workspaceName}" has been successfully
+              upgraded to the {planDisplayName} plan. You now have access to all
+              the powerful features that will help you monitor and optimize your
+              RabbitMQ infrastructure.
+            </Text>
+
+            <Section style={sectionStyles.featuresSection}>
+              <Heading as="h2" style={contentStyles.heading}>
+                What's included in your {planDisplayName} plan:
+              </Heading>
+              {planFeatures.featureDescriptions.map((feature, index) => (
+                <Text key={index} style={textStyles.featureText}>
+                  ✅ {feature}
+                </Text>
+              ))}
+            </Section>
+
+            <Section style={buttonStyles.buttonSection}>
+              <Button style={buttonStyles.primaryButton} href={frontendUrl}>
+                Start Using Your New Features
+              </Button>
+            </Section>
+
+            <Hr style={utilityStyles.hr} />
+
+            <Section style={styles.billingSection}>
+              <Text style={styles.billingText}>
+                <strong>Billing Details:</strong>
               </Text>
-            ))}
-          </Section>
+              <Text style={styles.billingText}>
+                Plan: {planDisplayName} (
+                {billingInterval === "yearly" ? "Annual" : "Monthly"} billing)
+              </Text>
+              <Text style={styles.billingText}>
+                You can manage your subscription and view billing history in
+                your{" "}
+                <a
+                  href={`${frontendUrl}/profile?tab=billing`}
+                  style={textStyles.link}
+                >
+                  account settings
+                </a>
+                .
+              </Text>
+            </Section>
 
-          <Section style={ctaSection}>
-            <Button style={button} href={baseUrl}>
-              Start Using Your New Features
-            </Button>
-          </Section>
+            <Hr style={utilityStyles.hr} />
 
-          <Hr style={hr} />
-
-          <Section style={billingSection}>
-            <Text style={billingText}>
-              <strong>Billing Details:</strong>
-            </Text>
-            <Text style={billingText}>
-              Plan: {planName} (
-              {billingInterval === "yearly" ? "Annual" : "Monthly"} billing)
-            </Text>
-            <Text style={billingText}>
-              You can manage your subscription and view billing history in your{" "}
-              <a href={`${baseUrl}/profile?tab=billing`} style={link}>
-                account settings
-              </a>
+            <Text style={contentStyles.paragraph}>
+              If you need help getting started, check out our{" "}
+              <Link href={`${frontendUrl}/help`} style={textStyles.link}>
+                support team
+              </Link>
               .
             </Text>
+
+            <Hr style={utilityStyles.hr} />
+
+            <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
+
+            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
           </Section>
-
-          <Hr style={hr} />
-
-          <Text style={supportText}>
-            Need help getting started? Our team is here to help:
-          </Text>
-
-          <Section style={supportSection}>
-            <Button style={supportButton} href={`${baseUrl}/help`}>
-              Get Support
-            </Button>
-            <Button style={supportButton} href="mailto:support@rabbithq.com">
-              Contact Us
-            </Button>
-          </Section>
-
-          <Text style={footer}>
-            Happy monitoring!
-            <br />
-            The RabbitHQ Team
-          </Text>
         </Container>
       </Body>
     </Html>
   );
 };
 
-// Styles
-const main = {
-  backgroundColor: "#ffffff",
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-};
+// Custom styles for this template
+const styles = {
+  billingSection: {
+    margin: "24px 0",
+  },
 
-const container = {
-  margin: "0 auto",
-  padding: "20px 0 48px",
-  maxWidth: "560px",
-};
+  billingText: {
+    fontSize: "14px",
+    lineHeight: "1.5",
+    color: "#6b7280",
+    margin: "8px 0",
+  },
 
-const logo = {
-  margin: "0 auto",
-  display: "block",
-};
-
-const heading = {
-  fontSize: "24px",
-  lineHeight: "1.3",
-  fontWeight: "700",
-  color: "#1f2937",
-  textAlign: "center" as const,
-  margin: "30px 0",
-};
-
-const paragraph = {
-  fontSize: "16px",
-  lineHeight: "1.5",
-  color: "#374151",
-  margin: "16px 0",
-};
-
-const featuresSection = {
-  backgroundColor: "#f9fafb",
-  borderRadius: "8px",
-  padding: "24px",
-  margin: "24px 0",
-};
-
-const featuresHeading = {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#1f2937",
-  margin: "0 0 16px 0",
-};
-
-const featureItem = {
-  fontSize: "14px",
-  lineHeight: "1.5",
-  color: "#374151",
-  margin: "8px 0",
-};
-
-const ctaSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  background: "linear-gradient(to right, rgb(234, 88, 12), rgb(220, 38, 38))",
-  borderRadius: "6px",
-  color: "#ffffff",
-  fontSize: "16px",
-  fontWeight: "600",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "12px 20px",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "32px 0",
-};
-
-const billingSection = {
-  margin: "24px 0",
-};
-
-const billingText = {
-  fontSize: "14px",
-  lineHeight: "1.5",
-  color: "#6b7280",
-  margin: "8px 0",
-};
-
-const link = {
-  color: "#3b82f6",
-  textDecoration: "underline",
-};
-
-const supportText = {
-  fontSize: "16px",
-  lineHeight: "1.5",
-  color: "#374151",
-  margin: "24px 0 16px 0",
-  textAlign: "center" as const,
-};
-
-const supportSection = {
-  textAlign: "center" as const,
-  margin: "16px 0",
-};
-
-const supportButton = {
-  backgroundColor: "#f3f4f6",
-  borderRadius: "6px",
-  color: "#374151",
-  fontSize: "14px",
-  fontWeight: "500",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  margin: "0 8px",
-  padding: "8px 16px",
-};
-
-const footer = {
-  fontSize: "14px",
-  lineHeight: "1.5",
-  color: "#6b7280",
-  textAlign: "center" as const,
-  margin: "32px 0 0 0",
-};
+  supportSection: {
+    textAlign: "center" as const,
+    margin: "16px 0",
+  },
+} as const;

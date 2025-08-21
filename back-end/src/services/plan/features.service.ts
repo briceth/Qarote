@@ -41,7 +41,7 @@ export const PLAN_FEATURES: Record<WorkspacePlan, PlanFeatures> = {
     // Core permissions
     canAddServer: true,
     canAddQueue: false,
-    canSendMessages: true,
+    canSendMessages: false,
     canAddExchange: false,
     canAddVirtualHost: false,
     canAddRabbitMQUser: false,

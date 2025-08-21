@@ -1,8 +1,8 @@
-import { TrialEndingEmail } from "./templates/trial-ending-email";
-import { PaymentActionRequiredEmail } from "./templates/payment-action-required-email";
-import { UpcomingInvoiceEmail } from "./templates/upcoming-invoice-email";
-import { CoreEmailService, EmailResult } from "./core-email.service";
 import { WorkspacePlan } from "@prisma/client";
+import TrialEndingEmail from "./templates/trial-ending-email";
+import PaymentActionRequiredEmail from "./templates/payment-action-required-email";
+import UpcomingInvoiceEmail from "./templates/upcoming-invoice-email";
+import { CoreEmailService, EmailResult } from "./core-email.service";
 
 export interface TrialEndingEmailParams {
   to: string;

@@ -12,6 +12,16 @@ import {
   Hr,
   Img,
 } from "@react-email/components";
+import {
+  baseStyles,
+  headerStyles,
+  contentStyles,
+  buttonStyles,
+  textStyles,
+  utilityStyles,
+  sectionStyles,
+  layoutStyles,
+} from "../shared/styles";
 
 interface UpcomingInvoiceEmailProps {
   name: string;
@@ -22,15 +32,51 @@ interface UpcomingInvoiceEmailProps {
   invoiceDate: string;
   nextBillingDate: string;
   frontendUrl: string;
-  usageReport?: {
-    servers: number;
-    queues: number;
-    monthlyMessages: number;
-    totalMessages: number;
-  };
 }
 
-export const UpcomingInvoiceEmail = ({
+const styles = {
+  invoiceAmount: {
+    fontSize: "32px",
+    fontWeight: "700",
+    color: "#059669", // Green success color
+    textAlign: "center" as const,
+    margin: "20px 0",
+  },
+  invoiceDetails: {
+    backgroundColor: "#f0f9ff",
+    padding: "24px",
+    borderRadius: "8px",
+    border: "1px solid #bfdbfe",
+    margin: "24px 0",
+  },
+  usageGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    gap: "16px",
+    marginTop: "16px",
+  },
+  usageItem: {
+    flex: "1 1 calc(50% - 8px)",
+    backgroundColor: "#ffffff",
+    padding: "16px",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb",
+    textAlign: "center" as const,
+  },
+  usageNumber: {
+    fontSize: "24px",
+    fontWeight: "700",
+    color: "#1f2937",
+    margin: "0 0 4px",
+  },
+  usageLabel: {
+    fontSize: "14px",
+    color: "#6b7280",
+    margin: "0",
+  },
+};
+
+export default function UpcomingInvoiceEmail({
   name,
   workspaceName,
   plan,
@@ -39,16 +85,8 @@ export const UpcomingInvoiceEmail = ({
   invoiceDate,
   nextBillingDate,
   frontendUrl,
-  usageReport,
-}: UpcomingInvoiceEmailProps) => {
-  const planDisplayName = {
-    FREE: "Free",
-    DEVELOPER: "Developer",
-    ENTERPRISE: "Enterprise",
-  }[plan];
-
-  const billingUrl = `${frontendUrl}/billing`;
-  const supportUrl = `${frontendUrl}/help`;
+}: UpcomingInvoiceEmailProps): JSX.Element {
+  const planDisplayName = plan.charAt(0) + plan.slice(1).toLowerCase();
 
   return (
     <Html>
@@ -57,373 +95,147 @@ export const UpcomingInvoiceEmail = ({
         Your upcoming {planDisplayName} subscription invoice -{" "}
         {currency.toUpperCase()} {amount}
       </Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={baseStyles.main}>
+        <Container style={baseStyles.container}>
           {/* Header */}
-          <Section style={header}>
+          <Section style={headerStyles.headerWithLogo}>
             <Img
               src={`${frontendUrl}/icon_rabbit.png`}
               width="50"
               height="50"
               alt="RabbitHQ"
-              style={logo}
+              style={headerStyles.logoInline}
             />
-            <Text style={headerText}>RabbitHQ</Text>
           </Section>
 
           {/* Main Content */}
-          <Section style={content}>
-            <Text style={title}>Upcoming invoice notification</Text>
+          <Section style={contentStyles.contentPadded}>
+            <Text style={contentStyles.title}>
+              Upcoming invoice notification
+            </Text>
 
-            <Text style={paragraph}>Hi {name},</Text>
+            <Text style={contentStyles.paragraph}>Hi {name},</Text>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               This is a friendly reminder that your next{" "}
               <strong>{planDisplayName}</strong> subscription payment for
               workspace <strong>{workspaceName}</strong> is coming up.
             </Text>
 
+            {/* Invoice Amount */}
+            <Text style={styles.invoiceAmount}>
+              {currency.toUpperCase()} {amount}
+            </Text>
+
             {/* Invoice Details Section */}
-            <Section style={invoiceSection}>
-              <Text style={sectionTitle}>📄 Invoice details</Text>
+            <Section style={styles.invoiceDetails}>
+              <Text style={contentStyles.heading}>📄 Invoice details</Text>
 
-              <Section style={invoiceRow}>
-                <Text style={invoiceLabel}>Workspace:</Text>
-                <Text style={invoiceValue}>{workspaceName}</Text>
+              <Section style={layoutStyles.detailRow}>
+                <Text style={layoutStyles.detailLabel}>Workspace:</Text>
+                <Text style={layoutStyles.detailValue}>{workspaceName}</Text>
               </Section>
 
-              <Section style={invoiceRow}>
-                <Text style={invoiceLabel}>Plan:</Text>
-                <Text style={invoiceValue}>{planDisplayName}</Text>
+              <Section style={layoutStyles.detailRow}>
+                <Text style={layoutStyles.detailLabel}>Plan:</Text>
+                <Text style={layoutStyles.detailValue}>{planDisplayName}</Text>
               </Section>
 
-              <Section style={invoiceRow}>
-                <Text style={invoiceLabel}>Amount:</Text>
-                <Text style={invoiceValue}>
+              <Section style={layoutStyles.detailRow}>
+                <Text style={layoutStyles.detailLabel}>Amount:</Text>
+                <Text style={layoutStyles.detailValue}>
                   {currency.toUpperCase()} {amount}
                 </Text>
               </Section>
 
-              <Section style={invoiceRow}>
-                <Text style={invoiceLabel}>Invoice date:</Text>
-                <Text style={invoiceValue}>{invoiceDate}</Text>
+              <Section style={layoutStyles.detailRow}>
+                <Text style={layoutStyles.detailLabel}>Invoice date:</Text>
+                <Text style={layoutStyles.detailValue}>{invoiceDate}</Text>
               </Section>
 
-              <Section style={invoiceRow}>
-                <Text style={invoiceLabel}>Next billing date:</Text>
-                <Text style={invoiceValue}>{nextBillingDate}</Text>
+              <Section style={layoutStyles.detailRow}>
+                <Text style={layoutStyles.detailLabel}>Next billing date:</Text>
+                <Text style={layoutStyles.detailValue}>{nextBillingDate}</Text>
               </Section>
             </Section>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               Your subscription will automatically renew, and payment will be
               processed using your saved payment method.
             </Text>
 
-            {/* Usage Insights Section */}
-            {usageReport && (
-              <Section style={usageSection}>
-                <Text style={sectionTitle}>📊 Your usage this month:</Text>
-
-                <Section style={usageRow}>
-                  <Text style={usageLabel}>RabbitMQ Servers:</Text>
-                  <Text style={usageValue}>
-                    {usageReport.servers} server
-                    {usageReport.servers !== 1 ? "s" : ""}
-                  </Text>
-                </Section>
-
-                <Section style={usageRow}>
-                  <Text style={usageLabel}>Message Queues:</Text>
-                  <Text style={usageValue}>
-                    {usageReport.queues} queue
-                    {usageReport.queues !== 1 ? "s" : ""}
-                  </Text>
-                </Section>
-
-                <Section style={usageRow}>
-                  <Text style={usageLabel}>Messages Processed:</Text>
-                  <Text style={usageValue}>
-                    {usageReport.monthlyMessages.toLocaleString()} messages
-                  </Text>
-                </Section>
-
-                {usageReport.monthlyMessages > 0 && (
-                  <Text style={usageInsight}>
-                    💡 Great activity! You're making the most of your{" "}
-                    {planDisplayName} plan.
-                  </Text>
-                )}
-              </Section>
-            )}
-
             {/* Features Reminder */}
-            <Section style={featuresSection}>
-              <Text style={sectionTitle}>
+            <Section style={sectionStyles.featuresSection}>
+              <Text style={contentStyles.heading}>
                 What you're getting with {planDisplayName}:
               </Text>
 
-              <Section style={featureItem}>
-                <Text style={featureText}>
+              <Section style={layoutStyles.rowItem}>
+                <Text style={textStyles.featureText}>
                   📊 Advanced analytics and detailed metrics
                 </Text>
               </Section>
 
-              <Section style={featureItem}>
-                <Text style={featureText}>
+              <Section style={layoutStyles.rowItem}>
+                <Text style={textStyles.featureText}>
                   🔔 Custom alerts and real-time notifications
                 </Text>
               </Section>
 
-              <Section style={featureItem}>
-                <Text style={featureText}>
+              <Section style={layoutStyles.rowItem}>
+                <Text style={textStyles.featureText}>
                   👥 Team collaboration and workspace sharing
                 </Text>
               </Section>
 
-              {
-                <Section style={featureItem}>
-                  <Text style={featureText}>
-                    🧠 Memory optimization insights and recommendations
-                  </Text>
-                </Section>
-              }
+              <Section style={layoutStyles.rowItem}>
+                <Text style={textStyles.featureText}>
+                  🧠 Memory optimization insights and recommendations
+                </Text>
+              </Section>
 
-              {
-                <Section style={featureItem}>
-                  <Text style={featureText}>
-                    🎯 Priority support and expert consultation
-                  </Text>
-                </Section>
-              }
+              <Section style={layoutStyles.rowItem}>
+                <Text style={textStyles.featureText}>
+                  🎯 Priority support and expert consultation
+                </Text>
+              </Section>
             </Section>
 
             {/* Action Section */}
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               <strong>No action needed</strong> - your payment will be processed
               automatically. However, if you need to update your payment method
               or have any questions, you can visit your billing dashboard.
             </Text>
 
-            <Section style={buttonSection}>
-              <Button style={button} href={billingUrl}>
+            <Section style={buttonStyles.buttonSection}>
+              <Button
+                style={buttonStyles.secondaryButton}
+                href={`${frontendUrl}/profile?tab=plans`}
+              >
                 Manage Billing
               </Button>
             </Section>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               Questions about your subscription? Our{" "}
-              <Link href={supportUrl} style={link}>
+              <Link href={`${frontendUrl}/help`} style={textStyles.link}>
                 support team
               </Link>{" "}
               is here to help.
             </Text>
 
-            <Hr style={hr} />
+            <Hr style={utilityStyles.hr} />
 
-            <Text style={paragraph}>
-              Thank you for choosing RabbitHQ to monitor your RabbitMQ
-              infrastructure! 🐰
-            </Text>
+            <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={signature}>The RabbitHQ Team</Text>
-          </Section>
-
-          {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              You're receiving this email as a courtesy notification about your
-              upcoming invoice.
-            </Text>
-
-            <Text style={footerText}>
-              <Link href={frontendUrl} style={footerLink}>
-                RabbitHQ
-              </Link>{" "}
-              - Monitor and manage your RabbitMQ clusters with ease.
-            </Text>
+            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
           </Section>
         </Container>
       </Body>
     </Html>
   );
-};
-
-// Styles
-const main = {
-  backgroundColor: "#f6f9fc",
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "20px 0 48px",
-  marginBottom: "64px",
-};
-
-const header = {
-  padding: "32px 32px 20px",
-  textAlign: "center" as const,
-};
-
-const logo = {
-  margin: "0 auto 16px",
-};
-
-const headerText = {
-  fontSize: "24px",
-  fontWeight: "bold",
-  color: "#1f2937",
-  margin: "0",
-};
-
-const content = {
-  padding: "0 32px",
-};
-
-const title = {
-  fontSize: "28px",
-  fontWeight: "bold",
-  color: "#059669",
-  textAlign: "center" as const,
-  margin: "0 0 32px",
-};
-
-const paragraph = {
-  fontSize: "16px",
-  lineHeight: "24px",
-  color: "#374151",
-  margin: "0 0 16px",
-};
-
-const invoiceSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#f9fafb",
-  borderRadius: "8px",
-  border: "1px solid #e5e7eb",
-};
-
-const sectionTitle = {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#1f2937",
-  margin: "0 0 16px",
-};
-
-const invoiceRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  margin: "0 0 12px",
-  alignItems: "center",
-};
-
-const invoiceLabel = {
-  fontSize: "15px",
-  color: "#6b7280",
-  margin: "0",
-  fontWeight: "500",
-};
-
-const invoiceValue = {
-  fontSize: "15px",
-  color: "#1f2937",
-  margin: "0",
-  fontWeight: "600",
-};
-
-const usageSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#f0fdf4",
-  borderRadius: "8px",
-  border: "1px solid #bbf7d0",
-};
-
-const usageRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  margin: "0 0 12px",
-  alignItems: "center",
-};
-
-const usageLabel = {
-  fontSize: "15px",
-  color: "#6b7280",
-  margin: "0",
-  fontWeight: "500",
-};
-
-const usageValue = {
-  fontSize: "15px",
-  color: "#1f2937",
-  margin: "0",
-  fontWeight: "600",
-};
-
-const usageInsight = {
-  fontSize: "14px",
-  lineHeight: "20px",
-  color: "#059669",
-  margin: "16px 0 0",
-  fontStyle: "italic" as const,
-};
-
-const featuresSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#f0f9ff",
-  borderRadius: "8px",
-  border: "1px solid #bfdbfe",
-};
-
-const featureItem = {
-  margin: "0 0 8px",
-};
-
-const featureText = {
-  fontSize: "15px",
-  lineHeight: "20px",
-  color: "#1e40af",
-  margin: "0",
-};
-
-const buttonSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  background: "linear-gradient(to right, rgb(234, 88, 12), rgb(220, 38, 38))",
-  borderRadius: "6px",
-  color: "#ffffff",
-  fontSize: "16px",
-  fontWeight: "600",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "12px 24px",
-  border: "none",
-};
-
-const link = {
-  color: "#3b82f6",
-  textDecoration: "underline",
-};
-
-const signature = {
-  fontSize: "16px",
-  color: "#374151",
-  fontWeight: "500",
-  margin: "24px 0 0",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "32px 0",
-};
+}
 
 const footer = {
   padding: "32px 32px 0",
@@ -441,5 +253,3 @@ const footerLink = {
   color: "#3b82f6",
   textDecoration: "underline",
 };
-
-export default UpcomingInvoiceEmail;

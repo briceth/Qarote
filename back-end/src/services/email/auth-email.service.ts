@@ -1,9 +1,8 @@
 import { WorkspacePlan } from "@prisma/client";
-import { getPlanFeatures } from "../plan/plan.service";
 import { InvitationEmail } from "./templates/invitation-email";
-import { WelcomeEmail } from "./templates/welcome-email";
 import { EmailVerification } from "./templates/email-verification";
 import { CoreEmailService, EmailResult } from "./core-email.service";
+import WelcomeEmail from "./templates/welcome-email";
 
 export interface SendInvitationEmailParams {
   to: string;
@@ -48,8 +47,6 @@ export class AuthEmailService {
     } = params;
 
     // Get plan information for the email
-    const planLimits = getPlanFeatures(plan);
-    const userCostPerMonth = planLimits.userCostPerMonth;
     const { frontendUrl } = CoreEmailService.getConfig();
 
     // Render the React email template
@@ -58,8 +55,6 @@ export class AuthEmailService {
       inviterEmail,
       workspaceName,
       invitationToken,
-      plan,
-      userCostPerMonth,
       frontendUrl,
     });
 
@@ -119,11 +114,13 @@ export class AuthEmailService {
     const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
     const expiryHours = 24;
 
+    console.log("Verification URL:", verificationUrl);
+
     // Render the React email template
     const template = EmailVerification({
       email: to,
       userName,
-      verificationUrl,
+      token: verificationToken,
       type,
       frontendUrl,
       expiryHours,

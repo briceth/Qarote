@@ -1,4 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
+import { getPlanFeatures } from "@/services/plan/plan.service";
 import {
   Html,
   Head,
@@ -12,6 +13,15 @@ import {
   Hr,
   Img,
 } from "@react-email/components";
+import {
+  baseStyles,
+  headerStyles,
+  contentStyles,
+  buttonStyles,
+  textStyles,
+  utilityStyles,
+  sectionStyles,
+} from "../shared/styles";
 
 interface PaymentActionRequiredEmailProps {
   name: string;
@@ -23,7 +33,33 @@ interface PaymentActionRequiredEmailProps {
   frontendUrl: string;
 }
 
-export const PaymentActionRequiredEmail = ({
+const styles = {
+  paymentDetails: {
+    backgroundColor: "#fef2f2",
+    padding: "20px",
+    borderRadius: "8px",
+    border: "1px solid #fecaca",
+    margin: "24px 0",
+  },
+  amount: {
+    fontSize: "24px",
+    fontWeight: "700",
+    color: "#dc2626",
+    textAlign: "center" as const,
+    margin: "16px 0",
+  },
+  supportText: {
+    fontSize: "14px",
+    color: "#6b7280",
+    fontStyle: "italic",
+  },
+  listItem: {
+    marginTop: "8px",
+    paddingLeft: "4px",
+  },
+};
+
+export default function PaymentActionRequiredEmail({
   name,
   workspaceName,
   plan,
@@ -31,15 +67,9 @@ export const PaymentActionRequiredEmail = ({
   amount,
   currency,
   frontendUrl,
-}: PaymentActionRequiredEmailProps) => {
-  const planDisplayName = {
-    FREE: "Free",
-    DEVELOPER: "Developer",
-    ENTERPRISE: "Enterprise",
-  }[plan];
-
-  const billingUrl = `${frontendUrl}/billing`;
-  const supportUrl = `${frontendUrl}/help`;
+}: PaymentActionRequiredEmailProps): JSX.Element {
+  const planDisplayName = plan.charAt(0) + plan.slice(1).toLowerCase();
+  const planFeatures = getPlanFeatures(plan);
 
   return (
     <Html>
@@ -47,33 +77,32 @@ export const PaymentActionRequiredEmail = ({
       <Preview>
         Action required: Complete your payment for {workspaceName}
       </Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={baseStyles.main}>
+        <Container style={baseStyles.container}>
           {/* Header */}
-          <Section style={header}>
+          <Section style={headerStyles.headerWithLogo}>
             <Img
               src={`${frontendUrl}/icon_rabbit.png`}
               width="50"
               height="50"
               alt="RabbitHQ"
-              style={logo}
+              style={headerStyles.logoInline}
             />
-            <Text style={headerText}>RabbitHQ</Text>
           </Section>
 
           {/* Main Content */}
-          <Section style={content}>
-            <Text style={title}>Payment action required</Text>
+          <Section style={contentStyles.contentPadded}>
+            <Text style={contentStyles.title}>Payment action required</Text>
 
-            <Text style={paragraph}>Hi {name},</Text>
+            <Text style={contentStyles.paragraph}>Hi {name},</Text>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               We were unable to process the payment for your{" "}
               <strong>{planDisplayName}</strong> subscription for workspace{" "}
               <strong>{workspaceName}</strong>.
             </Text>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               To continue your service without interruption, please complete the
               payment of{" "}
               <strong>
@@ -82,64 +111,59 @@ export const PaymentActionRequiredEmail = ({
               .
             </Text>
 
-            {/* Action Required Section */}
-            <Section style={actionSection}>
-              <Text style={actionTitle}>🚨 Immediate action required</Text>
+            {/* Payment Details */}
+            <Section style={styles.paymentDetails}>
+              <Text style={contentStyles.heading}>Payment Required</Text>
+              <Text style={styles.amount}>
+                {currency.toUpperCase()} {amount}
+              </Text>
+            </Section>
 
-              <Text style={actionText}>
-                Your subscription will be suspended if payment is not completed
-                within the next few days. This means:
+            {/* Action Required Section */}
+            <Section style={sectionStyles.warningSection}>
+              <Text style={contentStyles.heading}>
+                🚨 Immediate action required
               </Text>
 
-              <Section style={actionItem}>
-                <Text style={actionItemText}>
-                  • Your workspace will lose access to premium features
-                </Text>
-              </Section>
+              <Text style={contentStyles.paragraph}>
+                Your subscription will be suspended if payment is not completed
+                within the next few days. You will lose access to these{" "}
+                {planDisplayName} features:
+              </Text>
 
-              <Section style={actionItem}>
-                <Text style={actionItemText}>
-                  • Real-time monitoring may be interrupted
-                </Text>
-              </Section>
-
-              <Section style={actionItem}>
-                <Text style={actionItemText}>
-                  • Team collaboration will be restricted
-                </Text>
-              </Section>
-
-              <Section style={actionItem}>
-                <Text style={actionItemText}>
-                  • Data retention will be limited
-                </Text>
-              </Section>
+              {planFeatures.featureDescriptions.map((feature, index) => (
+                <Section key={index} style={styles.listItem}>
+                  <Text style={textStyles.warningText}>• {feature}</Text>
+                </Section>
+              ))}
             </Section>
 
             {/* Payment Instructions */}
-            <Section style={instructionsSection}>
-              <Text style={sectionTitle}>How to complete your payment:</Text>
+            <Section style={sectionStyles.infoSection}>
+              <Text style={contentStyles.heading}>
+                How to complete your payment:
+              </Text>
 
-              <Section style={instructionItem}>
-                <Text style={instructionText}>
+              <Section style={styles.listItem}>
+                <Text style={textStyles.infoText}>
                   <strong>1.</strong> Click the "Complete Payment" button below
                 </Text>
               </Section>
 
-              <Section style={instructionItem}>
-                <Text style={instructionText}>
+              <Section style={styles.listItem}>
+                <Text style={textStyles.infoText}>
                   <strong>2.</strong> You'll be taken to a secure payment page
                 </Text>
               </Section>
 
-              <Section style={instructionItem}>
-                <Text style={instructionText}>
+              <Section style={styles.listItem}>
+                <Text style={textStyles.infoText}>
                   <strong>3.</strong> Update your payment method if needed
                 </Text>
               </Section>
 
-              <Section style={instructionItem}>
-                <Text style={instructionText}>
+              <Section style={styles.listItem}>
+                <Text style={textStyles.infoText}>
                   <strong>4.</strong> Complete the payment to restore full
                   access
                 </Text>
@@ -147,211 +171,28 @@ export const PaymentActionRequiredEmail = ({
             </Section>
 
             {/* Call to Action */}
-            <Section style={buttonSection}>
-              <Button style={button} href={invoiceUrl}>
+            <Section style={buttonStyles.buttonSection}>
+              <Button style={buttonStyles.primaryButton} href={invoiceUrl}>
                 Complete Payment
               </Button>
             </Section>
 
-            <Text style={paragraph}>
-              You can also manage your billing and payment methods from your{" "}
-              <Link href={billingUrl} style={link}>
-                billing dashboard
-              </Link>
-              .
-            </Text>
-
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               Need help? Contact our{" "}
-              <Link href={supportUrl} style={link}>
+              <Link href={`${frontendUrl}/help`} style={textStyles.link}>
                 support team
               </Link>{" "}
               and we'll assist you right away.
             </Text>
 
-            <Hr style={hr} />
+            <Hr style={utilityStyles.hr} />
 
-            <Text style={signature}>The RabbitHQ Team</Text>
-          </Section>
+            <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-          {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              You're receiving this email because a payment for your
-              subscription failed.
-            </Text>
-
-            <Text style={footerText}>
-              <Link href={frontendUrl} style={footerLink}>
-                RabbitHQ
-              </Link>{" "}
-              - Monitor and manage your RabbitMQ clusters with ease.
-            </Text>
+            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
           </Section>
         </Container>
       </Body>
     </Html>
   );
-};
-
-// Styles
-const main = {
-  backgroundColor: "#f6f9fc",
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "20px 0 48px",
-  marginBottom: "64px",
-};
-
-const header = {
-  padding: "32px 32px 20px",
-  textAlign: "center" as const,
-};
-
-const logo = {
-  margin: "0 auto 16px",
-};
-
-const headerText = {
-  fontSize: "24px",
-  fontWeight: "bold",
-  color: "#1f2937",
-  margin: "0",
-};
-
-const content = {
-  padding: "0 32px",
-};
-
-const title = {
-  fontSize: "28px",
-  fontWeight: "bold",
-  color: "#dc2626",
-  textAlign: "center" as const,
-  margin: "0 0 32px",
-};
-
-const paragraph = {
-  fontSize: "16px",
-  lineHeight: "24px",
-  color: "#374151",
-  margin: "0 0 16px",
-};
-
-const actionSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#fef2f2",
-  borderRadius: "8px",
-  border: "1px solid #fecaca",
-};
-
-const actionTitle = {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#dc2626",
-  margin: "0 0 16px",
-};
-
-const actionText = {
-  fontSize: "16px",
-  lineHeight: "24px",
-  color: "#991b1b",
-  margin: "0 0 16px",
-};
-
-const actionItem = {
-  margin: "0 0 8px",
-};
-
-const actionItemText = {
-  fontSize: "15px",
-  lineHeight: "20px",
-  color: "#991b1b",
-  margin: "0",
-};
-
-const instructionsSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#f9fafb",
-  borderRadius: "8px",
-  border: "1px solid #e5e7eb",
-};
-
-const sectionTitle = {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#1f2937",
-  margin: "0 0 16px",
-};
-
-const instructionItem = {
-  margin: "0 0 12px",
-};
-
-const instructionText = {
-  fontSize: "15px",
-  lineHeight: "20px",
-  color: "#374151",
-  margin: "0",
-};
-
-const buttonSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  background: "linear-gradient(to right, rgb(234, 88, 12), rgb(220, 38, 38))",
-  borderRadius: "6px",
-  color: "#ffffff",
-  fontSize: "16px",
-  fontWeight: "600",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "12px 24px",
-  border: "none",
-};
-
-const link = {
-  color: "#3b82f6",
-  textDecoration: "underline",
-};
-
-const signature = {
-  fontSize: "16px",
-  color: "#374151",
-  fontWeight: "500",
-  margin: "24px 0 0",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "32px 0",
-};
-
-const footer = {
-  padding: "32px 32px 0",
-  textAlign: "center" as const,
-};
-
-const footerText = {
-  fontSize: "14px",
-  lineHeight: "20px",
-  color: "#6b7280",
-  margin: "0 0 8px",
-};
-
-const footerLink = {
-  color: "#3b82f6",
-  textDecoration: "underline",
-};
-
-export default PaymentActionRequiredEmail;
+}

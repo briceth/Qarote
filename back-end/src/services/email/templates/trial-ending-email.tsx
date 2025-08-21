@@ -1,4 +1,5 @@
 import { WorkspacePlan } from "@prisma/client";
+import { getPlanFeatures } from "@/services/plan/plan.service";
 import {
   Html,
   Head,
@@ -12,6 +13,15 @@ import {
   Hr,
   Img,
 } from "@react-email/components";
+import {
+  baseStyles,
+  headerStyles,
+  contentStyles,
+  buttonStyles,
+  textStyles,
+  utilityStyles,
+  sectionStyles,
+} from "../shared/styles";
 
 interface TrialEndingEmailProps {
   name: string;
@@ -21,21 +31,26 @@ interface TrialEndingEmailProps {
   frontendUrl: string;
 }
 
-export const TrialEndingEmail = ({
+const styles = {
+  warningItem: {
+    marginTop: "8px",
+    paddingLeft: "4px",
+  },
+  benefitItem: {
+    marginTop: "8px",
+    paddingLeft: "4px",
+  },
+};
+
+export default function TrialEndingEmail({
   name,
   workspaceName,
   plan,
   trialEndDate,
   frontendUrl,
-}: TrialEndingEmailProps) => {
-  const planDisplayName = {
-    FREE: "Free",
-    DEVELOPER: "Developer",
-    ENTERPRISE: "Entreprise",
-  }[plan];
-
-  const upgradeUrl = `${frontendUrl}/billing`;
-  const supportUrl = `${frontendUrl}/help`;
+}: TrialEndingEmailProps): JSX.Element {
+  const planDisplayName = plan.charAt(0) + plan.slice(1).toLowerCase();
+  const planFeatures = getPlanFeatures(plan);
 
   return (
     <Html>
@@ -44,301 +59,101 @@ export const TrialEndingEmail = ({
         Your {planDisplayName} trial ends soon - upgrade to continue using
         RabbitHQ
       </Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={baseStyles.main}>
+        <Container style={baseStyles.container}>
           {/* Header */}
-          <Section style={header}>
+          <Section style={headerStyles.headerWithLogo}>
             <Img
               src={`${frontendUrl}/icon_rabbit.png`}
               width="50"
               height="50"
               alt="RabbitHQ"
-              style={logo}
+              style={headerStyles.logoInline}
             />
-            <Text style={headerText}>RabbitHQ</Text>
           </Section>
 
           {/* Main Content */}
-          <Section style={content}>
-            <Text style={title}>Your trial is ending soon</Text>
+          <Section style={contentStyles.contentPadded}>
+            <Text style={contentStyles.title}>Your trial is ending soon</Text>
 
-            <Text style={paragraph}>Hi {name},</Text>
+            <Text style={contentStyles.paragraph}>Hi {name},</Text>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               Your <strong>{planDisplayName}</strong> trial for workspace{" "}
               <strong>{workspaceName}</strong> will end on{" "}
               <strong>{trialEndDate}</strong>.
             </Text>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               To continue enjoying all the premium features and keep your
               RabbitMQ monitoring uninterrupted, please upgrade your
               subscription before your trial expires.
             </Text>
 
             {/* Warning Section */}
-            <Section style={warningSection}>
-              <Text style={warningTitle}>
+            <Section style={sectionStyles.warningSection}>
+              <Text style={contentStyles.heading}>
                 ⚠️ What happens if you don't upgrade?
               </Text>
 
-              <Section style={warningItem}>
-                <Text style={warningText}>
+              <Section style={styles.warningItem}>
+                <Text style={textStyles.warningText}>
                   • Your workspace will be downgraded to the Free plan
                 </Text>
               </Section>
 
-              <Section style={warningItem}>
-                <Text style={warningText}>
+              <Section style={styles.warningItem}>
+                <Text style={textStyles.warningText}>
                   • Advanced features will be disabled
                 </Text>
               </Section>
 
-              <Section style={warningItem}>
-                <Text style={warningText}>
-                  • Data retention will be limited
-                </Text>
-              </Section>
-
-              <Section style={warningItem}>
-                <Text style={warningText}>
+              <Section style={styles.warningItem}>
+                <Text style={textStyles.warningText}>
                   • Team collaboration features will be restricted
                 </Text>
               </Section>
             </Section>
 
             {/* Benefits Section */}
-            <Section style={benefitsSection}>
-              <Text style={sectionTitle}>
+            <Section style={sectionStyles.infoSection}>
+              <Text style={contentStyles.heading}>
                 Keep enjoying {planDisplayName} benefits:
               </Text>
 
-              <Section style={benefitItem}>
-                <Text style={benefitText}>
-                  📊 Advanced analytics and detailed metrics
-                </Text>
-              </Section>
-
-              <Section style={benefitItem}>
-                <Text style={benefitText}>
-                  🔔 Custom alerts and notifications
-                </Text>
-              </Section>
-
-              <Section style={benefitItem}>
-                <Text style={benefitText}>
-                  👥 Team collaboration and workspace sharing
-                </Text>
-              </Section>
-
-              {
-                <Section style={benefitItem}>
-                  <Text style={benefitText}>
-                    🧠 Memory optimization insights and recommendations
-                  </Text>
+              {planFeatures.featureDescriptions.map((feature, index) => (
+                <Section key={index} style={styles.benefitItem}>
+                  <Text style={textStyles.infoText}>✓ {feature}</Text>
                 </Section>
-              }
-
-              {
-                <Section style={benefitItem}>
-                  <Text style={benefitText}>
-                    🎯 Priority support and expert consultation
-                  </Text>
-                </Section>
-              }
+              ))}
             </Section>
 
             {/* Call to Action */}
-            <Section style={buttonSection}>
-              <Button style={button} href={upgradeUrl}>
+            <Section style={buttonStyles.buttonSection}>
+              <Button
+                style={buttonStyles.primaryButton}
+                href={`${frontendUrl}/profile?tab=plans`}
+              >
                 Upgrade Now
               </Button>
             </Section>
 
-            <Text style={paragraph}>
+            <Text style={contentStyles.paragraph}>
               Have questions about your subscription? Our{" "}
-              <Link href={supportUrl} style={link}>
+              <Link href={`${frontendUrl}/help`} style={textStyles.link}>
                 support team
               </Link>{" "}
               is here to help.
             </Text>
 
-            <Hr style={hr} />
+            <Hr style={utilityStyles.hr} />
 
-            <Text style={signature}>The RabbitHQ Team</Text>
-          </Section>
+            <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-          {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              You're receiving this email because your trial subscription is
-              ending soon.
-            </Text>
-
-            <Text style={footerText}>
-              <Link href={frontendUrl} style={footerLink}>
-                RabbitHQ
-              </Link>{" "}
-              - Monitor and manage your RabbitMQ clusters with ease.
-            </Text>
+            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
           </Section>
         </Container>
       </Body>
     </Html>
   );
-};
-
-// Styles
-const main = {
-  backgroundColor: "#f6f9fc",
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "20px 0 48px",
-  marginBottom: "64px",
-};
-
-const header = {
-  padding: "32px 32px 20px",
-  textAlign: "center" as const,
-};
-
-const logo = {
-  margin: "0 auto 16px",
-};
-
-const headerText = {
-  fontSize: "24px",
-  fontWeight: "bold",
-  color: "#1f2937",
-  margin: "0",
-};
-
-const content = {
-  padding: "0 32px",
-};
-
-const title = {
-  fontSize: "28px",
-  fontWeight: "bold",
-  color: "#dc2626",
-  textAlign: "center" as const,
-  margin: "0 0 32px",
-};
-
-const paragraph = {
-  fontSize: "16px",
-  lineHeight: "24px",
-  color: "#374151",
-  margin: "0 0 16px",
-};
-
-const warningSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#fef2f2",
-  borderRadius: "8px",
-  border: "1px solid #fecaca",
-};
-
-const warningTitle = {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#dc2626",
-  margin: "0 0 16px",
-};
-
-const warningItem = {
-  margin: "0 0 8px",
-};
-
-const warningText = {
-  fontSize: "15px",
-  lineHeight: "20px",
-  color: "#991b1b",
-  margin: "0",
-};
-
-const benefitsSection = {
-  margin: "32px 0",
-  padding: "24px",
-  backgroundColor: "#f0f9ff",
-  borderRadius: "8px",
-  border: "1px solid #bfdbfe",
-};
-
-const sectionTitle = {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#1f2937",
-  margin: "0 0 16px",
-};
-
-const benefitItem = {
-  margin: "0 0 8px",
-};
-
-const benefitText = {
-  fontSize: "15px",
-  lineHeight: "20px",
-  color: "#1e40af",
-  margin: "0",
-};
-
-const buttonSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  background: "linear-gradient(to right, rgb(234, 88, 12), rgb(220, 38, 38))",
-  borderRadius: "6px",
-  color: "#ffffff",
-  fontSize: "16px",
-  fontWeight: "600",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "12px 24px",
-  border: "none",
-};
-
-const link = {
-  color: "#3b82f6",
-  textDecoration: "underline",
-};
-
-const signature = {
-  fontSize: "16px",
-  color: "#374151",
-  fontWeight: "500",
-  margin: "24px 0 0",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "32px 0",
-};
-
-const footer = {
-  padding: "32px 32px 0",
-  textAlign: "center" as const,
-};
-
-const footerText = {
-  fontSize: "14px",
-  lineHeight: "20px",
-  color: "#6b7280",
-  margin: "0 0 8px",
-};
-
-const footerLink = {
-  color: "#3b82f6",
-  textDecoration: "underline",
-};
-
-export default TrialEndingEmail;
+}

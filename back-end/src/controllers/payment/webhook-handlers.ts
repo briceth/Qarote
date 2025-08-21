@@ -507,9 +507,6 @@ export async function handleUpcomingInvoice(invoice: Invoice) {
           currency: invoice.currency,
           invoiceDate,
           nextBillingDate,
-          usageReport: {
-            servers: resourceCounts.servers,
-          },
         });
 
         if (!emailResult.success) {
