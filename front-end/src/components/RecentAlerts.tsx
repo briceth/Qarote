@@ -1,7 +1,7 @@
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
   XCircle,
@@ -164,15 +164,13 @@ export const RecentAlerts = () => {
             </CardTitle>
             <p className="text-sm text-gray-500">Latest system notifications</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/alerts")}
-            className="text-blue-600 hover:text-blue-700"
+          <Link
+            to="/alerts"
+            className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 transition-colors font-medium"
           >
             View All
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Button>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </CardHeader>
       <CardContent>

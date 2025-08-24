@@ -147,7 +147,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-gray-100 p-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-            <MessageSquare className="w-4 h-4 text-white" />
+            <img src="/icon_rabbit.svg" alt="Rabbit" className="w-4 h-4" />
           </div>
           <div>
             <h2 className="font-bold text-gray-900">RabbitHQ</h2>

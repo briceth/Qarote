@@ -151,7 +151,7 @@ const Queues = () => {
             </div>
 
             {/* Plan Restrictions */}
-            {!restrictionsDismissed && (
+            {/* {!restrictionsDismissed && (
               <PlanRestrictions
                 workspacePlan={workspacePlan}
                 queueCount={queueCount}
@@ -160,7 +160,7 @@ const Queues = () => {
                 onUpgrade={() => navigate("/plans")}
                 onDismiss={() => setRestrictionsDismissed(true)}
               />
-            )}
+            )} */}
 
             {/* Filter */}
             <div className="flex items-center gap-4">

@@ -309,7 +309,6 @@ export default function UserDetailsPage() {
                     className="mr-2 flex items-center gap-1"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    <span className="text-sm">Back</span>
                   </Button>
                   <h1 className="title-page">User / {decodedUsername}</h1>
                 </div>
