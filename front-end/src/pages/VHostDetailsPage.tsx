@@ -21,6 +21,7 @@ import { PageLoader } from "@/components/PageLoader";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { apiClient } from "@/lib/api";
 import { DeleteVHostModal } from "@/components/vhosts/DeleteVHostModal";
 import { EditVHostModal } from "@/components/vhosts/EditVHostModal";
@@ -32,6 +33,7 @@ export default function VHostDetailsPage() {
     vhostName: string;
   }>();
   const { selectedServerId } = useServerContext();
+  const { workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -56,12 +58,30 @@ export default function VHostDetailsPage() {
     error,
   } = useQuery({
     queryKey: ["vhost", currentServerId, decodedVHostName],
-    queryFn: () => apiClient.getVHost(currentServerId!, decodedVHostName),
-    enabled: !!currentServerId && !!decodedVHostName,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getVHost(
+        currentServerId!,
+        decodedVHostName,
+        workspace.id
+      );
+    },
+    enabled: !!currentServerId && !!decodedVHostName && !!workspace?.id,
   });
 
   const deleteVHostMutation = useMutation({
-    mutationFn: () => apiClient.deleteVHost(currentServerId!, decodedVHostName),
+    mutationFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteVHost(
+        currentServerId!,
+        decodedVHostName,
+        workspace.id
+      );
+    },
     onSuccess: () => {
       toast.success("Virtual host deleted successfully");
       navigate("/vhosts");
@@ -74,14 +94,22 @@ export default function VHostDetailsPage() {
   // Fetch users for the permission form
   const { data: usersData } = useQuery({
     queryKey: ["users", currentServerId],
-    queryFn: () => apiClient.getUsers(currentServerId!),
-    enabled: !!currentServerId,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getUsers(currentServerId!, workspace.id);
+    },
+    enabled: !!currentServerId && !!workspace?.id,
   });
 
   // Set permissions mutation
   const setPermissionsMutation = useMutation({
-    mutationFn: () =>
-      apiClient.setVHostPermissions(
+    mutationFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.setVHostPermissions(
         currentServerId!,
         decodedVHostName,
         selectedUser,
@@ -90,8 +118,10 @@ export default function VHostDetailsPage() {
           configure: configureRegexp,
           write: writeRegexp,
           read: readRegexp,
-        }
-      ),
+        },
+        workspace.id
+      );
+    },
     onSuccess: () => {
       toast.success("Permissions set successfully");
       // Refetch vhost data to update permissions list
@@ -107,6 +137,9 @@ export default function VHostDetailsPage() {
   // Set limits mutation
   const setLimitsMutation = useMutation({
     mutationFn: async () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
       const promises = [];
       if (maxConnections) {
         promises.push(
@@ -117,7 +150,8 @@ export default function VHostDetailsPage() {
             {
               value: parseInt(maxConnections),
               limitType: "max-connections" as const,
-            }
+            },
+            workspace.id
           )
         );
       }
@@ -130,7 +164,8 @@ export default function VHostDetailsPage() {
             {
               value: parseInt(maxQueues),
               limitType: "max-queues" as const,
-            }
+            },
+            workspace.id
           )
         );
       }
@@ -152,12 +187,17 @@ export default function VHostDetailsPage() {
 
   // Clear permissions mutation
   const clearPermissionsMutation = useMutation({
-    mutationFn: (username: string) =>
-      apiClient.deleteVHostPermissions(
+    mutationFn: (username: string) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteVHostPermissions(
         currentServerId!,
         decodedVHostName,
-        username
-      ),
+        username,
+        workspace.id
+      );
+    },
     onSuccess: () => {
       toast.success("Permissions cleared successfully");
       queryClient.invalidateQueries({

@@ -12,17 +12,27 @@ const overviewController = new Hono();
 
 /**
  * Get overview for a specific server (ALL USERS)
- * GET /servers/:id/overview
+ * GET /workspaces/:workspaceId/servers/:id/overview
  */
 overviewController.get("/servers/:id/overview", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     // Verify the server belongs to the user's workspace and get over-limit info
-    const server = await verifyServerAccess(id, user.workspaceId, true);
+    const server = await verifyServerAccess(id, workspaceId, true);
 
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    if (!server) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    const client = await createRabbitMQClient(id, workspaceId);
     const overview = await client.getOverview();
 
     // Prepare response with properly typed over-limit warning information

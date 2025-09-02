@@ -14,12 +14,14 @@ import { useNavigate } from "react-router-dom";
 import { useServerContext } from "@/contexts/ServerContext";
 import { apiClient } from "@/lib/api";
 import { AlertSeverity, AlertCategory, AlertThresholds } from "@/types/alerts";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
 export const RecentAlerts = () => {
   const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
+  const { workspace } = useWorkspace();
 
   // Default thresholds for query
   const defaultThresholds: AlertThresholds = {
@@ -38,10 +40,15 @@ export const RecentAlerts = () => {
   } = useQuery({
     queryKey: ["recentAlerts", selectedServerId],
     queryFn: () =>
-      apiClient.getRabbitMQAlerts(selectedServerId!, defaultThresholds, {
-        limit: 3, // Only fetch 3 most recent alerts
-        resolved: false, // Only get active alerts
-      }),
+      apiClient.getRabbitMQAlerts(
+        selectedServerId!,
+        workspace.id,
+        defaultThresholds,
+        {
+          limit: 3, // Only fetch 3 most recent alerts
+          resolved: false, // Only get active alerts
+        }
+      ),
     enabled: !!selectedServerId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });

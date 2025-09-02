@@ -74,47 +74,61 @@ class ApiClient {
   }
 
   // RabbitMQ methods
-  async getOverview(serverId: string) {
-    return this.rabbitmqClient.getOverview(serverId);
+  async getOverview(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getOverview(serverId, workspaceId);
   }
 
-  async getQueues(serverId: string) {
-    return this.rabbitmqClient.getQueues(serverId);
+  async getQueues(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getQueues(serverId, workspaceId);
   }
 
-  async getQueue(serverId: string, queueName: string) {
-    return this.rabbitmqClient.getQueue(serverId, queueName);
+  async getQueue(serverId: string, queueName: string, workspaceId: string) {
+    return this.rabbitmqClient.getQueue(serverId, queueName, workspaceId);
   }
 
   async createQueue(params: Parameters<RabbitMQApiClient["createQueue"]>[0]) {
     return this.rabbitmqClient.createQueue(params);
   }
 
-  async purgeQueue(serverId: string, queueName: string) {
-    return this.rabbitmqClient.purgeQueue(serverId, queueName);
+  async purgeQueue(serverId: string, queueName: string, workspaceId: string) {
+    return this.rabbitmqClient.purgeQueue(serverId, queueName, workspaceId);
   }
 
   async deleteQueue(
     serverId: string,
     queueName: string,
+    workspaceId: string,
     options: {
       if_unused?: boolean;
       if_empty?: boolean;
     } = {}
   ) {
-    return this.rabbitmqClient.deleteQueue(serverId, queueName, options);
+    return this.rabbitmqClient.deleteQueue(
+      serverId,
+      queueName,
+      workspaceId,
+      options
+    );
   }
 
-  async pauseQueue(serverId: string, queueName: string) {
-    return this.rabbitmqClient.pauseQueue(serverId, queueName);
+  async pauseQueue(serverId: string, queueName: string, workspaceId: string) {
+    return this.rabbitmqClient.pauseQueue(serverId, queueName, workspaceId);
   }
 
-  async resumeQueue(serverId: string, queueName: string) {
-    return this.rabbitmqClient.resumeQueue(serverId, queueName);
+  async resumeQueue(serverId: string, queueName: string, workspaceId: string) {
+    return this.rabbitmqClient.resumeQueue(serverId, queueName, workspaceId);
   }
 
-  async getQueuePauseStatus(serverId: string, queueName: string) {
-    return this.rabbitmqClient.getQueuePauseStatus(serverId, queueName);
+  async getQueuePauseStatus(
+    serverId: string,
+    queueName: string,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.getQueuePauseStatus(
+      serverId,
+      queueName,
+      workspaceId
+    );
   }
 
   async publishMessage(
@@ -123,116 +137,170 @@ class ApiClient {
     return this.rabbitmqClient.publishMessage(params);
   }
 
-  async getNodes(serverId: string) {
-    return this.rabbitmqClient.getNodes(serverId);
+  async getNodes(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getNodes(serverId, workspaceId);
   }
 
-  async getNodeMemoryDetails(serverId: string, nodeName: string) {
-    return this.rabbitmqClient.getNodeMemoryDetails(serverId, nodeName);
+  async getNodeMemoryDetails(
+    serverId: string,
+    nodeName: string,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.getNodeMemoryDetails(
+      serverId,
+      nodeName,
+      workspaceId
+    );
   }
 
-  async getMetrics(serverId: string) {
-    return this.rabbitmqClient.getMetrics(serverId);
+  async getMetrics(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getMetrics(serverId, workspaceId);
   }
 
-  async getConnections(serverId: string) {
-    return this.rabbitmqClient.getConnections(serverId);
+  async getConnections(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getConnections(serverId, workspaceId);
   }
 
-  async getChannels(serverId: string) {
-    return this.rabbitmqClient.getChannels(serverId);
+  async getChannels(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getChannels(serverId, workspaceId);
   }
 
-  async getExchanges(serverId: string) {
-    return this.rabbitmqClient.getExchanges(serverId);
+  async getExchanges(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getExchanges(serverId, workspaceId);
   }
 
   async createExchange(
     serverId: string,
-    exchangeData: Parameters<RabbitMQApiClient["createExchange"]>[1]
+    exchangeData: Parameters<RabbitMQApiClient["createExchange"]>[2],
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.createExchange(serverId, exchangeData);
+    return this.rabbitmqClient.createExchange(
+      serverId,
+      workspaceId,
+      exchangeData
+    );
   }
 
   async deleteExchange(
     serverId: string,
     exchangeName: string,
-    options: Parameters<RabbitMQApiClient["deleteExchange"]>[2] = {}
+    workspaceId: string,
+    options: Parameters<RabbitMQApiClient["deleteExchange"]>[3] = {}
   ) {
-    return this.rabbitmqClient.deleteExchange(serverId, exchangeName, options);
+    return this.rabbitmqClient.deleteExchange(
+      serverId,
+      exchangeName,
+      workspaceId,
+      options
+    );
   }
 
-  async getBindings(serverId: string) {
-    return this.rabbitmqClient.getBindings(serverId);
+  async getBindings(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getBindings(serverId, workspaceId);
   }
 
-  async getQueueConsumers(serverId: string, queueName: string) {
-    return this.rabbitmqClient.getQueueConsumers(serverId, queueName);
+  async getQueueConsumers(
+    serverId: string,
+    queueName: string,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.getQueueConsumers(
+      serverId,
+      queueName,
+      workspaceId
+    );
   }
 
-  async getQueueBindings(serverId: string, queueName: string) {
-    return this.rabbitmqClient.getQueueBindings(serverId, queueName);
+  async getQueueBindings(
+    serverId: string,
+    queueName: string,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.getQueueBindings(
+      serverId,
+      queueName,
+      workspaceId
+    );
   }
 
-  async getTimeSeriesMetrics(serverId: string) {
-    return this.rabbitmqClient.getTimeSeriesMetrics(serverId);
+  async getTimeSeriesMetrics(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getTimeSeriesMetrics(serverId, workspaceId);
   }
 
-  async getQueueLiveRates(serverId: string, queueName: string) {
-    return this.rabbitmqClient.getQueueLiveRates(serverId, queueName);
+  async getQueueLiveRates(
+    serverId: string,
+    queueName: string,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.getQueueLiveRates(
+      serverId,
+      queueName,
+      workspaceId
+    );
   }
 
   // VHost Management (Admin Only)
-  async getVHosts(serverId: string) {
-    return this.rabbitmqClient.getVHosts(serverId);
+  async getVHosts(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getVHosts(serverId, workspaceId);
   }
 
-  async getVHost(serverId: string, vhostName: string) {
-    return this.rabbitmqClient.getVHost(serverId, vhostName);
+  async getVHost(serverId: string, vhostName: string, workspaceId: string) {
+    return this.rabbitmqClient.getVHost(serverId, vhostName, workspaceId);
   }
 
   async createVHost(
     serverId: string,
-    data: Parameters<RabbitMQApiClient["createVHost"]>[1]
+    data: Parameters<RabbitMQApiClient["createVHost"]>[1],
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.createVHost(serverId, data);
+    return this.rabbitmqClient.createVHost(serverId, data, workspaceId);
   }
 
   async updateVHost(
     serverId: string,
     vhostName: string,
-    data: Parameters<RabbitMQApiClient["updateVHost"]>[2]
+    data: Parameters<RabbitMQApiClient["updateVHost"]>[2],
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.updateVHost(serverId, vhostName, data);
+    return this.rabbitmqClient.updateVHost(
+      serverId,
+      vhostName,
+      data,
+      workspaceId
+    );
   }
 
-  async deleteVHost(serverId: string, vhostName: string) {
-    return this.rabbitmqClient.deleteVHost(serverId, vhostName);
+  async deleteVHost(serverId: string, vhostName: string, workspaceId: string) {
+    return this.rabbitmqClient.deleteVHost(serverId, vhostName, workspaceId);
   }
 
   async setVHostPermissions(
     serverId: string,
     vhostName: string,
     username: string,
-    permissions: Parameters<RabbitMQApiClient["setVHostPermissions"]>[3]
+    permissions: Parameters<RabbitMQApiClient["setVHostPermissions"]>[3],
+    workspaceId: string
   ) {
     return this.rabbitmqClient.setVHostPermissions(
       serverId,
       vhostName,
       username,
-      permissions
+      permissions,
+      workspaceId
     );
   }
 
   async deleteVHostPermissions(
     serverId: string,
     vhostName: string,
-    username: string
+    username: string,
+    workspaceId: string
   ) {
     return this.rabbitmqClient.deleteVHostPermissions(
       serverId,
       vhostName,
-      username
+      username,
+      workspaceId
     );
   }
 
@@ -240,70 +308,105 @@ class ApiClient {
     serverId: string,
     vhostName: string,
     limitType: string,
-    data: Parameters<RabbitMQApiClient["setVHostLimit"]>[3]
+    data: Parameters<RabbitMQApiClient["setVHostLimit"]>[3],
+    workspaceId: string
   ) {
     return this.rabbitmqClient.setVHostLimit(
       serverId,
       vhostName,
       limitType,
-      data
+      data,
+      workspaceId
     );
   }
 
   async deleteVHostLimit(
     serverId: string,
     vhostName: string,
-    limitType: string
+    limitType: string,
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.deleteVHostLimit(serverId, vhostName, limitType);
+    return this.rabbitmqClient.deleteVHostLimit(
+      serverId,
+      vhostName,
+      limitType,
+      workspaceId
+    );
   }
 
   // User Management (Admin Only)
-  async getUsers(serverId: string) {
-    return this.rabbitmqClient.getUsers(serverId);
+  async getUsers(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getUsers(serverId, workspaceId);
   }
 
-  async getUser(serverId: string, username: string) {
-    return this.rabbitmqClient.getUser(serverId, username);
+  async getUser(serverId: string, username: string, workspaceId: string) {
+    return this.rabbitmqClient.getUser(serverId, username, workspaceId);
   }
 
-  async getUserPermissions(serverId: string, username: string) {
-    return this.rabbitmqClient.getUserPermissions(serverId, username);
+  async getUserPermissions(
+    serverId: string,
+    username: string,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.getUserPermissions(
+      serverId,
+      username,
+      workspaceId
+    );
   }
 
   async createUser(
     serverId: string,
-    data: Parameters<RabbitMQApiClient["createUser"]>[1]
+    data: Parameters<RabbitMQApiClient["createUser"]>[1],
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.createUser(serverId, data);
+    return this.rabbitmqClient.createUser(serverId, data, workspaceId);
   }
 
   async updateUser(
     serverId: string,
     username: string,
-    data: Parameters<RabbitMQApiClient["updateUser"]>[2]
+    data: Parameters<RabbitMQApiClient["updateUser"]>[2],
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.updateUser(serverId, username, data);
+    return this.rabbitmqClient.updateUser(
+      serverId,
+      username,
+      data,
+      workspaceId
+    );
   }
 
-  async deleteUser(serverId: string, username: string) {
-    return this.rabbitmqClient.deleteUser(serverId, username);
+  async deleteUser(serverId: string, username: string, workspaceId: string) {
+    return this.rabbitmqClient.deleteUser(serverId, username, workspaceId);
   }
 
   async setUserPermissions(
     serverId: string,
     username: string,
-    data: Parameters<RabbitMQApiClient["setUserPermissions"]>[2]
+    data: Parameters<RabbitMQApiClient["setUserPermissions"]>[2],
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.setUserPermissions(serverId, username, data);
+    return this.rabbitmqClient.setUserPermissions(
+      serverId,
+      username,
+      data,
+      workspaceId
+    );
   }
 
   async deleteUserPermissions(
     serverId: string,
     username: string,
-    vhost: string
+    vhost: string,
+    workspaceId: string
   ) {
-    return this.rabbitmqClient.deleteUserPermissions(serverId, username, vhost);
+    return this.rabbitmqClient.deleteUserPermissions(
+      serverId,
+      username,
+      vhost,
+      workspaceId
+    );
   }
 
   // Authentication methods
@@ -486,12 +589,32 @@ class ApiClient {
     return this.workspaceClient.getCurrentWorkspace();
   }
 
-  async exportWorkspaceData(companyId: string) {
-    return this.workspaceClient.exportWorkspaceData(companyId);
+  // Workspace management methods
+  async getUserWorkspaces() {
+    return this.workspaceClient.getUserWorkspaces();
   }
 
-  async deleteWorkspaceData(companyId: string) {
-    return this.workspaceClient.deleteWorkspaceData(companyId);
+  async getWorkspaceCreationInfo() {
+    return this.workspaceClient.getWorkspaceCreationInfo();
+  }
+
+  async createWorkspace(data: { name: string; contactEmail?: string }) {
+    return this.workspaceClient.createWorkspace(data);
+  }
+
+  async updateWorkspaceById(
+    id: string,
+    data: { name: string; contactEmail?: string }
+  ) {
+    return this.workspaceClient.updateWorkspace(id, data);
+  }
+
+  async deleteWorkspace(id: string) {
+    return this.workspaceClient.deleteWorkspace(id);
+  }
+
+  async switchWorkspace(id: string) {
+    return this.workspaceClient.switchWorkspace(id);
   }
 
   // Logs methods
@@ -608,6 +731,7 @@ class ApiClient {
   // RabbitMQ Alert methods
   async getRabbitMQAlerts(
     serverId: string,
+    workspaceId: string,
     thresholds?: AlertThresholds,
     options?: {
       limit?: number;
@@ -617,24 +741,35 @@ class ApiClient {
       resolved?: boolean;
     }
   ) {
-    return this.rabbitmqClient.getServerAlerts(serverId, thresholds, options);
+    return this.rabbitmqClient.getServerAlerts(
+      serverId,
+      workspaceId,
+      thresholds,
+      options
+    );
   }
 
-  async getRabbitMQAlertsSummary(serverId: string) {
-    return this.rabbitmqClient.getServerAlertsSummary(serverId);
+  async getRabbitMQAlertsSummary(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getServerAlertsSummary(serverId, workspaceId);
   }
 
-  async getRabbitMQHealth(serverId: string) {
-    return this.rabbitmqClient.getServerHealth(serverId);
+  async getRabbitMQHealth(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getServerHealth(serverId, workspaceId);
   }
 
   // RabbitMQ Threshold methods
-  async getWorkspaceThresholds() {
-    return this.rabbitmqClient.getWorkspaceThresholds();
+  async getWorkspaceThresholds(workspaceId: string) {
+    return this.rabbitmqClient.getWorkspaceThresholds(workspaceId);
   }
 
-  async updateWorkspaceThresholds(thresholds: AlertThresholds) {
-    return this.rabbitmqClient.updateWorkspaceThresholds(thresholds);
+  async updateWorkspaceThresholds(
+    thresholds: AlertThresholds,
+    workspaceId: string
+  ) {
+    return this.rabbitmqClient.updateWorkspaceThresholds(
+      thresholds,
+      workspaceId
+    );
   }
 }
 

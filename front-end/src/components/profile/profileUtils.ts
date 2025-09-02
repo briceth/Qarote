@@ -47,11 +47,16 @@ export const getRoleColor = (role: string) => {
 };
 
 export const getPlanColor = (plan: string) => {
-  switch (plan) {
+  switch (plan.toUpperCase()) {
     case "PREMIUM":
+    case "DEVELOPER":
       return "bg-purple-100 text-purple-800";
     case "ENTERPRISE":
       return "bg-yellow-100 text-yellow-800";
+    case "STARTUP":
+    case "BUSINESS":
+      return "bg-blue-100 text-blue-800";
+    case "FREE":
     default:
       return "bg-green-100 text-green-800";
   }

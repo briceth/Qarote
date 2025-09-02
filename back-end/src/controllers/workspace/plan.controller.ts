@@ -57,6 +57,11 @@ planRoutes.get("/current/plan", async (c) => {
     // Get plan features
     const planFeatures = getPlanFeatures(workspace.plan);
 
+    // Count owned workspaces for workspace usage calculation
+    const ownedWorkspaceCount = await prisma.workspace.count({
+      where: { ownerId: user.id },
+    });
+
     // Calculate usage percentages and limits
     const usage = {
       users: {
@@ -82,13 +87,13 @@ planRoutes.get("/current/plan", async (c) => {
           : true,
       },
       workspaces: {
-        current: 1, // For now, each user has one workspace
+        current: ownedWorkspaceCount, // Use actual owned workspace count
         limit: planFeatures.maxWorkspaces,
         percentage: planFeatures.maxWorkspaces
-          ? Math.round((1 / planFeatures.maxWorkspaces) * 100)
+          ? Math.round((ownedWorkspaceCount / planFeatures.maxWorkspaces) * 100)
           : 0,
         canAdd: planFeatures.maxWorkspaces
-          ? 1 < planFeatures.maxWorkspaces
+          ? ownedWorkspaceCount < planFeatures.maxWorkspaces
           : true,
       },
     };

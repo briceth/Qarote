@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api";
 import { VHost } from "@/lib/api/vhostTypes";
@@ -41,7 +41,7 @@ import { toast } from "sonner";
 export default function VHostsPage() {
   const { serverId } = useParams<{ serverId: string }>();
   const { selectedServerId, hasServers } = useServerContext();
-  const { workspacePlan } = useWorkspace();
+  const { workspacePlan, workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -60,13 +60,22 @@ export default function VHostsPage() {
     error,
   } = useQuery({
     queryKey: ["vhosts", currentServerId],
-    queryFn: () => apiClient.getVHosts(currentServerId!),
-    enabled: !!currentServerId,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getVHosts(currentServerId!, workspace.id);
+    },
+    enabled: !!currentServerId && !!workspace?.id,
   });
 
   const deleteVHostMutation = useMutation({
-    mutationFn: (vhostName: string) =>
-      apiClient.deleteVHost(currentServerId!, vhostName),
+    mutationFn: (vhostName: string) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteVHost(currentServerId!, vhostName, workspace.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vhosts", currentServerId] });
       toast.success("Virtual host deleted successfully");

@@ -117,9 +117,9 @@ model Workspace {
   name         String
   contactEmail String?
   logoUrl      String?
+  tags         Json?          // Array of tags for organization and categorization
   plan         WorkspacePlan  @default(FREE)
-  
-
+  ownerId      String?        // Who created this workspace (nullable for migration)
   
   // Stripe integration
   stripeCustomerId      String?   @unique
@@ -163,8 +163,8 @@ model User {
   lastLogin      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  workspaceId    String
-  workspace      Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   invitations    Invitation[] @relation("InvitedUser")
   invitedBy      Invitation[] @relation("InvitingUser")
   alerts         Alert[]

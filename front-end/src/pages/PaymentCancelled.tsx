@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { XCircle, ArrowLeft, CreditCard, Loader2 } from "lucide-react";
 import { usePlanUpgrade } from "@/hooks/usePlanUpgrade";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { WorkspacePlan } from "@/types/plans";
 
 const PaymentCancelled: React.FC = () => {

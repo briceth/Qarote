@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { Crown, Zap, Users, Server, TrendingUp, Loader2 } from "lucide-react";
 import { WorkspacePlan } from "@/types/plans";
 import { usePlanUpgrade } from "@/hooks/usePlanUpgrade";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface PlansSummaryTabProps {
   currentPlan: WorkspacePlan;

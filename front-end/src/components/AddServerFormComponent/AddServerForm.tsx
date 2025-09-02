@@ -22,7 +22,6 @@ import { addServerSchema, type AddServerFormData } from "@/schemas/forms";
 
 import { ServerDetails } from "./ServerDetails";
 import { Credentials } from "./Credentials";
-import { SSLConfiguration } from "./SSLConfiguration";
 import { ConnectionStatusDisplay } from "./ConnectionStatusDisplay";
 import { TestConnectionButton } from "./TestConnectionButton";
 import { RabbitMqVersionInfo } from "./RabbitMqVersionInfo";

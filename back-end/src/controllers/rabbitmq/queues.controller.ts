@@ -33,21 +33,27 @@ const queuesController = new Hono();
 
 /**
  * Get all queues for a specific server (ALL USERS)
- * GET /servers/:id/queues
+ * GET /workspaces/:workspaceId/servers/:id/queues
  */
 queuesController.get("/servers/:id/queues", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     // Verify the server belongs to the user's workspace and get over-limit info
-    const server = await verifyServerAccess(id, user.workspaceId, true);
+    const server = await verifyServerAccess(id, workspaceId, true);
 
     if (!server || !server.workspace) {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     const queues = await client.getQueues();
 
     // Store queue data in the database
@@ -144,22 +150,28 @@ queuesController.get("/servers/:id/queues", async (c) => {
 
 /**
  * Get a specific queue by name from a server (ALL USERS)
- * GET /servers/:id/queues/:queueName
+ * GET /workspaces/:workspaceId/servers/:id/queues/:queueName
  */
 queuesController.get("/servers/:id/queues/:queueName", async (c) => {
   const id = c.req.param("id");
   const queueName = c.req.param("queueName");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   // Verify the server belongs to the user's workspace and get over-limit info
-  const server = await verifyServerAccess(id, user.workspaceId, true);
+  const server = await verifyServerAccess(id, workspaceId, true);
 
   if (!server || !server.workspace) {
     return c.json({ error: "Server not found or access denied" }, 404);
   }
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     const queue = await client.getQueue(queueName);
     const response: SingleQueueResponse = { queue };
     return c.json(response);
@@ -171,21 +183,27 @@ queuesController.get("/servers/:id/queues/:queueName", async (c) => {
 
 /**
  * Get consumers for a specific queue on a server (ALL USERS)
- * GET /servers/:id/queues/:queueName/consumers
+ * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/consumers
  */
 queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
   const id = c.req.param("id");
   const queueName = c.req.param("queueName");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
-  const server = await verifyServerAccess(id, user.workspaceId, true);
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
+  const server = await verifyServerAccess(id, workspaceId, true);
 
   if (!server || !server.workspace) {
     return c.json({ error: "Server not found or access denied" }, 404);
   }
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     const consumers = await client.getQueueConsumers(queueName);
 
     const response: QueueConsumersResponse = {
@@ -211,21 +229,27 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
 
 /**
  * Get bindings for a specific queue on a server (ALL USERS)
- * GET /servers/:id/queues/:queueName/bindings
+ * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/bindings
  */
 queuesController.get("/servers/:id/queues/:queueName/bindings", async (c) => {
   const id = c.req.param("id");
   const queueName = c.req.param("queueName");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
-  const server = await verifyServerAccess(id, user.workspaceId, true);
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
+  const server = await verifyServerAccess(id, workspaceId, true);
 
   if (!server || !server.workspace) {
     return c.json({ error: "Server not found or access denied" }, 404);
   }
 
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     const bindings = await client.getQueueBindings(queueName);
 
     const response: QueueBindingsResponse = {
@@ -246,7 +270,7 @@ queuesController.get("/servers/:id/queues/:queueName/bindings", async (c) => {
 
 /**
  * Create a new queue for a specific server (ADMIN ONLY - sensitive operation)
- * POST /servers/:serverId/queues
+ * POST /workspaces/:workspaceId/servers/:serverId/queues
  */
 queuesController.post(
   "/servers/:serverId/queues",
@@ -254,13 +278,19 @@ queuesController.post(
   zValidator("json", CreateQueueSchema),
   async (c) => {
     const serverId = c.req.param("serverId");
+    const workspaceId = c.req.param("workspaceId");
     const queueData = c.req.valid("json");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     try {
       // Get server to check workspace ownership and over-limit status
       const server = await prisma.rabbitMQServer.findUnique({
-        where: { id: serverId, workspaceId: user.workspaceId },
+        where: { id: serverId, workspaceId },
         select: {
           workspaceId: true,
           isOverQueueLimit: true,
@@ -294,7 +324,7 @@ queuesController.post(
       );
 
       // Create the queue via RabbitMQ API
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, workspaceId);
       const result = await client.createQueue(queueData.name, {
         durable: queueData.durable,
         autoDelete: queueData.autoDelete,
@@ -359,7 +389,7 @@ queuesController.post(
 
 /**
  * Purge queue messages for a specific server (ADMIN ONLY - dangerous operation)
- * DELETE /servers/:serverId/queues/:queueName/messages
+ * DELETE /workspaces/:workspaceId/servers/:serverId/queues/:queueName/messages
  */
 queuesController.delete(
   "/servers/:serverId/queues/:queueName/messages",
@@ -367,10 +397,16 @@ queuesController.delete(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
 
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
     try {
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, workspaceId);
       await client.purgeQueue(queueName);
 
       const response: QueuePurgeResponse = {
@@ -391,7 +427,7 @@ queuesController.delete(
 
 /**
  * Delete a queue from a specific server (ADMIN ONLY - dangerous operation)
- * DELETE /servers/:serverId/queues/:queueName
+ * DELETE /workspaces/:workspaceId/servers/:serverId/queues/:queueName
  */
 queuesController.delete(
   "/servers/:serverId/queues/:queueName",
@@ -399,7 +435,13 @@ queuesController.delete(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     try {
       const url = new URL(c.req.url);
@@ -412,7 +454,7 @@ queuesController.delete(
           name: queueName,
           serverId: serverId,
           server: {
-            workspaceId: user.workspaceId, // Ensure workspace ownership
+            workspaceId, // Ensure workspace ownership
           },
         },
       });
@@ -424,7 +466,7 @@ queuesController.delete(
       }
 
       // Delete from RabbitMQ first (this is the source of truth)
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, workspaceId);
       await client.deleteQueue(queueName, {
         if_unused: ifUnused,
         if_empty: ifEmpty,
@@ -471,7 +513,7 @@ queuesController.delete(
 
 /**
  * Pause a queue using AMQP protocol for better control (ADMIN ONLY)
- * POST /servers/:serverId/queues/:queueName/pause
+ * POST /workspaces/:workspaceId/servers/:serverId/queues/:queueName/pause
  */
 queuesController.post(
   "/servers/:serverId/queues/:queueName/pause",
@@ -479,16 +521,22 @@ queuesController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     let amqpClient: RabbitMQAmqpClient | null = null;
 
     try {
       // Verify server access
-      await verifyServerAccess(serverId, user.workspaceId);
+      await verifyServerAccess(serverId, workspaceId);
 
       // Create AMQP client for direct queue control
-      amqpClient = await createAmqpClient(serverId, user.workspaceId);
+      amqpClient = await createAmqpClient(serverId, workspaceId);
 
       // Connect and pause the queue
       await amqpClient.connect();
@@ -526,7 +574,7 @@ queuesController.post(
 
 /**
  * Resume a queue using AMQP protocol (ADMIN ONLY)
- * POST /servers/:serverId/queues/:queueName/resume
+ * POST /workspaces/:workspaceId/servers/:serverId/queues/:queueName/resume
  */
 queuesController.post(
   "/servers/:serverId/queues/:queueName/resume",
@@ -534,16 +582,22 @@ queuesController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     let amqpClient: RabbitMQAmqpClient | null = null;
 
     try {
       // Verify server access
-      await verifyServerAccess(serverId, user.workspaceId);
+      await verifyServerAccess(serverId, workspaceId);
 
       // Create AMQP client for direct queue control
-      amqpClient = await createAmqpClient(serverId, user.workspaceId);
+      amqpClient = await createAmqpClient(serverId, workspaceId);
 
       // Connect and resume the queue
       await amqpClient.connect();
@@ -587,7 +641,7 @@ queuesController.post(
 
 /**
  * Get pause status of a queue (ADMIN ONLY)
- * GET /servers/:serverId/queues/:queueName/pause-status
+ * GET /workspaces/:workspaceId/servers/:serverId/queues/:queueName/pause-status
  */
 queuesController.get(
   "/servers/:serverId/queues/:queueName/pause-status",
@@ -595,16 +649,22 @@ queuesController.get(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     let amqpClient: RabbitMQAmqpClient | null = null;
 
     try {
       // Verify server access
-      await verifyServerAccess(serverId, user.workspaceId);
+      await verifyServerAccess(serverId, workspaceId);
 
       // Create AMQP client to check pause status
-      amqpClient = await createAmqpClient(serverId, user.workspaceId);
+      amqpClient = await createAmqpClient(serverId, workspaceId);
       await amqpClient.connect();
 
       const pauseState = amqpClient.getQueuePauseState(queueName);

@@ -40,7 +40,7 @@ import { useServers } from "@/hooks/useApi";
 import { AddServerForm } from "@/components/AddServerFormComponent";
 import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { useLocation, Link } from "react-router-dom";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { ServerManagement } from "@/components/ServerManagement";
 
 const menuItems = [

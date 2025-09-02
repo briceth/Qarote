@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { apiClient } from "@/lib/api";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import type { CurrentPlanResponse } from "@/lib/api/planClient";
 
 interface RabbitMqVersionInfoProps {

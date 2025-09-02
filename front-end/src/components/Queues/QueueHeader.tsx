@@ -18,11 +18,6 @@ interface QueueHeaderProps {
 
 export function QueueHeader({
   selectedServerId,
-  workspacePlan,
-  queueCount,
-  workspaceLoading,
-  canAddQueue,
-  canSendMessages,
   onAddQueueClick,
   onSendMessageClick,
   onRefetch,

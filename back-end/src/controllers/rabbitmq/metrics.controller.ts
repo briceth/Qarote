@@ -8,15 +8,21 @@ const metricsController = new Hono();
 
 /**
  * Get metrics for a specific server (ALL USERS)
- * GET /servers/:id/metrics
+ * GET /workspaces/:workspaceId/servers/:id/metrics
  */
 metricsController.get("/servers/:id/metrics", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     // Create RabbitMQ client to fetch enhanced metrics
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
 
     // Get enhanced metrics (system-level metrics including CPU, memory, disk usage)
     const enhancedMetrics = await client.getMetrics();
@@ -48,18 +54,24 @@ metricsController.get("/servers/:id/metrics", async (c) => {
 /**
  * Get live message rates data for a specific server (ALL USERS)
  * Returns real-time message operation rates from RabbitMQ overview API
- * GET /servers/:id/metrics/rates
+ * GET /workspaces/:workspaceId/servers/:id/metrics/rates
  */
 metricsController.get("/servers/:id/metrics/rates", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     // Verify the server belongs to the user's workspace
     const server = await prisma.rabbitMQServer.findFirst({
       where: {
         id,
-        workspaceId: user.workspaceId,
+        workspaceId,
       },
       include: {
         workspace: {
@@ -78,7 +90,7 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
     const currentTimestamp = new Date();
 
     // Fetch live data from RabbitMQ
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     const overview = await client.getOverview();
 
     logger.info(`Fetched live rates data from RabbitMQ for server ${id}`);
@@ -178,21 +190,27 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
 /**
  * Get live message rates data for a specific queue (ALL USERS)
  * Returns real-time message operation rates from RabbitMQ queue API
- * GET /servers/:id/queues/:queueName/metrics/rates
+ * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/metrics/rates
  */
 metricsController.get(
   "/servers/:id/queues/:queueName/metrics/rates",
   async (c) => {
     const id = c.req.param("id");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     try {
       // Verify the server belongs to the user's workspace
       const server = await prisma.rabbitMQServer.findFirst({
         where: {
           id,
-          workspaceId: user.workspaceId,
+          workspaceId,
         },
         include: {
           workspace: {
@@ -211,7 +229,7 @@ metricsController.get(
       const currentTimestamp = new Date();
 
       // Fetch queue-specific data from RabbitMQ
-      const client = await createRabbitMQClient(id, user.workspaceId);
+      const client = await createRabbitMQClient(id, workspaceId);
 
       // Decode queue name in case it contains special characters
       const decodedQueueName = decodeURIComponent(queueName);
@@ -307,19 +325,25 @@ metricsController.get(
 
 /**
  * Get historical data for a specific server (requires appropriate plan)
- * GET /servers/:id/metrics/historical
+ * GET /workspaces/:workspaceId/servers/:id/metrics/historical
  */
 metricsController.get("/servers/:id/metrics/historical", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
   const timeRange = c.req.query("timeRange") || "24h";
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     // Verify the server and get workspace details
     const server = await prisma.rabbitMQServer.findFirst({
       where: {
         id,
-        workspaceId: user.workspaceId,
+        workspaceId,
       },
       include: {
         workspace: {

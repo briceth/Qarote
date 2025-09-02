@@ -22,6 +22,7 @@ export { RabbitMQApiClient } from "./rabbitmqClient";
 export { AuthApiClient } from "./authClient";
 export { AlertApiClient } from "./alertClient";
 export { WorkspaceApiClient } from "./workspaceClient";
+export type { WorkspaceInfo, WorkspaceCreationInfo } from "./workspaceClient";
 export { LogsApiClient } from "./logsClient";
 export { BaseApiClient } from "./baseClient";
 export { PlanApiClient } from "./planClient";

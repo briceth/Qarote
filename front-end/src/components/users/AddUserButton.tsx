@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Lock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateUserModal } from "@/components/users/CreateUserModal";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { WorkspacePlan } from "@/types/plans";
 
 interface AddUserButtonProps {

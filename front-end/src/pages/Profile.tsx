@@ -31,7 +31,7 @@ import {
   useVerificationStatus,
 } from "@/hooks/useApi";
 import { FeedbackForm } from "@/components/FeedbackForm";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 // Valid tab values - defined outside component to avoid dependency issues
 const VALID_TABS = [

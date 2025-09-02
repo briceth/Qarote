@@ -49,54 +49,70 @@ import {
 
 export class RabbitMQApiClient extends BaseApiClient {
   // Overview and Metrics
-  async getOverview(serverId: string): Promise<{ overview: Overview }> {
+  async getOverview(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{ overview: Overview }> {
     return this.request<{ overview: Overview }>(
-      `/rabbitmq/servers/${serverId}/overview`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/overview`
     );
   }
 
-  async getMetrics(serverId: string): Promise<MetricsResponse> {
+  async getMetrics(
+    serverId: string,
+    workspaceId: string
+  ): Promise<MetricsResponse> {
     return this.request<MetricsResponse>(
-      `/rabbitmq/servers/${serverId}/metrics`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/metrics`
     );
   }
 
-  async getTimeSeriesMetrics(serverId: string): Promise<LiveRatesResponse> {
+  async getTimeSeriesMetrics(
+    serverId: string,
+    workspaceId: string
+  ): Promise<LiveRatesResponse> {
     return this.request<LiveRatesResponse>(
-      `/rabbitmq/servers/${serverId}/metrics/rates`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/metrics/rates`
     );
   }
 
   async getQueueLiveRates(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<LiveRatesResponse> {
     const encodedQueueName = encodeURIComponent(queueName);
     return this.request<LiveRatesResponse>(
-      `/rabbitmq/servers/${serverId}/queues/${encodedQueueName}/metrics/rates`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodedQueueName}/metrics/rates`
     );
   }
 
   // Queue Management
-  async getQueues(serverId: string): Promise<{ queues: Queue[] }> {
+  async getQueues(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{ queues: Queue[] }> {
     return this.request<{ queues: Queue[] }>(
-      `/rabbitmq/servers/${serverId}/queues`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues`
     );
   }
 
   async getQueue(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<{ queue: Queue }> {
     return this.request<{ queue: Queue }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}`
     );
   }
 
-  async createQueue(params: CreateQueueRequest): Promise<CreateQueueResponse> {
-    const { serverId, ...queueData } = params;
+  async createQueue(
+    params: CreateQueueRequest & { workspaceId: string }
+  ): Promise<CreateQueueResponse> {
+    const { serverId, workspaceId, ...queueData } = params;
     return this.request<CreateQueueResponse>(
-      `/rabbitmq/servers/${serverId}/queues`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues`,
       {
         method: "POST",
         body: JSON.stringify(queueData),
@@ -106,10 +122,11 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async purgeQueue(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<{ success: boolean; message: string; purged: number }> {
     return this.request<{ success: boolean; message: string; purged: number }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(
         queueName
       )}/messages`,
       {
@@ -121,6 +138,7 @@ export class RabbitMQApiClient extends BaseApiClient {
   async deleteQueue(
     serverId: string,
     queueName: string,
+    workspaceId: string,
     options: {
       if_unused?: boolean;
       if_empty?: boolean;
@@ -135,7 +153,7 @@ export class RabbitMQApiClient extends BaseApiClient {
     }
 
     const queryString = queryParams.toString();
-    const url = `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}${queryString ? `?${queryString}` : ""}`;
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}${queryString ? `?${queryString}` : ""}`;
 
     return this.request<{ success: boolean; message: string }>(url, {
       method: "DELETE",
@@ -144,7 +162,8 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async pauseQueue(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<{
     success: boolean;
     message: string;
@@ -155,7 +174,7 @@ export class RabbitMQApiClient extends BaseApiClient {
       message: string;
       cancelledConsumers: number;
     }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/pause`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}/pause`,
       {
         method: "POST",
       }
@@ -164,17 +183,22 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async resumeQueue(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<{ success: boolean; message: string; note: string }> {
     return this.request<{ success: boolean; message: string; note: string }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/resume`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}/resume`,
       {
         method: "POST",
       }
     );
   }
 
-  async getQueuePauseStatus(serverId: string, queueName: string) {
+  async getQueuePauseStatus(
+    serverId: string,
+    queueName: string,
+    workspaceId: string
+  ) {
     return this.request<{
       success: boolean;
       queueName: string;
@@ -185,17 +209,17 @@ export class RabbitMQApiClient extends BaseApiClient {
         pausedConsumers: string[];
       };
     }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/pause-status`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}/pause-status`
     );
   }
 
   // Message Management
   async publishMessage(
-    params: PublishMessageRequest
+    params: PublishMessageRequest & { workspaceId: string }
   ): Promise<PublishMessageResponse> {
-    const { serverId, queueName, ...publishData } = params;
+    const { serverId, queueName, workspaceId, ...publishData } = params;
     return this.request<PublishMessageResponse>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(queueName)}/messages`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}/messages`,
       {
         method: "POST",
         body: JSON.stringify(publishData),
@@ -204,23 +228,32 @@ export class RabbitMQApiClient extends BaseApiClient {
   }
 
   // Node Management
-  async getNodes(serverId: string): Promise<NodesResponse> {
-    return this.request<NodesResponse>(`/rabbitmq/servers/${serverId}/nodes`);
+  async getNodes(
+    serverId: string,
+    workspaceId: string
+  ): Promise<NodesResponse> {
+    return this.request<NodesResponse>(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/nodes`
+    );
   }
 
   async getNodeMemoryDetails(
     serverId: string,
-    nodeName: string
+    nodeName: string,
+    workspaceId: string
   ): Promise<NodeMemoryDetailsResponse> {
     return this.request(
-      `/rabbitmq/servers/${serverId}/nodes/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/nodes/${encodeURIComponent(
         nodeName
       )}/memory`
     );
   }
 
   // Connection and Channel Management
-  async getConnections(serverId: string): Promise<{
+  async getConnections(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{
     success: boolean;
     connections: Connection[];
     totalConnections: number;
@@ -231,10 +264,13 @@ export class RabbitMQApiClient extends BaseApiClient {
       connections: Connection[];
       totalConnections: number;
       totalChannels: number;
-    }>(`/rabbitmq/servers/${serverId}/connections`);
+    }>(`/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/connections`);
   }
 
-  async getChannels(serverId: string): Promise<{
+  async getChannels(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{
     success: boolean;
     channels: Channel[];
     totalChannels: number;
@@ -243,11 +279,14 @@ export class RabbitMQApiClient extends BaseApiClient {
       success: boolean;
       channels: Channel[];
       totalChannels: number;
-    }>(`/rabbitmq/servers/${serverId}/channels`);
+    }>(`/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/channels`);
   }
 
   // Exchange and Binding Management
-  async getExchanges(serverId: string): Promise<{
+  async getExchanges(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{
     success: boolean;
     exchanges: Exchange[];
     bindings: Binding[];
@@ -272,11 +311,12 @@ export class RabbitMQApiClient extends BaseApiClient {
         topic: number;
         headers: number;
       };
-    }>(`/rabbitmq/servers/${serverId}/exchanges`);
+    }>(`/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/exchanges`);
   }
 
   async createExchange(
     serverId: string,
+    workspaceId: string,
     exchangeData: {
       name: string;
       type: string;
@@ -308,7 +348,7 @@ export class RabbitMQApiClient extends BaseApiClient {
         internal: boolean;
         arguments: { [key: string]: unknown };
       };
-    }>(`/rabbitmq/servers/${serverId}/exchanges`, {
+    }>(`/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/exchanges`, {
       method: "POST",
       body: JSON.stringify(exchangeData),
     });
@@ -317,6 +357,7 @@ export class RabbitMQApiClient extends BaseApiClient {
   async deleteExchange(
     serverId: string,
     exchangeName: string,
+    workspaceId: string,
     options: {
       if_unused?: boolean;
     } = {}
@@ -330,7 +371,7 @@ export class RabbitMQApiClient extends BaseApiClient {
     }
 
     const queryString = queryParams.toString();
-    const url = `/rabbitmq/servers/${serverId}/exchanges/${encodeURIComponent(exchangeName)}${queryString ? `?${queryString}` : ""}`;
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/exchanges/${encodeURIComponent(exchangeName)}${queryString ? `?${queryString}` : ""}`;
 
     return this.request<{
       success: boolean;
@@ -340,7 +381,10 @@ export class RabbitMQApiClient extends BaseApiClient {
     });
   }
 
-  async getBindings(serverId: string): Promise<{
+  async getBindings(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{
     success: boolean;
     bindings: Binding[];
     totalBindings: number;
@@ -349,13 +393,14 @@ export class RabbitMQApiClient extends BaseApiClient {
       success: boolean;
       bindings: Binding[];
       totalBindings: number;
-    }>(`/rabbitmq/servers/${serverId}/bindings`);
+    }>(`/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/bindings`);
   }
 
   // Consumer Management
   async getQueueConsumers(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<{
     success: boolean;
     consumers: Consumer[];
@@ -368,7 +413,7 @@ export class RabbitMQApiClient extends BaseApiClient {
       totalConsumers: number;
       queueName: string;
     }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(
         queueName
       )}/consumers`
     );
@@ -377,7 +422,8 @@ export class RabbitMQApiClient extends BaseApiClient {
   // Queue Bindings Management
   async getQueueBindings(
     serverId: string,
-    queueName: string
+    queueName: string,
+    workspaceId: string
   ): Promise<{
     success: boolean;
     bindings: Binding[];
@@ -390,32 +436,39 @@ export class RabbitMQApiClient extends BaseApiClient {
       totalBindings: number;
       queueName: string;
     }>(
-      `/rabbitmq/servers/${serverId}/queues/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(
         queueName
       )}/bindings`
     );
   }
 
   // VHost Management (Admin Only)
-  async getVHosts(serverId: string): Promise<VHostsResponse> {
-    return this.request<VHostsResponse>(`/rabbitmq/servers/${serverId}/vhosts`);
+  async getVHosts(
+    serverId: string,
+    workspaceId: string
+  ): Promise<VHostsResponse> {
+    return this.request<VHostsResponse>(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts`
+    );
   }
 
   async getVHost(
     serverId: string,
-    vhostName: string
+    vhostName: string,
+    workspaceId: string
   ): Promise<VHostDetailsResponse> {
     return this.request<VHostDetailsResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(vhostName)}`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(vhostName)}`
     );
   }
 
   async createVHost(
     serverId: string,
-    data: CreateVHostRequest
+    data: CreateVHostRequest,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts`,
       {
         method: "POST",
         body: JSON.stringify(data),
@@ -426,10 +479,11 @@ export class RabbitMQApiClient extends BaseApiClient {
   async updateVHost(
     serverId: string,
     vhostName: string,
-    data: UpdateVHostRequest
+    data: UpdateVHostRequest,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(vhostName)}`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(vhostName)}`,
       {
         method: "PUT",
         body: JSON.stringify(data),
@@ -439,10 +493,11 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async deleteVHost(
     serverId: string,
-    vhostName: string
+    vhostName: string,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(vhostName)}`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(vhostName)}`,
       {
         method: "DELETE",
       }
@@ -453,10 +508,11 @@ export class RabbitMQApiClient extends BaseApiClient {
     serverId: string,
     vhostName: string,
     username: string,
-    permissions: SetVHostPermissionsRequest
+    permissions: SetVHostPermissionsRequest,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(
         vhostName
       )}/permissions/${encodeURIComponent(username)}`,
       {
@@ -469,10 +525,11 @@ export class RabbitMQApiClient extends BaseApiClient {
   async deleteVHostPermissions(
     serverId: string,
     vhostName: string,
-    username: string
+    username: string,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(
         vhostName
       )}/permissions/${encodeURIComponent(username)}`,
       {
@@ -485,10 +542,11 @@ export class RabbitMQApiClient extends BaseApiClient {
     serverId: string,
     vhostName: string,
     limitType: string,
-    data: SetVHostLimitRequest
+    data: SetVHostLimitRequest,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(
         vhostName
       )}/limits/${limitType}`,
       {
@@ -501,10 +559,11 @@ export class RabbitMQApiClient extends BaseApiClient {
   async deleteVHostLimit(
     serverId: string,
     vhostName: string,
-    limitType: string
+    limitType: string,
+    workspaceId: string
   ): Promise<VHostActionResponse> {
     return this.request<VHostActionResponse>(
-      `/rabbitmq/servers/${serverId}/vhosts/${encodeURIComponent(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/vhosts/${encodeURIComponent(
         vhostName
       )}/limits/${limitType}`,
       {
@@ -514,16 +573,23 @@ export class RabbitMQApiClient extends BaseApiClient {
   }
 
   // User Management (Admin Only)
-  async getUsers(serverId: string): Promise<{ users: RabbitMQUser[] }> {
+  async getUsers(
+    serverId: string,
+    workspaceId: string
+  ): Promise<{ users: RabbitMQUser[] }> {
     const response = await this.request<{ users: RabbitMQUser[] }>(
-      `/rabbitmq/servers/${serverId}/users`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users`
     );
 
     // Fetch permissions for each user to determine accessible vhosts
     const usersWithPermissions = await Promise.all(
       response.users.map(async (user) => {
         try {
-          const userDetails = await this.getUser(serverId, user.name);
+          const userDetails = await this.getUser(
+            serverId,
+            user.name,
+            workspaceId
+          );
           const accessibleVhosts = userDetails.permissions.map((p) => p.vhost);
           return { ...user, accessibleVhosts };
         } catch {
@@ -537,27 +603,30 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async getUserPermissions(
     serverId: string,
-    username: string
+    username: string,
+    workspaceId: string
   ): Promise<RabbitMQUserPermission[]> {
-    const userDetails = await this.getUser(serverId, username);
+    const userDetails = await this.getUser(serverId, username, workspaceId);
     return userDetails.permissions;
   }
 
   async getUser(
     serverId: string,
-    username: string
+    username: string,
+    workspaceId: string
   ): Promise<UserDetailsResponse> {
     return this.request<UserDetailsResponse>(
-      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users/${encodeURIComponent(username)}`
     );
   }
 
   async createUser(
     serverId: string,
-    data: CreateUserRequest
+    data: CreateUserRequest,
+    workspaceId: string
   ): Promise<{ message: string }> {
     return this.request<{ message: string }>(
-      `/rabbitmq/servers/${serverId}/users`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users`,
       {
         method: "POST",
         body: JSON.stringify(data),
@@ -568,10 +637,11 @@ export class RabbitMQApiClient extends BaseApiClient {
   async updateUser(
     serverId: string,
     username: string,
-    data: UpdateUserRequest
+    data: UpdateUserRequest,
+    workspaceId: string
   ): Promise<{ message: string }> {
     return this.request<{ message: string }>(
-      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users/${encodeURIComponent(username)}`,
       {
         method: "PUT",
         body: JSON.stringify(data),
@@ -581,10 +651,11 @@ export class RabbitMQApiClient extends BaseApiClient {
 
   async deleteUser(
     serverId: string,
-    username: string
+    username: string,
+    workspaceId: string
   ): Promise<{ message: string }> {
     return this.request<{ message: string }>(
-      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users/${encodeURIComponent(username)}`,
       {
         method: "DELETE",
       }
@@ -594,10 +665,11 @@ export class RabbitMQApiClient extends BaseApiClient {
   async setUserPermissions(
     serverId: string,
     username: string,
-    data: SetUserPermissionRequest
+    data: SetUserPermissionRequest,
+    workspaceId: string
   ): Promise<{ message: string }> {
     return this.request<{ message: string }>(
-      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}/permissions`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users/${encodeURIComponent(username)}/permissions`,
       {
         method: "PUT",
         body: JSON.stringify(data),
@@ -608,10 +680,11 @@ export class RabbitMQApiClient extends BaseApiClient {
   async deleteUserPermissions(
     serverId: string,
     username: string,
-    vhost: string
+    vhost: string,
+    workspaceId: string
   ): Promise<{ message: string }> {
     return this.request<{ message: string }>(
-      `/rabbitmq/servers/${serverId}/users/${encodeURIComponent(username)}/permissions/${encodeURIComponent(vhost)}`,
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/users/${encodeURIComponent(username)}/permissions/${encodeURIComponent(vhost)}`,
       {
         method: "DELETE",
       }
@@ -621,6 +694,7 @@ export class RabbitMQApiClient extends BaseApiClient {
   // Alert Management
   async getServerAlerts(
     serverId: string,
+    workspaceId: string,
     thresholds?: AlertThresholds,
     options?: {
       limit?: number;
@@ -661,33 +735,47 @@ export class RabbitMQApiClient extends BaseApiClient {
     }
 
     const queryString = params.toString();
-    const url = `/rabbitmq/servers/${serverId}/alerts${queryString ? `?${queryString}` : ""}`;
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts${queryString ? `?${queryString}` : ""}`;
     return this.request<AlertsResponse>(url);
   }
 
   async getServerAlertsSummary(
-    serverId: string
+    serverId: string,
+    workspaceId: string
   ): Promise<AlertsSummaryResponse> {
     return this.request<AlertsSummaryResponse>(
-      `/rabbitmq/servers/${serverId}/alerts/summary`
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts/summary`
     );
   }
 
-  async getServerHealth(serverId: string): Promise<HealthResponse> {
-    return this.request<HealthResponse>(`/rabbitmq/servers/${serverId}/health`);
+  async getServerHealth(
+    serverId: string,
+    workspaceId: string
+  ): Promise<HealthResponse> {
+    return this.request<HealthResponse>(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/health`
+    );
   }
 
   // Threshold Management
-  async getWorkspaceThresholds(): Promise<ThresholdsResponse> {
-    return this.request<ThresholdsResponse>("/rabbitmq/thresholds");
+  async getWorkspaceThresholds(
+    workspaceId: string
+  ): Promise<ThresholdsResponse> {
+    return this.request<ThresholdsResponse>(
+      `/rabbitmq/workspaces/${workspaceId}/thresholds`
+    );
   }
 
   async updateWorkspaceThresholds(
-    thresholds: Partial<AlertThresholds>
+    thresholds: Partial<AlertThresholds>,
+    workspaceId: string
   ): Promise<UpdateThresholdsResponse> {
-    return this.request<UpdateThresholdsResponse>("/rabbitmq/thresholds", {
-      method: "PUT",
-      body: JSON.stringify({ thresholds }),
-    });
+    return this.request<UpdateThresholdsResponse>(
+      `/rabbitmq/workspaces/${workspaceId}/thresholds`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ thresholds }),
+      }
+    );
   }
 }

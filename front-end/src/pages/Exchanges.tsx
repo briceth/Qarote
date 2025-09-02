@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useExchanges, useDeleteExchange } from "@/hooks/useApi";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useState } from "react";
 import {
   Collapsible,

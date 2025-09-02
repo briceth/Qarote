@@ -23,15 +23,17 @@ import {
 import { useLogin } from "@/hooks/useAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { signInSchema, type SignInFormData } from "@/schemas/forms";
+import logger from "@/lib/logger";
 
 const SignIn: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const loginMutation = useLogin();
   const location = useLocation();
   const navigate = useNavigate();
 
   // Get the page the user was trying to access
   const from = location.state?.from?.pathname || "/";
+
+  const loginMutation = useLogin(from);
 
   // Initialize form with react-hook-form
   const form = useForm<SignInFormData>({
@@ -42,19 +44,30 @@ const SignIn: React.FC = () => {
     },
   });
 
-  // Handle successful login redirect
-  useEffect(() => {
-    if (loginMutation.isSuccess && isAuthenticated) {
-      navigate(from, { replace: true });
-    }
-  }, [loginMutation.isSuccess, isAuthenticated, navigate, from]);
-
   const onSubmit = (data: SignInFormData) => {
+    logger.info("SignIn form submitted", { email: data.email });
     loginMutation.mutate({
       email: data.email,
       password: data.password,
     });
   };
+
+  // Log state changes for debugging
+  useEffect(() => {
+    logger.debug("SignIn component state:", {
+      isAuthenticated,
+      loginSuccess: loginMutation.isSuccess,
+      loginPending: loginMutation.isPending,
+      loginError: loginMutation.error?.message,
+      mutationStatus: loginMutation.status,
+    });
+  }, [
+    isAuthenticated,
+    loginMutation.isSuccess,
+    loginMutation.isPending,
+    loginMutation.error,
+    loginMutation.status,
+  ]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-800 to-red-800 py-12 px-4 sm:px-6 lg:px-8">

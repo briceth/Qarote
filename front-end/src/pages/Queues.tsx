@@ -6,7 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Input } from "@/components/ui/input";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useQueues, queryKeys } from "@/hooks/useApi";
 import { QueueHeader } from "@/components/Queues/QueueHeader";
 import { PlanRestrictions } from "@/components/Queues/PlanRestrictions";

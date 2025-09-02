@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Trash2, Lock, Pause, Play } from "lucide-react";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { PauseQueueDialog } from "@/components/PauseQueueDialog";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useQueuePauseStatus } from "@/hooks/useApi";
 import { useState } from "react";
 import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";

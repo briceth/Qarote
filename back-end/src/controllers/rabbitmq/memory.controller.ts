@@ -3,18 +3,24 @@ import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
 import { RabbitMQNode } from "@/types/rabbitmq";
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient } from "./shared";
+import { createRabbitMQClient, verifyServerAccess } from "./shared";
 
 const memoryController = new Hono();
 
 /**
  * Get detailed memory metrics for a specific node for a specific server (ALL USERS)
- * GET /servers/:id/nodes/:nodeName/memory
+ * GET /workspaces/:workspaceId/servers/:id/nodes/:nodeName/memory
  */
 memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
   const id = c.req.param("id");
   const nodeName = c.req.param("nodeName");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     logger.info(
@@ -23,13 +29,7 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
     );
 
     // Verify the server belongs to the user's workspace
-    const server = await prisma.rabbitMQServer.findFirst({
-      where: {
-        id,
-        workspaceId: user.workspaceId,
-      },
-      include: { workspace: true },
-    });
+    const server = await verifyServerAccess(id, workspaceId, true);
 
     if (!server) {
       return c.json({ error: "Server not found or access denied" }, 404);
@@ -39,7 +39,7 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
       return c.json({ error: "Server workspace not found" }, 404);
     }
 
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     const nodes = await client.getNodes();
     const node = nodes.find((n: RabbitMQNode) => n.name === nodeName);
 

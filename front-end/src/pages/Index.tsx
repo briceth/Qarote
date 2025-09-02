@@ -16,7 +16,7 @@ import { LiveRatesChart } from "@/components/LiveRatesChart";
 import { QueueDepthsChart } from "@/components/QueueDepthsChart";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 const Index = () => {

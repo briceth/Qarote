@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { X, Check, Zap, Loader2 } from "lucide-react";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import logger from "@/lib/logger";
 import { apiClient } from "@/lib/api";
 

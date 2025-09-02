@@ -1,7 +1,7 @@
 import React from "react";
 import { Crown, Zap } from "lucide-react";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 
 interface PremiumPageWrapperProps {

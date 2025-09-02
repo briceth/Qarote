@@ -42,6 +42,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
+const Workspace = lazy(() => import("./pages/Workspace"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -111,6 +112,14 @@ const AppCore = () => (
                   />
 
                   {/* Protected routes */}
+                  <Route
+                    path="/workspace"
+                    element={
+                      <ProtectedRoute>
+                        <Workspace />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/"
                     element={
@@ -241,7 +250,9 @@ const AppCore = () => (
                     path="/alerts"
                     element={
                       <ProtectedRoute>
-                        <Alerts />
+                        <Layout>
+                          <Alerts />
+                        </Layout>
                       </ProtectedRoute>
                     }
                   />

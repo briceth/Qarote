@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { PlanBadge } from "@/components/ui/PlanBadge";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface PageHeaderProps {
   title: string;
@@ -25,9 +25,7 @@ export function PageHeader({
       <div className="flex items-center gap-4">
         {showSidebarTrigger && <SidebarTrigger />}
         <div>
-          <h1 className="title-page">
-            {title}
-          </h1>
+          <h1 className="title-page">{title}</h1>
           {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
         </div>
       </div>

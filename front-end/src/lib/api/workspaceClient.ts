@@ -4,15 +4,44 @@
  */
 
 import { BaseApiClient } from "./baseClient";
+import { WorkspacePlan } from "@/types/plans";
 
 export interface Workspace {
   id: string;
   name: string;
   contactEmail: string;
   logoUrl?: string;
+  tags?: string[];
   plan: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WorkspaceInfo {
+  id: string;
+  name: string;
+  contactEmail?: string;
+  tags?: string[];
+  plan: WorkspacePlan;
+  isOwner: boolean;
+  userRole: string;
+  _count: {
+    users: number;
+    servers: number;
+  };
+  createdAt: string;
+}
+
+export interface WorkspaceCreationInfo {
+  currentPlan: WorkspacePlan;
+  ownedWorkspaceCount: number;
+  maxWorkspaces: number | null;
+  canCreateWorkspace: boolean;
+  planFeatures: {
+    displayName: string;
+    description: string;
+    maxWorkspaces: number | null;
+  };
 }
 
 export class WorkspaceApiClient extends BaseApiClient {
@@ -22,19 +51,45 @@ export class WorkspaceApiClient extends BaseApiClient {
     return this.request("/workspaces/current");
   }
 
-  async exportWorkspaceData(WorkspaceId: string): Promise<Blob> {
-    return this.requestBlob(`/workspaces/${WorkspaceId}/export`, {
-      method: "GET",
+  // Workspace management methods
+  async getUserWorkspaces(): Promise<{ workspaces: WorkspaceInfo[] }> {
+    return this.request("/workspaces/workspaces");
+  }
+
+  async getWorkspaceCreationInfo(): Promise<WorkspaceCreationInfo> {
+    return this.request("/workspaces/workspaces/creation-info");
+  }
+
+  async createWorkspace(data: {
+    name: string;
+    contactEmail?: string;
+    tags?: string[];
+  }): Promise<{ workspace: WorkspaceInfo }> {
+    return this.request("/workspaces/workspaces", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 
-  async deleteWorkspaceData(WorkspaceId: string): Promise<{
-    message: string;
-    deletedAt: string;
-    deletedBy: string;
-  }> {
-    return this.request(`/workspaces/${WorkspaceId}/data`, {
+  async updateWorkspace(
+    id: string,
+    data: { name: string; contactEmail?: string; tags?: string[] }
+  ): Promise<{ workspace: WorkspaceInfo }> {
+    return this.request(`/workspaces/workspaces/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWorkspace(id: string): Promise<{ message: string }> {
+    return this.request(`/workspaces/workspaces/${id}`, {
       method: "DELETE",
+    });
+  }
+
+  async switchWorkspace(id: string): Promise<{ message: string }> {
+    return this.request(`/workspaces/workspaces/${id}/switch`, {
+      method: "POST",
     });
   }
 }

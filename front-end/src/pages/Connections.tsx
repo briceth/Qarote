@@ -21,7 +21,7 @@ import {
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { Badge } from "@/components/ui/badge";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useConnections, useChannels } from "@/hooks/useApi";
 
 const Connections = () => {

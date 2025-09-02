@@ -3,7 +3,7 @@
  * Custom hooks for accessing plan data and features
  */
 
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 /**
  * Hook to get current user's plan data with usage information

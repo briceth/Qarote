@@ -2,7 +2,7 @@ import { Lock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface AddSendMessageButtonProps {
   serverId: string;

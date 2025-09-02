@@ -1,6 +1,6 @@
 import { Crown } from "lucide-react";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface PlanBadgeProps {
   workspacePlan?: WorkspacePlan;

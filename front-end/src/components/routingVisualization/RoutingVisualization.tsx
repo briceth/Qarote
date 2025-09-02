@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import PremiumPageWrapper from "../PremiumPageWrapper";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 // Mock data for demonstration
 const generateMockData = () => {

@@ -13,7 +13,7 @@ const messagesController = new Hono();
 
 /**
  * Send message to queue for a specific server (ADMIN ONLY - sensitive operation)
- * POST /servers/:serverId/queues/:queueName/messages
+ * POST /workspaces/:workspaceId/servers/:serverId/queues/:queueName/messages
  */
 messagesController.post(
   "/servers/:serverId/queues/:queueName/messages",
@@ -22,15 +22,21 @@ messagesController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
     const { message, exchange, routingKey, properties } = c.req.valid("json");
     const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
 
     try {
       // Get server to check workspace ownership
       const server = await prisma.rabbitMQServer.findUnique({
         where: {
           id: serverId,
-          workspaceId: user.workspaceId,
+          workspaceId,
         },
         select: { workspaceId: true },
       });
@@ -59,7 +65,7 @@ messagesController.post(
       logger.info({ plan }, "Message sending validation");
 
       // Send the message via RabbitMQ API
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, workspaceId);
 
       // Use the provided exchange and routing key, or defaults for direct queue publishing
       const targetExchange = exchange || ""; // Empty string means default exchange

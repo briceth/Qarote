@@ -1,7 +1,7 @@
 import { Lock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface AddExchangeButtonProps {
   onUpgradeClick: () => void;

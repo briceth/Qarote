@@ -5,7 +5,6 @@ import { UserRole } from "@prisma/client";
 import { logger } from "@/core/logger";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
 import { createErrorResponse } from "../shared";
-import { z } from "zod";
 import {
   CreateVHostSchema,
   SetLimitSchema,
@@ -20,17 +19,23 @@ vhostController.use("*", authorize([UserRole.ADMIN]));
 
 /**
  * Get all virtual hosts for a server (ADMIN ONLY)
- * GET /servers/:serverId/vhosts
+ * GET /workspaces/:workspaceId/servers/:serverId/vhosts
  */
 vhostController.get("/servers/:serverId/vhosts", async (c) => {
   const serverId = c.req.param("serverId");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
 
   try {
     // Verify server access
-    await verifyServerAccess(serverId, user.workspaceId);
+    await verifyServerAccess(serverId, workspaceId);
 
-    const client = await createRabbitMQClient(serverId, user.workspaceId);
+    const client = await createRabbitMQClient(serverId, workspaceId);
     const [vhosts, allQueues] = await Promise.all([
       client.getVHosts(),
       client.getQueues().catch(() => []),

@@ -2,7 +2,7 @@ import { Lock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddQueueForm } from "@/components/AddQueueForm";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface AddQueueButtonProps {
   serverId: string;

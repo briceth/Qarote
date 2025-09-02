@@ -1,20 +1,29 @@
 import { Hono } from "hono";
 import { logger } from "@/core/logger";
-import { createRabbitMQClient } from "./shared";
+import { createRabbitMQClient, verifyServerAccess } from "./shared";
 import { createErrorResponse } from "../shared";
 
 const infrastructureController = new Hono();
 
 /**
  * Get all nodes for a specific server
- * GET /servers/:id/nodes
+ * GET /workspaces/:workspaceId/servers/:id/nodes
  */
 infrastructureController.get("/servers/:id/nodes", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    // Verify server access
+    await verifyServerAccess(id, workspaceId);
+
+    const client = await createRabbitMQClient(id, workspaceId);
     const nodes = await client.getNodes();
     return c.json({ nodes });
   } catch (error) {
@@ -39,14 +48,23 @@ infrastructureController.get("/servers/:id/nodes", async (c) => {
 
 /**
  * Get all exchanges for a specific server
- * GET /servers/:id/exchanges
+ * GET /workspaces/:workspaceId/servers/:id/exchanges
  */
 infrastructureController.get("/servers/:id/exchanges", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    // Verify server access
+    await verifyServerAccess(id, workspaceId);
+
+    const client = await createRabbitMQClient(id, workspaceId);
     const exchanges = await client.getExchanges();
     return c.json({ exchanges });
   } catch (error) {
@@ -57,13 +75,22 @@ infrastructureController.get("/servers/:id/exchanges", async (c) => {
 
 /**
  * Create a new exchange
- * POST /servers/:id/exchanges
+ * POST /workspaces/:workspaceId/servers/:id/exchanges
  */
 infrastructureController.post("/servers/:id/exchanges", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   try {
+    // Verify server access
+    await verifyServerAccess(id, workspaceId);
+
     const body = await c.req.json();
     const {
       name,
@@ -92,7 +119,7 @@ infrastructureController.post("/servers/:id/exchanges", async (c) => {
       );
     }
 
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    const client = await createRabbitMQClient(id, workspaceId);
     await client.createExchange(name, type, {
       durable: durable ?? true,
       auto_delete: auto_delete ?? false,
@@ -120,19 +147,28 @@ infrastructureController.post("/servers/:id/exchanges", async (c) => {
 
 /**
  * Delete an exchange
- * DELETE /servers/:id/exchanges/:exchangeName
+ * DELETE /workspaces/:workspaceId/servers/:id/exchanges/:exchangeName
  */
 infrastructureController.delete(
   "/servers/:id/exchanges/:exchangeName",
   async (c) => {
     const id = c.req.param("id");
     const exchangeName = c.req.param("exchangeName");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
     const url = new URL(c.req.url);
     const ifUnused = url.searchParams.get("if_unused") === "true";
 
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
     try {
-      const client = await createRabbitMQClient(id, user.workspaceId);
+      // Verify server access
+      await verifyServerAccess(id, workspaceId);
+
+      const client = await createRabbitMQClient(id, workspaceId);
       await client.deleteExchange(exchangeName, {
         if_unused: ifUnused,
       });
@@ -167,14 +203,23 @@ infrastructureController.delete(
 
 /**
  * Get all connections for a specific server
- * GET /servers/:id/connections
+ * GET /workspaces/:workspaceId/servers/:id/connections
  */
 infrastructureController.get("/servers/:id/connections", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    // Verify server access
+    await verifyServerAccess(id, workspaceId);
+
+    const client = await createRabbitMQClient(id, workspaceId);
     const connections = await client.getConnections();
     return c.json({ connections });
   } catch (error) {
@@ -185,14 +230,23 @@ infrastructureController.get("/servers/:id/connections", async (c) => {
 
 /**
  * Get all channels for a specific server
- * GET /servers/:id/channels
+ * GET /workspaces/:workspaceId/servers/:id/channels
  */
 infrastructureController.get("/servers/:id/channels", async (c) => {
   const id = c.req.param("id");
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   try {
-    const client = await createRabbitMQClient(id, user.workspaceId);
+    // Verify server access
+    await verifyServerAccess(id, workspaceId);
+
+    const client = await createRabbitMQClient(id, workspaceId);
     const channels = await client.getChannels();
     return c.json({ channels });
   } catch (error) {

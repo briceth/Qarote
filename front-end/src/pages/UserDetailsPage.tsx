@@ -27,6 +27,7 @@ import { PageLoader } from "@/components/PageLoader";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { apiClient } from "@/lib/api";
 import { formatTagsDisplay } from "@/lib/formatTags";
 import { DeleteUserModal } from "@/components/users/DeleteUserModal";
@@ -38,6 +39,7 @@ export default function UserDetailsPage() {
     username: string;
   }>();
   const { selectedServerId } = useServerContext();
+  const { workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -64,15 +66,25 @@ export default function UserDetailsPage() {
     error,
   } = useQuery({
     queryKey: ["user", currentServerId, decodedUsername],
-    queryFn: () => apiClient.getUser(currentServerId!, decodedUsername),
-    enabled: !!currentServerId && !!decodedUsername,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getUser(currentServerId!, decodedUsername, workspace.id);
+    },
+    enabled: !!currentServerId && !!decodedUsername && !!workspace?.id,
   });
 
   // Fetch available virtual hosts for the dropdown
   const { data: vhostsData, isLoading: vhostsLoading } = useQuery({
     queryKey: ["vhosts", currentServerId],
-    queryFn: () => apiClient.getVHosts(currentServerId!),
-    enabled: !!currentServerId,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getVHosts(currentServerId!, workspace.id);
+    },
+    enabled: !!currentServerId && !!workspace?.id,
   });
 
   // Update selected vhost when vhosts data is loaded
@@ -96,7 +108,16 @@ export default function UserDetailsPage() {
   }, [vhostsData, userData?.permissions, selectedVHost]);
 
   const deleteUserMutation = useMutation({
-    mutationFn: () => apiClient.deleteUser(currentServerId!, decodedUsername),
+    mutationFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteUser(
+        currentServerId!,
+        decodedUsername,
+        workspace.id
+      );
+    },
     onSuccess: () => {
       toast.success("User deleted successfully");
       navigate("/users");
@@ -111,7 +132,17 @@ export default function UserDetailsPage() {
       password?: string;
       tags?: string;
       removePassword?: boolean;
-    }) => apiClient.updateUser(currentServerId!, decodedUsername, data),
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.updateUser(
+        currentServerId!,
+        decodedUsername,
+        data,
+        workspace.id
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["user", currentServerId, decodedUsername],
@@ -132,7 +163,17 @@ export default function UserDetailsPage() {
       configure: string;
       write: string;
       read: string;
-    }) => apiClient.setUserPermissions(currentServerId!, decodedUsername, data),
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.setUserPermissions(
+        currentServerId!,
+        decodedUsername,
+        data,
+        workspace.id
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["user", currentServerId, decodedUsername],
@@ -151,8 +192,17 @@ export default function UserDetailsPage() {
   });
 
   const clearPermissionsMutation = useMutation({
-    mutationFn: (vhost: string) =>
-      apiClient.deleteUserPermissions(currentServerId!, decodedUsername, vhost),
+    mutationFn: (vhost: string) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteUserPermissions(
+        currentServerId!,
+        decodedUsername,
+        vhost,
+        workspace.id
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["user", currentServerId, decodedUsername],

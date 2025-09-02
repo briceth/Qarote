@@ -37,6 +37,11 @@ coreRoutes.get("/current", async (c) => {
   const user = c.get("user");
 
   try {
+    // If user doesn't have a workspaceId, they don't have a current workspace
+    if (!user.workspaceId) {
+      return c.json({ error: "No workspace assigned" }, 404);
+    }
+
     const workspace = await prisma.workspace.findUnique({
       where: { id: user.workspaceId },
       include: {

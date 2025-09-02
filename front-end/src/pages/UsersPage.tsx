@@ -31,7 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api";
 import { formatTagsDisplay, formatVhostsDisplay } from "@/lib/formatTags";
@@ -43,7 +43,7 @@ import { toast } from "sonner";
 export default function UsersPage() {
   const { serverId } = useParams<{ serverId: string }>();
   const { selectedServerId, hasServers } = useServerContext();
-  const { workspacePlan } = useWorkspace();
+  const { workspacePlan, workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -65,19 +65,33 @@ export default function UsersPage() {
     error,
   } = useQuery({
     queryKey: ["users", currentServerId],
-    queryFn: () => apiClient.getUsers(currentServerId!),
-    enabled: !!currentServerId,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getUsers(currentServerId!, workspace.id);
+    },
+    enabled: !!currentServerId && !!workspace?.id,
   });
 
   const { data: vhostsData } = useQuery({
     queryKey: ["vhosts", currentServerId],
-    queryFn: () => apiClient.getVHosts(currentServerId!),
-    enabled: !!currentServerId,
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getVHosts(currentServerId!, workspace.id);
+    },
+    enabled: !!currentServerId && !!workspace?.id,
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: (username: string) =>
-      apiClient.deleteUser(currentServerId!, username),
+    mutationFn: (username: string) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteUser(currentServerId!, username, workspace.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users", currentServerId] });
       toast.success("User deleted successfully");
@@ -94,16 +108,25 @@ export default function UsersPage() {
       password: string;
       tags?: string;
     }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+
       // First create the user
-      await apiClient.createUser(currentServerId!, data);
+      await apiClient.createUser(currentServerId!, data, workspace.id);
 
       // Then set permissions on the selected virtual host
-      await apiClient.setUserPermissions(currentServerId!, data.username, {
-        vhost: newUserVhost,
-        configure: ".*",
-        write: ".*",
-        read: ".*",
-      });
+      await apiClient.setUserPermissions(
+        currentServerId!,
+        data.username,
+        {
+          vhost: newUserVhost,
+          configure: ".*",
+          write: ".*",
+          read: ".*",
+        },
+        workspace.id
+      );
 
       return data;
     },

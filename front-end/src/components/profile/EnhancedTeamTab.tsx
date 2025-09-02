@@ -16,7 +16,7 @@ import { InvitationWithInviter } from "@/lib/api/authTypes";
 import { InviteFormState, formatDate, getRoleColor } from "./profileUtils";
 import { InviteUserDialog } from "./InviteUserDialogEnhanced";
 import { WorkspacePlan } from "@/types/plans";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface EnhancedTeamTabProps {
   isAdmin: boolean;

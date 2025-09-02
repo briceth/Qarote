@@ -14,7 +14,7 @@ registrationController.post(
   "/register",
   zValidator("json", RegisterUserSchema),
   async (c) => {
-    const { email, password, firstName, lastName, workspaceName, acceptTerms } =
+    const { email, password, firstName, lastName, acceptTerms } =
       c.req.valid("json");
 
     try {
@@ -29,61 +29,48 @@ registrationController.post(
 
       const hashedPassword = await hashPassword(password);
 
-      // Create transaction to handle workspace creation and user registration
-      const result = await prisma.$transaction(async (tx) => {
-        const workspace = await tx.workspace.create({
-          data: {
-            name: workspaceName,
-            contactEmail: email,
-          },
-        });
-        const workspaceId = workspace.id;
-
-        // Create user (with email verification disabled initially)
-        const user = await tx.user.create({
-          data: {
-            email,
-            passwordHash: hashedPassword,
-            firstName,
-            lastName,
-            workspaceId,
-            role: UserRole.ADMIN, // User is admin of their workspace
-            emailVerified: false, // New users must verify their email
-            lastLogin: new Date(),
-          },
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            workspaceId: true,
-            isActive: true,
-            emailVerified: true,
-            lastLogin: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        });
-
-        return { user, workspaceId };
+      // Create user without workspace (workspace will be created later on the dedicated page)
+      const user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash: hashedPassword,
+          firstName,
+          lastName,
+          // workspaceId is undefined - no workspace assigned yet
+          role: UserRole.USER, // Default role until they create/join a workspace
+          emailVerified: false, // New users must verify their email
+          lastLogin: new Date(),
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          workspaceId: true,
+          isActive: true,
+          emailVerified: true,
+          lastLogin: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
 
       // Generate and send email verification token
       try {
         const verificationToken =
           await EmailVerificationService.generateVerificationToken({
-            userId: result.user.id,
-            email: result.user.email,
+            userId: user.id,
+            email: user.email,
             type: "SIGNUP",
           });
 
         const emailResult =
           await EmailVerificationService.sendVerificationEmail(
-            result.user.email,
+            user.email,
             verificationToken,
             "SIGNUP",
-            result.user.firstName
+            user.firstName
           );
 
         if (!emailResult.success) {
@@ -105,7 +92,7 @@ registrationController.post(
         {
           message:
             "Registration successful. Please check your email to verify your account before logging in.",
-          email: result.user.email,
+          email: user.email,
         },
         201
       );

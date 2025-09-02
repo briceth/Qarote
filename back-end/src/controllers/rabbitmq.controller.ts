@@ -18,16 +18,16 @@ const rabbitmqController = new Hono();
 rabbitmqController.use("*", authenticate);
 adminController.use("*", planValidationMiddleware());
 
-// Mount all the sub-controllers directly
-rabbitmqController.route("/", overviewController);
-rabbitmqController.route("/", queuesController);
-rabbitmqController.route("/", messagesController);
-rabbitmqController.route("/", metricsController);
-rabbitmqController.route("/", infrastructureController);
-rabbitmqController.route("/", memoryController);
-rabbitmqController.route("/", adminController);
-rabbitmqController.route("/", vhostController);
-rabbitmqController.route("/", usersController);
-rabbitmqController.route("/", alertsController);
+// Mount all the sub-controllers with workspace-scoped routes
+rabbitmqController.route("/workspaces/:workspaceId", overviewController);
+rabbitmqController.route("/workspaces/:workspaceId", queuesController);
+rabbitmqController.route("/workspaces/:workspaceId", messagesController);
+rabbitmqController.route("/workspaces/:workspaceId", metricsController);
+rabbitmqController.route("/workspaces/:workspaceId", infrastructureController);
+rabbitmqController.route("/workspaces/:workspaceId", memoryController);
+rabbitmqController.route("/workspaces/:workspaceId", adminController);
+rabbitmqController.route("/workspaces/:workspaceId", vhostController);
+rabbitmqController.route("/workspaces/:workspaceId", usersController);
+rabbitmqController.route("/workspaces/:workspaceId", alertsController);
 
 export default rabbitmqController;

@@ -41,7 +41,7 @@ import {
   useWorkspaceThresholds,
   useUpdateWorkspaceThresholds,
 } from "@/hooks/useApi";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useAlertsModal } from "@/hooks/useAlertsModal";
 
 const thresholdSchema = z

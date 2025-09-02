@@ -42,7 +42,6 @@ const SignUp: React.FC = () => {
       firstName: "",
       lastName: "",
       email: "",
-      workspaceName: "",
       password: "",
       confirmPassword: "",
       acceptTerms: false,
@@ -62,7 +61,6 @@ const SignUp: React.FC = () => {
       password: data.password,
       firstName: data.firstName,
       lastName: data.lastName,
-      workspaceName: data.workspaceName,
       acceptTerms: data.acceptTerms,
     };
 
@@ -181,24 +179,6 @@ const SignUp: React.FC = () => {
                           <Input
                             type="email"
                             placeholder="john@example.com"
-                            disabled={registerMutation.isPending}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="workspaceName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Workspace name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Your workspace"
                             disabled={registerMutation.isPending}
                             {...field}
                           />

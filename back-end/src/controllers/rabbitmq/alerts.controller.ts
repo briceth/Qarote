@@ -14,7 +14,7 @@ const alertsController = new Hono();
 
 /**
  * Get current alerts for a server
- * GET /servers/:id/alerts
+ * GET /workspaces/:workspaceId/servers/:id/alerts
  */
 alertsController.get(
   "/servers/:id/alerts",
@@ -22,22 +22,30 @@ alertsController.get(
   zValidator("query", AlertsQuerySchema),
   async (c) => {
     const { id } = c.req.valid("param");
+    const workspaceId = c.req.param("workspaceId");
     const query = c.req.valid("query");
     const user = c.get("user");
 
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
     try {
-      const server = await verifyServerAccess(id, user.workspaceId);
+      const server = await verifyServerAccess(id, workspaceId);
+
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
 
       const { alerts, summary } = await alertService.getServerAlerts(
         id,
         server.name,
-        user.workspaceId
+        workspaceId
       );
 
       // Get current thresholds for response
-      const thresholds = await alertService.getWorkspaceThresholds(
-        user.workspaceId
-      );
+      const thresholds = await alertService.getWorkspaceThresholds(workspaceId);
 
       // Apply filtering and pagination
       let filteredAlerts = alerts;
@@ -95,21 +103,24 @@ alertsController.get(
 
 /**
  * Get health check for a server
- * GET /servers/:id/health
+ * GET /workspaces/:workspaceId/servers/:id/health
  */
 alertsController.get(
   "/servers/:id/health",
   zValidator("param", ServerParamSchema),
   async (c) => {
     const { id } = c.req.valid("param");
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
 
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
     try {
-      await verifyServerAccess(id, user.workspaceId);
-      const healthCheck = await alertService.getHealthCheck(
-        id,
-        user.workspaceId
-      );
+      await verifyServerAccess(id, workspaceId);
+      const healthCheck = await alertService.getHealthCheck(id, workspaceId);
 
       return c.json({
         success: true,
@@ -124,16 +135,20 @@ alertsController.get(
 
 /**
  * Get alert thresholds for the workspace (used for alerts form)
- * GET /thresholds
+ * GET /workspaces/:workspaceId/thresholds
  */
 alertsController.get("/thresholds", async (c) => {
+  const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
 
+  // Verify user has access to this workspace
+  if (user.workspaceId !== workspaceId) {
+    return c.json({ error: "Access denied to this workspace" }, 403);
+  }
+
   try {
-    const thresholds = await alertService.getWorkspaceThresholds(
-      user.workspaceId
-    );
-    const canModify = await alertService.canModifyThresholds(user.workspaceId);
+    const thresholds = await alertService.getWorkspaceThresholds(workspaceId);
+    const canModify = await alertService.canModifyThresholds(workspaceId);
 
     return c.json({
       success: true,
@@ -149,18 +164,24 @@ alertsController.get("/thresholds", async (c) => {
 
 /**
  * Update alert thresholds for the workspace (used by alerts form)
- * PUT /thresholds
+ * PUT /workspaces/:workspaceId/thresholds
  */
 alertsController.put(
   "/thresholds",
   zValidator("json", UpdateThresholdsRequestSchema),
   async (c) => {
+    const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
     const { thresholds } = c.req.valid("json");
 
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
     try {
       const result = await alertService.updateWorkspaceThresholds(
-        user.workspaceId,
+        workspaceId,
         thresholds as any // Cast to match service expectation for partial updates
       );
 
@@ -174,9 +195,8 @@ alertsController.put(
         );
       }
 
-      const updatedThresholds = await alertService.getWorkspaceThresholds(
-        user.workspaceId
-      );
+      const updatedThresholds =
+        await alertService.getWorkspaceThresholds(workspaceId);
 
       return c.json({
         success: true,

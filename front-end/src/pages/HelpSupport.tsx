@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { PlanBadge } from "@/components/ui/PlanBadge";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useToast } from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import {

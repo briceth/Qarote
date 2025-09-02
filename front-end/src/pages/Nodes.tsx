@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { useNodes } from "@/hooks/useApi";
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
 import { EnhancedNodesOverview } from "@/components/nodes/EnhancedNodesOverview";

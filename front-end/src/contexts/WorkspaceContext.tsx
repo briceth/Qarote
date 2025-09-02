@@ -1,63 +1,15 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import { apiClient, type CurrentPlanResponse } from "@/lib/api";
 import type { Workspace } from "@/lib/api/workspaceClient";
 import { WorkspacePlan } from "@/types/plans";
 import { setSentryContext } from "@/lib/sentry";
 import logger from "../lib/logger";
-
-// Extended workspace interface to handle the full API response
-interface ExtendedWorkspace extends Workspace {
-  storageMode?: string;
-  retentionDays?: number;
-  encryptData?: boolean;
-  autoDelete?: boolean;
-  consentGiven?: boolean;
-  consentDate?: string;
-  _count?: {
-    users: number;
-    servers: number;
-  };
-}
-
-interface WorkspaceContextType {
-  workspace: ExtendedWorkspace | null;
-  planData: CurrentPlanResponse | null;
-  isLoading: boolean;
-  isPlanLoading: boolean;
-  error: string | null;
-  planError: string | null;
-  refetch: () => Promise<void>;
-  refetchPlan: () => Promise<void>;
-  workspacePlan: WorkspacePlan;
-  // Convenience getters for common plan operations
-  canAddServer: boolean;
-  canAddQueue: boolean;
-  canSendMessages: boolean;
-  canAddExchange: boolean;
-  canAddVirtualHost: boolean;
-  canAddRabbitMQUser: boolean;
-  canManageQueues: boolean;
-  approachingLimits: boolean;
-}
-
-const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
-  undefined
-);
-
-export const useWorkspace = () => {
-  const context = useContext(WorkspaceContext);
-  if (context === undefined) {
-    throw new Error("useWorkspace must be used within a WorkspaceProvider");
-  }
-  return context;
-};
+import {
+  WorkspaceContext,
+  type WorkspaceContextType,
+  type ExtendedWorkspace,
+} from "./WorkspaceContextDefinition";
 
 interface WorkspaceProviderProps {
   children: React.ReactNode;
@@ -94,10 +46,20 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
         createdAt: response.workspace.createdAt,
       });
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch workspace";
-      setError(errorMessage);
-      logger.error("Failed to fetch workspace:", err);
+      // If user doesn't have a workspace (404), this is not an error
+      if (
+        err instanceof Error &&
+        err.message.includes("No workspace assigned")
+      ) {
+        logger.debug("User has no workspace assigned yet");
+        setWorkspace(null);
+        setError(null);
+      } else {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to fetch workspace";
+        setError(errorMessage);
+        logger.error("Failed to fetch workspace:", err);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +107,10 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
   const canAddExchange = planData?.planFeatures.canAddExchange ?? false;
   const canAddVirtualHost = planData?.planFeatures.canAddVirtualHost ?? false;
   const canAddRabbitMQUser = planData?.planFeatures.canAddRabbitMQUser ?? false;
+  const canCreateWorkspace =
+    planData?.usage.workspaces?.canAdd ?? workspacePlan !== WorkspacePlan.FREE;
   const canManageQueues = workspacePlan !== WorkspacePlan.FREE;
+  const canConfigureAlerts = workspacePlan !== WorkspacePlan.FREE;
   const approachingLimits = planData?.approachingLimits ?? false;
 
   const value: WorkspaceContextType = {
@@ -164,7 +129,9 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
     canAddExchange,
     canAddVirtualHost,
     canAddRabbitMQUser,
+    canCreateWorkspace,
     canManageQueues,
+    canConfigureAlerts,
     approachingLimits,
   };
 
