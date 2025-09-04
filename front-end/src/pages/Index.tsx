@@ -32,9 +32,9 @@ const Index = () => {
     liveRates,
     isLoading,
     queuesLoading,
-    timeSeriesLoading,
+    liveRatesLoading,
     metricsError,
-    timeSeriesError,
+    liveRatesError,
     nodesError,
   } = useDashboardData(selectedServerId);
 
@@ -139,8 +139,8 @@ const Index = () => {
             {/* Live Message Rates Chart - Full Width */}
             <LiveRatesChart
               liveRates={liveRates}
-              isLoading={timeSeriesLoading}
-              error={timeSeriesError}
+              isLoading={liveRatesLoading}
+              error={liveRatesError}
             />
 
             {/* Queue Depths Chart - Full Width */}

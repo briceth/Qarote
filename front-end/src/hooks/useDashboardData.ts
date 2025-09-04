@@ -58,7 +58,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
         })
       : null;
 
-  const timeSeriesError =
+  const liveRatesError =
     liveRatesPermissionStatus && !liveRatesPermissionStatus.hasPermission
       ? new RabbitMQAuthorizationError({
           error: "insufficient_permissions",
@@ -148,11 +148,11 @@ export const useDashboardData = (selectedServerId: string | null) => {
     overviewLoading,
     queuesLoading,
     nodesLoading,
-    timeSeriesLoading: liveRatesLoading,
+    liveRatesLoading,
 
     // Error states
     metricsError,
-    timeSeriesError,
+    liveRatesError,
     nodesError,
 
     // Chart controls - simplified for live data
