@@ -27,6 +27,7 @@ interface EmailVerificationProps {
   type: "SIGNUP" | "EMAIL_CHANGE";
   frontendUrl: string;
   expiryHours: number;
+  // Remove frontendUrl dependency for logo
 }
 
 export const EmailVerification = ({
@@ -64,7 +65,7 @@ export const EmailVerification = ({
           {/* Header */}
           <Section style={headerStyles.headerWithLogo}>
             <Img
-              src={`${frontendUrl}/icon_rabbit.png`}
+              src="cid:rabbit-logo"
               width="50"
               height="50"
               alt="RabbitHQ"

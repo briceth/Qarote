@@ -55,7 +55,7 @@ export default function WelcomeEmail({
           {/* Header */}
           <Section style={headerStyles.headerWithLogo}>
             <Img
-              src={`${frontendUrl}/icon_rabbit.png`}
+              src="cid:rabbit-logo"
               width="50"
               height="50"
               alt="RabbitHQ"

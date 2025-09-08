@@ -3,6 +3,7 @@ import { WorkspacePlan } from "@prisma/client";
 import { CoreEmailService, EmailResult } from "./core-email.service";
 import { UpgradeConfirmationEmail } from "./templates/upgrade-confirmation-email";
 import { WelcomeBackEmail } from "./templates/welcome-back-email";
+import { createLogoAttachment } from "./utils/logo-attachment";
 
 export interface UpgradeConfirmationEmailParams {
   to: string;
@@ -43,11 +44,14 @@ export class BillingEmailService {
       frontendUrl,
     });
 
+    const logoAttachment = createLogoAttachment();
+
     const result = await CoreEmailService.sendEmail({
       to,
       subject: `Welcome to ${plan} Plan - Upgrade Confirmed!`,
       template,
       emailType: "upgrade_confirmation",
+      attachments: [logoAttachment],
       context: {
         userName,
         workspaceName,
@@ -86,11 +90,14 @@ export class BillingEmailService {
       frontendUrl,
     });
 
+    const logoAttachment = createLogoAttachment();
+
     const result = await CoreEmailService.sendEmail({
       to,
       subject: `🎉 Welcome Back to RabbitHQ - ${plan} Plan Renewed!`,
       template,
       emailType: "welcome_back",
+      attachments: [logoAttachment],
       context: {
         userName,
         workspaceName,

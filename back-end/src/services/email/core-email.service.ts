@@ -17,6 +17,13 @@ export interface BaseEmailParams {
   template: ReactElement;
   emailType: string;
   context?: Record<string, any>;
+  attachments?: Array<{
+    content?: string;
+    path?: string;
+    filename: string;
+    contentId?: string;
+    contentType?: string;
+  }>;
 }
 
 /**
@@ -29,7 +36,14 @@ export class CoreEmailService {
    * Send an email using a React template
    */
   static async sendEmail(params: BaseEmailParams): Promise<EmailResult> {
-    const { to, subject, template, emailType, context = {} } = params;
+    const {
+      to,
+      subject,
+      template,
+      emailType,
+      context = {},
+      attachments = [],
+    } = params;
 
     try {
       logger.info(`Sending ${emailType} email`, {
@@ -47,6 +61,7 @@ export class CoreEmailService {
         to,
         subject,
         html: emailHtml,
+        attachments: attachments.length > 0 ? attachments : undefined,
       });
 
       if (error) {
