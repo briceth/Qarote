@@ -157,15 +157,23 @@ const Alerts = () => {
         <div className="page-layout">
           <AppSidebar />
           <main className="main-content-scrollable">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
+            <div className="content-container-large">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                <div>
+                  <h1 className="title-page">Alerts</h1>
+                  <p className="text-gray-500">
+                    Monitor system alerts and notifications
+                  </p>
+                </div>
+              </div>
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Failed to load alerts data. Please try again.
+                </AlertDescription>
+              </Alert>
             </div>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Failed to load alerts data. Please try again.
-              </AlertDescription>
-            </Alert>
           </main>
         </div>
       </SidebarProvider>
@@ -177,45 +185,46 @@ const Alerts = () => {
       <div className="page-layout">
         <AppSidebar />
         <main className="main-content-scrollable">
-          <div className="flex items-center justify-between border-b px-6 py-4">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <Separator orientation="vertical" />
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
-                <h1 className="text-xl font-semibold">Alerts</h1>
+          <div className="content-container-large">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                <div>
+                  <h1 className="title-page">Alerts</h1>
+                  <p className="text-gray-500">
+                    Monitor system alerts and notifications
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {alertsLoading && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+                {canConfigureAlerts ? (
+                  <Button
+                    onClick={handleConfigureClick}
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configure
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConfigureClick}
+                    disabled={true}
+                    className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+                    title="Upgrade to configure advanced alert settings"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Configure
+                    <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
+                      Pro
+                    </span>
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {alertsLoading && (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              )}
-              {canConfigureAlerts ? (
-                <Button
-                  onClick={handleConfigureClick}
-                  className="bg-orange-500 hover:bg-orange-600"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleConfigureClick}
-                  disabled={true}
-                  className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
-                  title="Upgrade to configure advanced alert settings"
-                >
-                  <Lock className="w-4 h-4" />
-                  Configure
-                  <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-bold">
-                    Pro
-                  </span>
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="p-6 space-y-6">
             {/* Alerts Summary */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <Card>
@@ -372,23 +381,23 @@ const Alerts = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Configure Modal */}
-          <AlertsConfigureModal
-            isOpen={showConfigureModal}
-            onClose={() => setShowConfigureModal(false)}
-            serverId={currentServerId}
-          />
-
-          {/* Plan Upgrade Modal */}
-          <PlanUpgradeModal
-            isOpen={showUpgradeModal}
-            onClose={() => setShowUpgradeModal(false)}
-            currentPlan={workspacePlan}
-            feature="advanced alert configuration"
-          />
         </main>
       </div>
+
+      {/* Configure Modal */}
+      <AlertsConfigureModal
+        isOpen={showConfigureModal}
+        onClose={() => setShowConfigureModal(false)}
+        serverId={currentServerId}
+      />
+
+      {/* Plan Upgrade Modal */}
+      <PlanUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={workspacePlan}
+        feature="advanced alert configuration"
+      />
     </SidebarProvider>
   );
 };
