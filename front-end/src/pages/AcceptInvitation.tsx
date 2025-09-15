@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordRequirements } from "@/components/ui/password-requirements";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
@@ -57,6 +59,8 @@ const AcceptInvitation = () => {
   const [invitation, setInvitation] = useState<InvitationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Initialize form with react-hook-form
   const form = useForm<AcceptInvitationFormData>({
@@ -265,13 +269,20 @@ const AcceptInvitation = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="Enter your password"
                         disabled={acceptInvitationMutation.isPending}
+                        showPassword={showPassword}
+                        onToggleVisibility={() =>
+                          setShowPassword(!showPassword)
+                        }
                         {...field}
                       />
                     </FormControl>
+                    <PasswordRequirements
+                      password={field.value || ""}
+                      className="mt-2"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -284,10 +295,13 @@ const AcceptInvitation = () => {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="Confirm your password"
                         disabled={acceptInvitationMutation.isPending}
+                        showPassword={showConfirmPassword}
+                        onToggleVisibility={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         {...field}
                       />
                     </FormControl>

@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordRequirements } from "@/components/ui/password-requirements";
 import { type ZodType } from "zod/v4";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -209,6 +210,10 @@ const SignUp: React.FC = () => {
                             {...field}
                           />
                         </FormControl>
+                        <PasswordRequirements
+                          password={field.value || ""}
+                          className="mt-2"
+                        />
                         <FormMessage />
                       </FormItem>
                     )}
