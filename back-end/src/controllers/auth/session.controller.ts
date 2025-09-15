@@ -43,6 +43,17 @@ sessionController.post("/login", zValidator("json", LoginSchema), async (c) => {
       );
     }
 
+    // Check if user has a password (not OAuth-only user)
+    if (!user.passwordHash) {
+      return c.json(
+        {
+          error:
+            "This account uses Google sign-in. Please use the 'Sign in with Google' button.",
+        },
+        400
+      );
+    }
+
     // Check password
     const isPasswordValid = await comparePassword(password, user.passwordHash);
 

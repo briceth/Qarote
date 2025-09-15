@@ -25,6 +25,7 @@ import {
 import { useRegister } from "@/hooks/useAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUpSchema, type SignUpFormData } from "@/schemas/forms";
+import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 
 const SignUp: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -280,6 +281,26 @@ const SignUp: React.FC = () => {
                 </form>
               </Form>
             )}
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Sign Up */}
+            <GoogleLoginButton
+              mode="signup"
+              onError={(error) => {
+                console.error("Google signup error:", error);
+              }}
+            />
           </CardContent>
         </Card>
       </div>

@@ -414,6 +414,10 @@ class ApiClient {
     return this.authClient.login(credentials);
   }
 
+  async googleLogin(credential: Parameters<AuthApiClient["googleLogin"]>[0]) {
+    return this.authClient.googleLogin(credential);
+  }
+
   async register(userData: Parameters<AuthApiClient["register"]>[0]) {
     return this.authClient.register(userData);
   }

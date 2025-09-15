@@ -4,7 +4,7 @@ import { UserRole } from "@prisma/client";
 // Schema for creating a user
 export const CreateUserSchema = z.object({
   email: z.email("Invalid email address"),
-  passwordHash: z.string().min(1, "Password hash is required"),
+  passwordHash: z.string().min(1, "Password hash is required").optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   role: z.enum(UserRole).default(UserRole.USER),

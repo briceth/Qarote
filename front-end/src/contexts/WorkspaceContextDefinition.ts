@@ -5,9 +5,6 @@ import { WorkspacePlan } from "@/types/plans";
 
 // Extended workspace interface to handle the full API response
 interface ExtendedWorkspace extends Workspace {
-  storageMode?: string;
-  retentionDays?: number;
-  encryptData?: boolean;
   autoDelete?: boolean;
   consentGiven?: boolean;
   consentDate?: string;

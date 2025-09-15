@@ -42,6 +42,17 @@ emailController.post(
         return c.json({ error: "User not found" }, 404);
       }
 
+      // Check if user has a password (not OAuth-only user)
+      if (!userWithPassword.passwordHash) {
+        return c.json(
+          {
+            error:
+              "This account uses Google sign-in. Email changes are not available for OAuth accounts.",
+          },
+          400
+        );
+      }
+
       // Verify current password
       const isPasswordValid = await comparePassword(
         password,

@@ -6,17 +6,16 @@ import verificationRoutes from "./auth/verification.controller";
 import passwordRoutes from "./auth/password.controller";
 import emailRoutes from "./auth/email.controller";
 import invitationRoutes from "./auth/invitation.controller";
+import googleRoutes from "./auth/google.controller";
 
 const authController = new Hono();
-
-// Apply strict rate limiting to auth endpoints for security
-// authController.use("*", strictRateLimiter);
 
 authController.route("/", registrationRoutes);
 authController.route("/", sessionRoutes);
 authController.route("/", verificationRoutes);
 authController.route("/", passwordRoutes);
 authController.route("/", emailRoutes);
+authController.route("/", googleRoutes);
 authController.route("/invitation", invitationRoutes);
 
 export default authController;

@@ -24,6 +24,7 @@ import { useLogin } from "@/hooks/useAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { signInSchema, type SignInFormData } from "@/schemas/forms";
 import logger from "@/lib/logger";
+import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 
 const SignIn: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -185,6 +186,25 @@ const SignIn: React.FC = () => {
                 </Button>
               </form>
             </Form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Login */}
+            <GoogleLoginButton
+              onError={(error) => {
+                console.error("Google login error:", error);
+              }}
+            />
 
             {/* Forgot Password Link */}
             <div className="mt-4 text-center">

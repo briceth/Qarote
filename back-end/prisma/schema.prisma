@@ -149,11 +149,14 @@ model Workspace {
 model User {
   id             String    @id @default(uuid())
   email          String    @unique
-  passwordHash   String
+  passwordHash   String?
   firstName       String
   lastName       String
   role           UserRole  @default(USER)
   isActive       Boolean   @default(true)
+  
+  // OAuth providers
+  googleId        String?   @unique
   
   // Email verification
   emailVerified  Boolean   @default(false)

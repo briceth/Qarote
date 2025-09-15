@@ -472,9 +472,6 @@ metricsController.get("/servers/:id/metrics/historical", async (c) => {
         },
         metadata: {
           plan: null,
-          storageMode: null,
-          retentionDays: 0,
-          dataPoints: 0,
         },
       });
     }

@@ -50,6 +50,9 @@ const envSchema = z.object({
   SENTRY_DSN: z.string(),
   SENTRY_ENABLED: z.coerce.boolean(),
 
+  // Google OAuth Configuration
+  GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
+
   // NPM package version (for Sentry releases)
   npm_package_version: z.string().describe("1.0.0"),
 });
@@ -136,4 +139,8 @@ export const sentryConfig = {
   release: `rabbithq-backend@${config.npm_package_version || "unknown"}`,
   tracesSampleRate: isProduction() ? 0.1 : 1.0,
   profilesSampleRate: isProduction() ? 0.05 : 1.0,
+} as const;
+
+export const googleConfig = {
+  clientId: config.GOOGLE_CLIENT_ID,
 } as const;

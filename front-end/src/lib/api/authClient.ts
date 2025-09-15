@@ -34,6 +34,15 @@ export class AuthApiClient extends BaseApiClient {
     });
   }
 
+  async googleLogin(
+    credential: string
+  ): Promise<{ user: User; token: string }> {
+    return this.request<{ user: User; token: string }>("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential }),
+    });
+  }
+
   async register(userData: RegisterRequest): Promise<RegisterResponse> {
     return this.request<RegisterResponse>("/auth/register", {
       method: "POST",

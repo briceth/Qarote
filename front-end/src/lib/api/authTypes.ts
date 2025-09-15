@@ -54,9 +54,6 @@ export interface Workspace {
   contactEmail?: string;
   logoUrl?: string;
   plan: "FREE" | "DEVELOPER" | "ENTERPRISE";
-  storageMode: string;
-  retentionDays: number;
-  encryptData: boolean;
   autoDelete: boolean;
   consentGiven: boolean;
   consentDate?: string;
