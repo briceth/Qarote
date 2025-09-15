@@ -87,9 +87,9 @@ const PlanCard: React.FC<PlanCardProps> = ({
     [WorkspacePlan.ENTERPRISE]: {
       name: "Enterprise",
       description: "For large teams and enterprises",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-200",
+      color: "text-gray-600",
+      bgColor: "bg-gray-50",
+      borderColor: "border-gray-200",
     },
   };
 
@@ -168,11 +168,17 @@ const PlanCard: React.FC<PlanCardProps> = ({
 
   return (
     <Card
-      className={`relative ${config.borderColor} ${isPopular ? "ring-2 ring-purple-500 shadow-lg scale-105" : ""} ${isCurrentPlan ? "ring-2 ring-green-500" : ""} transition-all duration-200 hover:shadow-lg`}
+      className={`relative ${config.borderColor} ${isPopular ? "ring-2 ring-orange-500 shadow-lg scale-105" : ""} ${isCurrentPlan ? "ring-2 ring-green-500" : ""} transition-all duration-200 hover:shadow-lg`}
     >
       {isPopular && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-purple-500 text-white px-4 py-1 text-sm font-medium">
+          <Badge
+            className="text-white px-4 py-1 text-sm font-medium"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, rgb(234 88 12), rgb(220 38 38))",
+            }}
+          >
             <Star className="w-4 h-4 mr-1" />
             Most Popular
           </Badge>
@@ -251,7 +257,15 @@ const PlanCard: React.FC<PlanCardProps> = ({
 
         <Button
           onClick={() => onUpgrade(plan, billingPeriod)}
-          className={`w-full ${isCurrentPlan ? "bg-gray-100 text-gray-600 cursor-not-allowed" : isPopular ? "bg-purple-600 hover:bg-purple-700" : "bg-blue-600 hover:bg-blue-700"}`}
+          className={`w-full ${isCurrentPlan ? "bg-gray-100 text-gray-600 cursor-not-allowed" : "text-white"}`}
+          style={
+            !isCurrentPlan
+              ? {
+                  backgroundImage:
+                    "linear-gradient(to right, rgb(234 88 12), rgb(220 38 38))",
+                }
+              : undefined
+          }
           disabled={isCurrentPlan}
         >
           {isCurrentPlan
