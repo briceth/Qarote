@@ -53,6 +53,11 @@ const envSchema = z.object({
   // Google OAuth Configuration
   GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
 
+  // Auth0 SSO Configuration
+  AUTH0_DOMAIN: z.string().min(1, "AUTH0_DOMAIN is required"),
+  AUTH0_CLIENT_ID: z.string().min(1, "AUTH0_CLIENT_ID is required"),
+  AUTH0_CLIENT_SECRET: z.string().min(1, "AUTH0_CLIENT_SECRET is required"),
+
   // NPM package version (for Sentry releases)
   npm_package_version: z.string().describe("1.0.0"),
 });
@@ -143,4 +148,10 @@ export const sentryConfig = {
 
 export const googleConfig = {
   clientId: config.GOOGLE_CLIENT_ID,
+} as const;
+
+export const auth0Config = {
+  domain: config.AUTH0_DOMAIN,
+  clientId: config.AUTH0_CLIENT_ID,
+  clientSecret: config.AUTH0_CLIENT_SECRET,
 } as const;

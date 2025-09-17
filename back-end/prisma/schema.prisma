@@ -158,6 +158,11 @@ model User {
   // OAuth providers
   googleId        String?   @unique
   
+  // SSO providers
+  auth0Id         String?   @unique
+  ssoProvider     String?   // "auth0", "firebase", etc.
+  ssoMetadata     Json?     // Store additional SSO provider data
+  
   // Email verification
   emailVerified  Boolean   @default(false)
   emailVerifiedAt DateTime?

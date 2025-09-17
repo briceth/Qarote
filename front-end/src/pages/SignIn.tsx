@@ -26,12 +26,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { signInSchema, type SignInFormData } from "@/schemas/forms";
 import logger from "@/lib/logger";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
+import Auth0SSOButton from "@/components/auth/Auth0SSOButton";
+import { useSSO } from "@/hooks/useSSO";
 
 const SignIn: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [ssoConfig, setSSOConfig] = useState<{ domain: string; clientId: string } | null>(null);
+  const { initializeSSO, isInitialized: ssoInitialized } = useSSO();
 
   // Get the page the user was trying to access
   const from = location.state?.from?.pathname || "/";
@@ -54,6 +58,24 @@ const SignIn: React.FC = () => {
       password: data.password,
     });
   };
+
+  // Initialize SSO service
+  useEffect(() => {
+    const fetchSSOConfig = async () => {
+      try {
+        const response = await fetch('/api/auth/auth0/config');
+        if (response.ok) {
+          const config = await response.json();
+          setSSOConfig(config);
+          await initializeSSO(config);
+        }
+      } catch (error) {
+        logger.error('Failed to fetch SSO config', { error });
+      }
+    };
+
+    fetchSSOConfig();
+  }, [initializeSSO]);
 
   // Log state changes for debugging
   useEffect(() => {
@@ -210,6 +232,28 @@ const SignIn: React.FC = () => {
                 console.error("Google login error:", error);
               }}
             />
+
+            {/* SSO Login for Enterprise Users */}
+            {ssoConfig && ssoInitialized && (
+              <Auth0SSOButton
+                onError={(error) => {
+                  console.error("SSO login error:", error);
+                }}
+                className="w-full"
+              />
+            )}
+
+            {/* Enterprise SSO Link */}
+            {ssoConfig && ssoInitialized && (
+              <div className="mt-4 text-center">
+                <Link
+                  to="/auth/enterprise-sso"
+                  className="text-sm text-orange-600 hover:text-orange-500 transition-colors font-medium"
+                >
+                  Enterprise SSO Login
+                </Link>
+              </div>
+            )}
 
             {/* Forgot Password Link */}
             <div className="mt-4 text-center">

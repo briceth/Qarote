@@ -42,6 +42,8 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
+const SSOCallback = lazy(() => import("./pages/SSOCallback"));
+const EnterpriseSSOLogin = lazy(() => import("./pages/EnterpriseSSOLogin"));
 const Workspace = lazy(() => import("./pages/Workspace"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -107,6 +109,22 @@ const AppCore = () => (
                     element={
                       <PublicRoute>
                         <AcceptInvitation />
+                      </PublicRoute>
+                    }
+                  />
+                  <Route
+                    path="/auth/sso/callback"
+                    element={
+                      <PublicRoute>
+                        <SSOCallback />
+                      </PublicRoute>
+                    }
+                  />
+                  <Route
+                    path="/auth/enterprise-sso"
+                    element={
+                      <PublicRoute>
+                        <EnterpriseSSOLogin />
                       </PublicRoute>
                     }
                   />
