@@ -7,6 +7,7 @@ import passwordRoutes from "./auth/password.controller";
 import emailRoutes from "./auth/email.controller";
 import invitationRoutes from "./auth/invitation.controller";
 import googleRoutes from "./auth/google.controller";
+import auth0Routes from "./auth/auth0.controller";
 
 const authController = new Hono();
 
@@ -16,6 +17,7 @@ authController.route("/", verificationRoutes);
 authController.route("/", passwordRoutes);
 authController.route("/", emailRoutes);
 authController.route("/", googleRoutes);
+authController.route("/", auth0Routes);
 authController.route("/invitation", invitationRoutes);
 
 export default authController;

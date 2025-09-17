@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PasswordRequirements } from "@/components/ui/password-requirements";
-import { type ZodType } from "zod/v4";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
