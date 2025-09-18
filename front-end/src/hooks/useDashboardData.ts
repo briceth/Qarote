@@ -4,7 +4,7 @@ import {
   useQueues,
   useNodes,
   useMetrics,
-  useTimeSeriesMetrics,
+  useLiveRatesMetrics,
 } from "./useApi";
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
 import { TimeRange } from "@/components/ThroughputChart";
@@ -34,7 +34,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
     useNodes(selectedServerId);
   const { data: enhancedMetricsData } = useMetrics(selectedServerId);
   const { data: liveRatesData, isLoading: liveRatesLoading } =
-    useTimeSeriesMetrics(selectedServerId);
+    useLiveRatesMetrics(selectedServerId);
 
   // Processed data
   const overview = overviewData?.overview;

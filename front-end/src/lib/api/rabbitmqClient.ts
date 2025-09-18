@@ -67,7 +67,7 @@ export class RabbitMQApiClient extends BaseApiClient {
     );
   }
 
-  async getTimeSeriesMetrics(
+  async getLiveRatesMetrics(
     serverId: string,
     workspaceId: string
   ): Promise<LiveRatesResponse> {

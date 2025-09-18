@@ -382,7 +382,7 @@ export const useRecentAlerts = () => {
   });
 };
 
-export const useTimeSeriesMetrics = (serverId: string) => {
+export const useLiveRatesMetrics = (serverId: string) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
 
@@ -392,7 +392,7 @@ export const useTimeSeriesMetrics = (serverId: string) => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.getTimeSeriesMetrics(serverId, workspace.id);
+      return apiClient.getLiveRatesMetrics(serverId, workspace.id);
     },
     enabled: !!serverId && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds

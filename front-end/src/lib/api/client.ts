@@ -223,8 +223,8 @@ class ApiClient {
     );
   }
 
-  async getTimeSeriesMetrics(serverId: string, workspaceId: string) {
-    return this.rabbitmqClient.getTimeSeriesMetrics(serverId, workspaceId);
+  async getLiveRatesMetrics(serverId: string, workspaceId: string) {
+    return this.rabbitmqClient.getLiveRatesMetrics(serverId, workspaceId);
   }
 
   async getQueueLiveRates(

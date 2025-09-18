@@ -8,7 +8,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { logger } from "../../src/core/logger";
-import { seedTestUsers } from "./seed-test-users";
+// import { seedTestUsers } from "./seed-test-users";
 import { seedLimitTests } from "./seed-limit-tests";
 import { seedEmailVerificationTests } from "../resend/seed-email-verification-tests";
 
@@ -63,7 +63,7 @@ async function seedAll(): Promise<void> {
   try {
     // Seed main user scenarios
     logger.info("1️⃣ Creating main test user scenarios...");
-    await seedTestUsers();
+    // await seedTestUsers();
 
     // Seed limit test scenarios
     logger.info("\n2️⃣ Creating plan limit test scenarios...");
