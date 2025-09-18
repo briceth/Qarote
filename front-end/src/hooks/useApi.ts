@@ -96,7 +96,7 @@ export const useQueues = (serverId: string) => {
     },
     enabled: !!serverId && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds for live data
   });
 };
 
@@ -192,7 +192,7 @@ export const useConnections = (serverId: string) => {
     },
     enabled: !!serverId && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 15000, // Refetch every 15 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds for live data
   });
 };
 

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { useEffect, useState } from "react";
 
 interface QueueDepthData {
   name: string;
@@ -22,12 +23,28 @@ interface QueueDepthsChartProps {
     vhost: string;
   }>;
   isLoading: boolean;
+  isFetching?: boolean;
 }
 
 export const QueueDepthsChart = ({
   queues = [],
   isLoading,
+  isFetching = false,
 }: QueueDepthsChartProps) => {
+  const [showUpdating, setShowUpdating] = useState(false);
+
+  // Handle delayed updating indicator
+  useEffect(() => {
+    if (isFetching) {
+      setShowUpdating(true);
+    } else {
+      // Keep showing "updating..." for 500ms after fetch completes
+      const timer = setTimeout(() => {
+        setShowUpdating(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isFetching]);
   // Prepare data for the chart - show all queues, prioritize those with messages
   const chartData: QueueDepthData[] = queues
     .sort((a, b) => b.messages - a.messages) // Sort by message count descending (queues with messages first)
@@ -83,13 +100,23 @@ export const QueueDepthsChart = ({
   return (
     <Card className="border-0 shadow-md bg-card-unified backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl font-semibold text-gray-800">
-          <BarChart3 className="h-5 w-5 text-orange-600" />
-          Queue Depths
-        </CardTitle>
-        <p className="text-sm text-gray-600">
-          Current message backlog by queue
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-xl font-semibold text-gray-800">
+              <BarChart3 className="h-5 w-5 text-orange-600" />
+              Queue Depths
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              Current message backlog by queue
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-gray-500">
+              Updates every 5 seconds{showUpdating && " (updating...)"}
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

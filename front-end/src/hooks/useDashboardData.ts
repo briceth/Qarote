@@ -5,6 +5,7 @@ import {
   useNodes,
   useMetrics,
   useLiveRatesMetrics,
+  useConnections,
 } from "./useApi";
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
 import { TimeRange } from "@/components/ThroughputChart";
@@ -26,26 +27,46 @@ export const useDashboardData = (selectedServerId: string | null) => {
   ]);
 
   // API calls
-  const { data: overviewData, isLoading: overviewLoading } =
-    useOverview(selectedServerId);
-  const { data: queuesData, isLoading: queuesLoading } =
-    useQueues(selectedServerId);
-  const { data: nodesData, isLoading: nodesLoading } =
-    useNodes(selectedServerId);
-  const { data: enhancedMetricsData } = useMetrics(selectedServerId);
-  const { data: liveRatesData, isLoading: liveRatesLoading } =
-    useLiveRatesMetrics(selectedServerId);
+  const {
+    data: overviewData,
+    isLoading: overviewLoading,
+    isFetching: overviewFetching,
+  } = useOverview(selectedServerId);
+  const {
+    data: queuesData,
+    isLoading: queuesLoading,
+    isFetching: queuesFetching,
+  } = useQueues(selectedServerId);
+  const {
+    data: nodesData,
+    isLoading: nodesLoading,
+    isFetching: nodesFetching,
+  } = useNodes(selectedServerId);
+  const { data: enhancedMetricsData, isFetching: enhancedMetricsFetching } =
+    useMetrics(selectedServerId);
+  const {
+    data: liveRatesData,
+    isLoading: liveRatesLoading,
+    isFetching: liveRatesFetching,
+  } = useLiveRatesMetrics(selectedServerId);
+  const {
+    data: connectionsData,
+    isLoading: connectionsLoading,
+    isFetching: connectionsFetching,
+  } = useConnections(selectedServerId);
 
   // Processed data
   const overview = overviewData?.overview;
   const queues = queuesData?.queues || [];
   const nodes = useMemo(() => nodesData?.nodes || [], [nodesData?.nodes]);
   const enhancedMetrics = enhancedMetricsData?.metrics;
+  const connections = connectionsData?.connections || [];
 
   // Check for permission status instead of errors
   const metricsPermissionStatus = enhancedMetricsData?.permissionStatus;
   const liveRatesPermissionStatus = liveRatesData?.permissionStatus;
   const nodesPermissionStatus = nodesData?.permissionStatus;
+  // Note: connections endpoint doesn't return permissionStatus, so we'll handle errors differently
 
   // Create error objects for backward compatibility with UI components
   const metricsError =
@@ -77,6 +98,9 @@ export const useDashboardData = (selectedServerId: string | null) => {
           requiredPermission: nodesPermissionStatus.requiredPermission,
         })
       : null;
+
+  // For connections, we'll use the error from the API call directly
+  const connectionsError = null; // connectionsData doesn't have permissionStatus, so we handle errors at the component level
 
   // Calculate metrics
   const metrics = useMemo(
@@ -132,7 +156,11 @@ export const useDashboardData = (selectedServerId: string | null) => {
   const availableTimeRanges = ["live"] as const;
 
   const isLoading =
-    overviewLoading || queuesLoading || nodesLoading || liveRatesLoading;
+    overviewLoading ||
+    queuesLoading ||
+    nodesLoading ||
+    liveRatesLoading ||
+    connectionsLoading;
 
   return {
     // Data
@@ -142,6 +170,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
     metrics,
     chartData,
     liveRates: liveRatesData?.liveRates,
+    connections,
 
     // Loading states
     isLoading,
@@ -149,11 +178,21 @@ export const useDashboardData = (selectedServerId: string | null) => {
     queuesLoading,
     nodesLoading,
     liveRatesLoading,
+    connectionsLoading,
+
+    // Fetching states
+    liveRatesFetching,
+    connectionsFetching,
+    queuesFetching,
+    overviewFetching,
+    nodesFetching,
+    enhancedMetricsFetching,
 
     // Error states
     metricsError,
     liveRatesError,
     nodesError,
+    connectionsError,
 
     // Chart controls - simplified for live data
     selectedTimeRange: "live" as const,

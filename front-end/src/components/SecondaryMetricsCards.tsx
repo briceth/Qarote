@@ -2,6 +2,7 @@ import { Server, Cpu, HardDrive, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
+import { useEffect, useState } from "react";
 
 interface Node {
   running: boolean;
@@ -19,6 +20,8 @@ interface SecondaryMetricsCardsProps {
   isLoading: boolean;
   metricsError?: Error | null;
   nodesError?: Error | null;
+  nodesFetching?: boolean;
+  enhancedMetricsFetching?: boolean;
 }
 
 export const SecondaryMetricsCards = ({
@@ -27,7 +30,34 @@ export const SecondaryMetricsCards = ({
   isLoading,
   metricsError,
   nodesError,
+  nodesFetching = false,
+  enhancedMetricsFetching = false,
 }: SecondaryMetricsCardsProps) => {
+  const [showNodesUpdating, setShowNodesUpdating] = useState(false);
+  const [showEnhancedUpdating, setShowEnhancedUpdating] = useState(false);
+
+  // Handle delayed updating indicators
+  useEffect(() => {
+    if (nodesFetching) {
+      setShowNodesUpdating(true);
+    } else {
+      const timer = setTimeout(() => {
+        setShowNodesUpdating(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [nodesFetching]);
+
+  useEffect(() => {
+    if (enhancedMetricsFetching) {
+      setShowEnhancedUpdating(true);
+    } else {
+      const timer = setTimeout(() => {
+        setShowEnhancedUpdating(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [enhancedMetricsFetching]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-card-unified backdrop-blur-sm">
@@ -59,9 +89,7 @@ export const SecondaryMetricsCards = ({
                 {metrics.connectedNodes}
               </div>
               <p className="text-xs text-green-600 mt-1">
-                {nodes.every((node) => node.running)
-                  ? "All nodes healthy"
-                  : "Some issues detected"}
+                Updates every 30s{showNodesUpdating && " (updating...)"}
               </p>
             </div>
           )}
@@ -96,7 +124,9 @@ export const SecondaryMetricsCards = ({
               <div className="text-2xl font-bold text-gray-900">
                 {metrics.cpuUsage.toFixed(1)}%
               </div>
-              <p className="text-xs text-gray-500 mt-1">Cluster average</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Updates every 15s{showEnhancedUpdating && " (updating...)"}
+              </p>
             </div>
           )}
         </CardContent>
@@ -130,7 +160,9 @@ export const SecondaryMetricsCards = ({
               <div className="text-2xl font-bold text-gray-900">
                 {metrics.totalMemory.toFixed(1)} GB
               </div>
-              <p className="text-xs text-gray-500 mt-1">Total allocated</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Updates every 15s{showEnhancedUpdating && " (updating...)"}
+              </p>
             </div>
           )}
         </CardContent>

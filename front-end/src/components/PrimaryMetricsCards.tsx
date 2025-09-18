@@ -2,6 +2,7 @@ import { MessageSquare, Clock, Activity, Zap, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
+import { useEffect, useState } from "react";
 
 interface MetricsData {
   messagesPerSec: number;
@@ -14,13 +15,42 @@ interface PrimaryMetricsCardsProps {
   metrics: MetricsData;
   isLoading: boolean;
   metricsError?: Error | null;
+  overviewFetching?: boolean;
+  enhancedMetricsFetching?: boolean;
 }
 
 export const PrimaryMetricsCards = ({
   metrics,
   isLoading,
   metricsError,
+  overviewFetching = false,
+  enhancedMetricsFetching = false,
 }: PrimaryMetricsCardsProps) => {
+  const [showOverviewUpdating, setShowOverviewUpdating] = useState(false);
+  const [showEnhancedUpdating, setShowEnhancedUpdating] = useState(false);
+
+  // Handle delayed updating indicators
+  useEffect(() => {
+    if (overviewFetching) {
+      setShowOverviewUpdating(true);
+    } else {
+      const timer = setTimeout(() => {
+        setShowOverviewUpdating(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [overviewFetching]);
+
+  useEffect(() => {
+    if (enhancedMetricsFetching) {
+      setShowEnhancedUpdating(true);
+    } else {
+      const timer = setTimeout(() => {
+        setShowEnhancedUpdating(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [enhancedMetricsFetching]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-card-unified backdrop-blur-sm">
@@ -51,7 +81,9 @@ export const PrimaryMetricsCards = ({
               <div className="text-3xl font-bold text-gray-900">
                 {metrics.messagesPerSec}
               </div>
-              <p className="text-xs text-green-600 mt-1">Real-time data</p>
+              <p className="text-xs text-green-600 mt-1">
+                Updates every 10s{showOverviewUpdating && " (updating...)"}
+              </p>
             </div>
           )}
         </CardContent>
@@ -85,7 +117,9 @@ export const PrimaryMetricsCards = ({
               <div className="text-3xl font-bold text-gray-900">
                 {metrics.activeQueues}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Across all vhosts</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Updates every 10s{showOverviewUpdating && " (updating...)"}
+              </p>
             </div>
           )}
         </CardContent>
@@ -120,7 +154,7 @@ export const PrimaryMetricsCards = ({
                 {metrics.queueDepth}
               </div>
               <p className="text-xs text-orange-600 mt-1">
-                Total pending messages
+                Updates every 10s{showOverviewUpdating && " (updating...)"}
               </p>
             </div>
           )}
@@ -155,7 +189,9 @@ export const PrimaryMetricsCards = ({
               <div className="text-3xl font-bold text-gray-900">
                 {metrics.avgLatency.toFixed(1)}ms
               </div>
-              <p className="text-xs text-gray-500 mt-1">Estimated latency</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Updates every 15s{showEnhancedUpdating && " (updating...)"}
+              </p>
             </div>
           )}
         </CardContent>

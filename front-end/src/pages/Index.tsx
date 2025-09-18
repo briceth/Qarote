@@ -13,6 +13,7 @@ import { AddServerButton } from "@/components/AddServerButton";
 import { PrimaryMetricsCards } from "@/components/PrimaryMetricsCards";
 import { SecondaryMetricsCards } from "@/components/SecondaryMetricsCards";
 import { LiveRatesChart } from "@/components/LiveRatesChart";
+import { DataRatesChart } from "@/components/DataRatesChart";
 import { QueueDepthsChart } from "@/components/QueueDepthsChart";
 import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
@@ -30,12 +31,21 @@ const Index = () => {
     nodes,
     metrics,
     liveRates,
+    connections,
     isLoading,
     queuesLoading,
     liveRatesLoading,
+    connectionsLoading,
+    liveRatesFetching,
+    connectionsFetching,
+    queuesFetching,
+    overviewFetching,
+    nodesFetching,
+    enhancedMetricsFetching,
     metricsError,
     liveRatesError,
     nodesError,
+    connectionsError,
   } = useDashboardData(selectedServerId);
 
   if (!hasServers) {
@@ -125,6 +135,8 @@ const Index = () => {
               metrics={metrics}
               isLoading={isLoading}
               metricsError={metricsError}
+              overviewFetching={overviewFetching}
+              enhancedMetricsFetching={enhancedMetricsFetching}
             />
 
             {/* Secondary Metrics */}
@@ -134,17 +146,35 @@ const Index = () => {
               isLoading={isLoading}
               metricsError={metricsError}
               nodesError={nodesError}
+              nodesFetching={nodesFetching}
+              enhancedMetricsFetching={enhancedMetricsFetching}
             />
 
-            {/* Live Message Rates Chart - Full Width */}
-            <LiveRatesChart
-              liveRates={liveRates}
-              isLoading={liveRatesLoading}
-              error={liveRatesError}
-            />
+            {/* Charts Row - Two columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Live Message Rates Chart */}
+              <LiveRatesChart
+                liveRates={liveRates}
+                isLoading={liveRatesLoading}
+                isFetching={liveRatesFetching}
+                error={liveRatesError}
+              />
+
+              {/* Data Rates Chart */}
+              <DataRatesChart
+                connections={connections}
+                isLoading={connectionsLoading}
+                isFetching={connectionsFetching}
+                error={connectionsError}
+              />
+            </div>
 
             {/* Queue Depths Chart - Full Width */}
-            <QueueDepthsChart queues={queues} isLoading={queuesLoading} />
+            <QueueDepthsChart
+              queues={queues}
+              isLoading={queuesLoading}
+              isFetching={queuesFetching}
+            />
 
             {/* Connected Nodes - Full Width */}
             <ConnectedNodes
