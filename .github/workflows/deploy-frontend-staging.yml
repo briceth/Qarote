@@ -37,6 +37,7 @@ jobs:
           VITE_SENTRY_ENABLED: ${{ vars.VITE_SENTRY_ENABLED }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           VITE_APP_VERSION: ${{ vars.VITE_APP_VERSION }}
+          NODE_ENV: production
         run: npm run build
 
       - name: Publish to Cloudflare Pages
