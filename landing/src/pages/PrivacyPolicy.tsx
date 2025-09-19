@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import SEO from "@/components/SEO";
+import { Button } from "@/components/ui/button";
 
 const PrivacyPolicy = () => {
   return (

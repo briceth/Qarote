@@ -30,22 +30,34 @@
   <!-- Metrics Cards Container -->
   <g transform="translate(20, 140)">
     <!-- Messages/sec Card -->
-    <rect width="180" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
+    <rect width="150" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
     <text x="15" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Messages/sec</text>
     <text x="15" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">4.2k</text>
     <rect x="15" y="60" width="20" height="4" fill="#3B82F6" rx="2"/>
     
     <!-- Active Queues Card -->
-    <rect x="200" width="180" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
-    <text x="215" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Active Queues</text>
-    <text x="215" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">127</text>
-    <rect x="215" y="60" width="20" height="4" fill="#10B981" rx="2"/>
+    <rect x="180" width="150" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
+    <text x="195" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Active Queues</text>
+    <text x="195" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">127</text>
+    <rect x="195" y="60" width="20" height="4" fill="#10B981" rx="2"/>
     
     <!-- Avg Latency Card -->
-    <rect x="400" width="180" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
-    <text x="415" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Avg Latency</text>
-    <text x="415" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">2.3ms</text>
-    <rect x="415" y="60" width="20" height="4" fill="#8B5CF6" rx="2"/>
+    <rect x="350" width="150" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
+    <text x="365" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Avg Latency</text>
+    <text x="365" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">2.3ms</text>
+    <rect x="365" y="60" width="20" height="4" fill="#8B5CF6" rx="2"/>
+    
+    <!-- Connections Card -->
+    <rect x="520" width="150" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
+    <text x="535" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Connections</text>
+    <text x="535" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">42</text>
+    <rect x="535" y="60" width="20" height="4" fill="#F59E0B" rx="2"/>
+    
+    <!-- Queue Depth Card -->
+    <rect x="690" width="150" height="80" fill="white" rx="8" stroke="#E2E8F0"/>
+    <text x="705" y="25" font-family="Arial, sans-serif" font-size="12" fill="#64748B">Queue Depth</text>
+    <text x="705" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="24" fill="#1E293B">5.1k</text>
+    <rect x="705" y="60" width="20" height="4" fill="#EF4444" rx="2"/>
   </g>
   
   <!-- Main Chart Area -->

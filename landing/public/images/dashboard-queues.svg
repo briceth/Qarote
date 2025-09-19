@@ -33,13 +33,13 @@
   
   <!-- Action Buttons -->
   <rect x="650" y="140" width="60" height="28" fill="#1E293B" rx="14"/>
-  <text x="670" y="158" font-family="Arial, sans-serif" font-size="10" fill="white">👑</text>
+  <text x="680" y="158" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">👑</text>
   
   <rect x="720" y="140" width="60" height="28" fill="#FB923C" rx="14"/>
-  <text x="735" y="158" font-family="Arial, sans-serif" font-size="10" fill="white">📤</text>
+  <text x="750" y="158" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">📤</text>
   
-  <rect x="810" y="140" width="60" height="28" fill="#FB923C" rx="14"/>
-  <text x="825" y="158" font-family="Arial, sans-serif" font-size="10" fill="white">➕</text>
+  <rect x="790" y="140" width="60" height="28" fill="#FB923C" rx="14"/>
+  <text x="820" y="158" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">➕</text>
   
   <!-- Filter Bar -->
   <rect x="35" y="195" width="300" height="32" fill="white" rx="6" stroke="#E2E8F0"/>

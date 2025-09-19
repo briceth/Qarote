@@ -1,28 +1,29 @@
 import { useState, useEffect } from "react";
 import {
-  Zap,
-  Shield,
-  BarChart3,
-  Settings,
-  Rocket,
-  Star,
-  Twitter,
   Activity,
-  MessageSquare,
-  Clock,
+  BarChart3,
   Check,
-  X,
-  TrendingUp,
+  Clock,
   Headphones,
+  MessageSquare,
+  Rocket,
+  Settings,
+  Shield,
+  Star,
+  TrendingUp,
+  Twitter,
+  X,
+  Zap,
 } from "lucide-react";
+
 import AuthButtons from "@/components/AuthButtons";
-import FeatureCard from "@/components/FeatureCard";
 import ComparisonTable from "@/components/ComparisonTable";
+import FeatureCard from "@/components/FeatureCard";
 import SEO from "@/components/SEO";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const isMobile = useIsMobile();
