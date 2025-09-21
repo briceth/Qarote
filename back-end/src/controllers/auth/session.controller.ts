@@ -21,6 +21,25 @@ sessionController.post("/login", zValidator("json", LoginSchema), async (c) => {
     // Find user by email
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        isActive: true,
+        emailVerified: true,
+        passwordHash: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+        role: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        workspaceId: true,
+        workspace: {
+          select: {
+            id: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -72,7 +91,7 @@ sessionController.post("/login", zValidator("json", LoginSchema), async (c) => {
       id: user.id,
       email: user.email,
       role: user.role,
-      workspaceId: user.workspaceId,
+      workspaceId: user.workspace?.id || null,
     });
 
     const safeUser: SafeUser = {
@@ -81,7 +100,7 @@ sessionController.post("/login", zValidator("json", LoginSchema), async (c) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      workspaceId: user.workspaceId,
+      workspaceId: user.workspace?.id || null,
       isActive: user.isActive,
       emailVerified: user.emailVerified,
       lastLogin: user.lastLogin,
@@ -92,7 +111,7 @@ sessionController.post("/login", zValidator("json", LoginSchema), async (c) => {
     // Set Sentry user context
     setSentryUser({
       id: user.id,
-      workspaceId: user.workspaceId,
+      workspaceId: user.workspace?.id || null,
       email: user.email,
     });
 

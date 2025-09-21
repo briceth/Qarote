@@ -98,11 +98,11 @@ export class AuthApiClient extends BaseApiClient {
     });
   }
 
-  async logout(): Promise<void> {
-    return this.request<void>("/auth/logout", {
-      method: "POST",
-    });
-  }
+  // async logout(): Promise<void> {
+  //   return this.request<void>("/auth/logout", {
+  //     method: "POST",
+  //   });
+  // }
 
   // Invitation management
   async getInvitations(): Promise<GetInvitationsResponse> {

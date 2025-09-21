@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Server } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -19,11 +19,22 @@ import { PlanBadge } from "@/components/ui/PlanBadge";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { selectedServerId, hasServers } = useServerContext();
-  const { workspacePlan } = useWorkspace();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { workspacePlan, workspace } = useWorkspace();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Check if user needs to create a workspace
+  useEffect(() => {
+    if (isAuthenticated && user && !user?.workspaceId) {
+      navigate("/workspace", { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const {
     overview,

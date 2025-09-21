@@ -38,6 +38,7 @@ export function WorkspaceSelector() {
     mutationFn: (workspaceId: string) => apiClient.switchWorkspace(workspaceId),
     onSuccess: () => {
       // Invalidate all workspace-related queries
+      // TODO: fix this shit - too many queries
       queryClient.invalidateQueries({ queryKey: ["workspace"] });
       queryClient.invalidateQueries({ queryKey: ["current-workspace"] });
       queryClient.invalidateQueries({ queryKey: ["servers"] });

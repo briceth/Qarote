@@ -38,7 +38,9 @@ export interface User {
   firstName?: string;
   lastName?: string;
   role: string;
-  workspaceId?: string;
+  // TODO: fix this shit
+  workspaceId?: string | null;
+  workspace?: Workspace;
   isActive: boolean;
   emailVerified?: boolean;
   emailVerifiedAt?: string;

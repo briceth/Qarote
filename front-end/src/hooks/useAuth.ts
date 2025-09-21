@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiClient, LoginRequest, RegisterRequest } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import logger from "@/lib/logger";
 
 export const useLogin = () => {
   const { login } = useAuth();
@@ -10,6 +11,7 @@ export const useLogin = () => {
       return await apiClient.login(credentials);
     },
     onSuccess: (data) => {
+      logger.info("Login success", data);
       login(data.token, data.user);
     },
   });
@@ -29,7 +31,7 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: async () => {
-      await apiClient.logout();
+      // await apiClient.logout();
     },
     onSuccess: () => {
       logout();

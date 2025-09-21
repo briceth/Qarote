@@ -1,7 +1,14 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { User } from "@/lib/api";
 import { setSentryUser } from "@/lib/sentry";
 import logger from "@/lib/logger";
+import { apiClient } from "@/lib/api";
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +18,7 @@ interface AuthContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   updateUser: (user: User) => void;
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +28,9 @@ export const useAuth = () => {
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
+  // console.log("useAuth context", context);
+
   return context;
 };
 
@@ -59,6 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = (newToken: string, newUser: User) => {
+    // console.log("newUser", newUser);
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem("auth_token", newToken);
@@ -81,6 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateUser = (newUser: User) => {
     setUser(newUser);
+    // console.log("updateUser newUser", newUser);
     localStorage.setItem("auth_user", JSON.stringify(newUser));
 
     // Update Sentry user context
@@ -91,6 +104,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
+  const refetchUser = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const response = await apiClient.getProfile();
+      const updatedUser = response.profile;
+      // TODO: fix this shit
+      updatedUser.workspaceId = updatedUser.workspace?.id;
+      setUser(updatedUser);
+      localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+
+      // Update Sentry user context
+      setSentryUser({
+        id: updatedUser.id,
+        workspaceId: updatedUser.workspaceId,
+        email: updatedUser.email,
+      });
+    } catch (error) {
+      logger.error("Failed to refetch user data:", error);
+    }
+  }, [token]);
+
   const value: AuthContextType = {
     user,
     token,
@@ -99,6 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     updateUser,
+    refetchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

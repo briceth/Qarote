@@ -457,7 +457,7 @@ class ApiClient {
   }
 
   async logout() {
-    return this.authClient.logout();
+    // return this.authClient.logout();
   }
 
   // Email verification methods

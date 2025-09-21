@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Building2, Plus, Loader2, CheckCircle } from "lucide-react";
+import { Plus, Loader2, CheckCircle } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -24,8 +25,7 @@ import { WorkspaceFormData, workspaceSchema } from "@/schemas/forms";
 
 const Workspace = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { refetch: refreshWorkspace } = useWorkspace();
+  const { user, refetchUser } = useAuth();
   const queryClient = useQueryClient();
 
   // Check if user already has workspaces
@@ -34,6 +34,9 @@ const Workspace = () => {
     queryFn: () => apiClient.getUserWorkspaces(),
     enabled: !!user,
   });
+
+  // console.log("User", user);
+  // console.log("Workspaces data", workspacesData);
 
   const form = useForm<WorkspaceFormData>({
     resolver: zodResolver(workspaceSchema),
@@ -44,9 +47,6 @@ const Workspace = () => {
     },
   });
 
-  console.log("User", user);
-  console.log("Workspaces data", workspacesData);
-
   // Create workspace mutation
   const createWorkspaceMutation = useMutation({
     mutationFn: (data: {
@@ -54,10 +54,13 @@ const Workspace = () => {
       contactEmail?: string;
       tags?: string[];
     }) => apiClient.createWorkspace(data),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Workspace created successfully!");
       queryClient.invalidateQueries({ queryKey: ["user-workspaces"] });
-      refreshWorkspace();
+
+      // Refetch user data to get updated workspaceId
+      await refetchUser();
+
       // Redirect to dashboard after successful creation
       setTimeout(() => {
         navigate("/", { replace: true });
@@ -76,6 +79,14 @@ const Workspace = () => {
     });
   };
 
+  // Check if user already has workspaces and redirect if needed
+  useEffect(() => {
+    const existingWorkspaces = workspacesData?.workspaces || [];
+    if (existingWorkspaces.length > 0 && !createWorkspaceMutation.isSuccess) {
+      navigate("/", { replace: true });
+    }
+  }, [workspacesData, createWorkspaceMutation.isSuccess, navigate]);
+
   if (workspacesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -87,13 +98,6 @@ const Workspace = () => {
     );
   }
 
-  // If user already has workspaces, redirect to dashboard
-  const existingWorkspaces = workspacesData?.workspaces || [];
-  if (existingWorkspaces.length > 0 && !createWorkspaceMutation.isSuccess) {
-    navigate("/", { replace: true });
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -101,14 +105,16 @@ const Workspace = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
+                <img src="/icon_rabbit.svg" alt="Rabbit" className="w-4 h-4" />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
                   RabbitHQ
                 </h1>
-                <p className="text-sm text-gray-500">Workspace Setup</p>
+                <p className="text-sm text-gray-500">
+                  The next GUI for RabbitMQ
+                </p>
               </div>
             </div>
           </div>

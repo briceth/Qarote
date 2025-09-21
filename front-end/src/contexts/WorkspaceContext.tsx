@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useAuth } from "./AuthContext";
 import { apiClient, type CurrentPlanResponse } from "@/lib/api";
-import type { Workspace } from "@/lib/api/workspaceClient";
 import { WorkspacePlan } from "@/types/plans";
 import { setSentryContext } from "@/lib/sentry";
 import logger from "../lib/logger";
@@ -10,6 +8,7 @@ import {
   type WorkspaceContextType,
   type ExtendedWorkspace,
 } from "./WorkspaceContextDefinition";
+import { useAuth } from "./AuthContext";
 
 interface WorkspaceProviderProps {
   children: React.ReactNode;
@@ -96,10 +95,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({
   }, [isAuthenticated, user, fetchWorkspace, fetchPlan]);
 
   // Derive values from plan data or workspace
-  const workspacePlan =
-    planData?.workspace.plan ||
-    (workspace?.plan as WorkspacePlan) ||
-    WorkspacePlan.FREE;
+  const workspacePlan = planData?.workspace.plan;
 
   // Convenience getters for common plan operations
   const canAddServer = planData?.usage.servers.canAdd ?? true;

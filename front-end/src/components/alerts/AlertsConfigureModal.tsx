@@ -232,7 +232,7 @@ export function AlertsConfigureModal({
             {!canModify && (
               <span className="block mt-2 text-amber-600">
                 <Crown className="h-4 w-4 inline mr-1" />
-                Upgrade to Startup or Business plan to customize thresholds
+                Upgrade to Developer or Enterprise plan to customize thresholds
               </span>
             )}
           </DialogDescription>
