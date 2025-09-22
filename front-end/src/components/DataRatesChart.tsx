@@ -8,8 +8,14 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
 import { Connection } from "@/lib/api/rabbitmqTypes";
@@ -81,9 +87,37 @@ export const DataRatesChart = ({
     <Card className="border-0 shadow-md bg-card-unified backdrop-blur-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">
-            Data rates
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Data rates
+            </CardTitle>
+            <TooltipProvider>
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm p-3">
+                  <div className="space-y-2 text-sm">
+                    <p className="font-medium">Data Rate Definitions:</p>
+                    <div className="space-y-1 text-xs">
+                      <p>
+                        <strong>Send:</strong> Rate at which data is being sent
+                        from connections (bytes/second)
+                      </p>
+                      <p>
+                        <strong>Receive:</strong> Rate at which data is being
+                        received by connections (bytes/second)
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      These rates represent the total data throughput across all
+                      active connections.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </UITooltip>
+            </TooltipProvider>
+          </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-xs text-gray-500">

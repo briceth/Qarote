@@ -6,9 +6,19 @@ import { createRabbitMQClient } from "./shared";
 
 const metricsController = new Hono();
 
+// Time range configurations for RabbitMQ API
+const timeRangeConfigs = {
+  "1m": { age: 60, increment: 10 }, // Last minute, 10-second intervals
+  "10m": { age: 600, increment: 30 }, // Last 10 minutes, 30-second intervals
+  "1h": { age: 3600, increment: 300 }, // Last hour, 5-minute intervals
+} as const;
+
+type TimeRange = keyof typeof timeRangeConfigs;
+
 /**
  * Get metrics for a specific server (ALL USERS)
  * GET /workspaces/:workspaceId/servers/:id/metrics
+ * Used in the Index page to show the metrics data for a specific server
  */
 metricsController.get("/servers/:id/metrics", async (c) => {
   const id = c.req.param("id");
@@ -54,12 +64,14 @@ metricsController.get("/servers/:id/metrics", async (c) => {
 /**
  * Get live message rates data for a specific server (ALL USERS)
  * Returns real-time message operation rates from RabbitMQ overview API
- * GET /workspaces/:workspaceId/servers/:id/metrics/rates
+ * GET /workspaces/:workspaceId/servers/:id/metrics/rates?timeRange=1m|10m|1h
+ * Used in the Index page to show the live rates data for a specific server
  */
 metricsController.get("/servers/:id/metrics/rates", async (c) => {
   const id = c.req.param("id");
   const workspaceId = c.req.param("workspaceId");
   const user = c.get("user");
+  const timeRange = (c.req.query("timeRange") as TimeRange) || "1m";
 
   // Verify user has access to this workspace
   if (user.workspaceId !== workspaceId) {
@@ -89,11 +101,14 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
     const plan = server.workspace.plan;
     const currentTimestamp = new Date();
 
-    // Fetch live data from RabbitMQ
+    // Fetch live data from RabbitMQ with time range
     const client = await createRabbitMQClient(id, workspaceId);
-    const overview = await client.getOverview();
+    const timeConfig = timeRangeConfigs[timeRange];
+    const overview = await client.getOverviewWithTimeRange(timeConfig);
 
-    logger.info(`Fetched live rates data from RabbitMQ for server ${id}`);
+    logger.info(
+      `Fetched live rates data from RabbitMQ for server ${id} with time range ${timeRange}`
+    );
 
     // Extract message operation rates from overview.message_stats
     const messageStats = overview.message_stats || {};
@@ -122,15 +137,15 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
       },
     };
 
-    // Generate time series data for chart (simulating historical data with current rates)
-    const timePoints = 20; // Show 20 time points
-    const intervalMs = 30000; // 30 seconds between points
+    // Generate time series data for chart based on time range
+    const timePoints = Math.floor(timeConfig.age / timeConfig.increment);
+    const intervalMs = timeConfig.increment * 1000; // Convert to milliseconds
     const aggregatedThroughput = [];
 
     for (let i = timePoints - 1; i >= 0; i--) {
       const timestamp = currentTimestamp.getTime() - i * intervalMs;
       // For live data, we use current rates for all time points
-      // In a real scenario, this would be historical data
+      // In a real scenario, this would be historical data from RabbitMQ
       aggregatedThroughput.push({
         timestamp,
         publishRate: liveRates.rates.publish,
@@ -140,7 +155,8 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
 
     const response = {
       serverId: id,
-      dataSource: "live_rates",
+      timeRange,
+      dataSource: "live_rates_with_time_range",
       timestamp: currentTimestamp.toISOString(),
       liveRates,
       aggregatedThroughput,
@@ -148,18 +164,23 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
         plan,
         updateInterval: "real-time",
         dataPoints: timePoints,
+        timeConfig,
       },
     };
 
     return c.json(response);
   } catch (error) {
-    logger.error({ error, id }, "Error fetching live rates data for server");
+    logger.error(
+      { error, id, timeRange },
+      "Error fetching live rates data for server"
+    );
 
     // Check if this is a 401 Unauthorized error from RabbitMQ API
     if (error instanceof Error && error.message.includes("401")) {
       // Return successful response with permission status instead of error
       return c.json({
         serverId: id,
+        timeRange,
         dataSource: "permission_denied",
         timestamp: new Date().toISOString(),
         liveRates: { timestamp: Date.now(), rates: {} },
@@ -190,7 +211,8 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
 /**
  * Get live message rates data for a specific queue (ALL USERS)
  * Returns real-time message operation rates from RabbitMQ queue API
- * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/metrics/rates
+ * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/metrics/rates?timeRange=1m|10m|1h
+ * Used in the QueueDetail page to show the live rates data for a specific queue
  */
 metricsController.get(
   "/servers/:id/queues/:queueName/metrics/rates",
@@ -199,6 +221,7 @@ metricsController.get(
     const queueName = c.req.param("queueName");
     const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
+    const timeRange = (c.req.query("timeRange") as TimeRange) || "1m";
 
     // Verify user has access to this workspace
     if (user.workspaceId !== workspaceId) {
@@ -228,15 +251,19 @@ metricsController.get(
       const plan = server.workspace.plan;
       const currentTimestamp = new Date();
 
-      // Fetch queue-specific data from RabbitMQ
+      // Fetch queue-specific data from RabbitMQ with time range
       const client = await createRabbitMQClient(id, workspaceId);
+      const timeConfig = timeRangeConfigs[timeRange];
 
       // Decode queue name in case it contains special characters
       const decodedQueueName = decodeURIComponent(queueName);
-      const queue = await client.getQueue(decodedQueueName);
+      const queue = await client.getQueueWithTimeRange(
+        decodedQueueName,
+        timeConfig
+      );
 
       logger.info(
-        `Fetched live rates data for queue ${decodedQueueName} from server ${id}`
+        `Fetched live rates data for queue ${decodedQueueName} from server ${id} with time range ${timeRange}`
       );
 
       // Extract message operation rates from queue.message_stats
@@ -271,19 +298,21 @@ metricsController.get(
       const response = {
         serverId: id,
         queueName: decodedQueueName,
-        dataSource: "queue_live_rates",
+        timeRange,
+        dataSource: "queue_live_rates_with_time_range",
         timestamp: currentTimestamp.toISOString(),
         liveRates,
         metadata: {
           plan,
           updateInterval: "real-time",
+          timeConfig,
         },
       };
 
       return c.json(response);
     } catch (error) {
       logger.error(
-        { error, id, queueName },
+        { error, id, queueName, timeRange },
         "Error fetching live rates data for queue"
       );
 
@@ -293,6 +322,7 @@ metricsController.get(
         return c.json({
           serverId: id,
           queueName: decodeURIComponent(queueName),
+          timeRange,
           dataSource: "permission_denied",
           timestamp: new Date().toISOString(),
           liveRates: {
@@ -322,167 +352,5 @@ metricsController.get(
     }
   }
 );
-
-/**
- * Get historical data for a specific server (requires appropriate plan)
- * GET /workspaces/:workspaceId/servers/:id/metrics/historical
- */
-metricsController.get("/servers/:id/metrics/historical", async (c) => {
-  const id = c.req.param("id");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-  const timeRange = c.req.query("timeRange") || "24h";
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
-
-  try {
-    // Verify the server and get workspace details
-    const server = await prisma.rabbitMQServer.findFirst({
-      where: {
-        id,
-        workspaceId,
-      },
-      include: {
-        workspace: {
-          select: {
-            plan: true,
-          },
-        },
-      },
-    });
-
-    if (!server || !server.workspace) {
-      return c.json({ error: "Server not found or access denied" }, 404);
-    }
-
-    // Parse time range
-    let hoursBack = 24;
-    if (timeRange.endsWith("h")) {
-      hoursBack = parseInt(timeRange);
-    } else if (timeRange.endsWith("d")) {
-      hoursBack = parseInt(timeRange) * 24;
-    }
-
-    const startTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
-
-    // Get historical data from database
-    const historicalData = await prisma.queueMetric.findMany({
-      where: {
-        queue: {
-          serverId: id,
-        },
-        timestamp: {
-          gte: startTime,
-        },
-      },
-      include: {
-        queue: {
-          select: {
-            name: true,
-            vhost: true,
-          },
-        },
-      },
-      orderBy: {
-        timestamp: "asc",
-      },
-    });
-
-    // Group and aggregate data
-    const groupedData = historicalData.reduce(
-      (acc, metric) => {
-        const queueKey = `${metric.queue.vhost}/${metric.queue.name}`;
-        if (!acc[queueKey]) {
-          acc[queueKey] = {
-            queueName: metric.queue.name,
-            vhost: metric.queue.vhost,
-            dataPoints: [],
-          };
-        }
-        acc[queueKey].dataPoints.push({
-          timestamp: metric.timestamp.getTime(),
-          messages: metric.messages,
-          messagesReady: metric.messagesReady,
-          messagesUnack: metric.messagesUnack,
-          publishRate: metric.publishRate || 0,
-          consumeRate: metric.consumeRate || 0,
-        });
-        return acc;
-      },
-      {} as Record<string, any>
-    );
-
-    // Calculate aggregated throughput
-    const throughputData = historicalData.reduce(
-      (acc, metric) => {
-        const timestampKey = metric.timestamp.getTime();
-        if (!acc[timestampKey]) {
-          acc[timestampKey] = {
-            timestamp: timestampKey,
-            publishRate: 0,
-            consumeRate: 0,
-          };
-        }
-        acc[timestampKey].publishRate += metric.publishRate || 0;
-        acc[timestampKey].consumeRate += metric.consumeRate || 0;
-        return acc;
-      },
-      {} as Record<number, any>
-    );
-
-    const aggregatedThroughput = Object.values(throughputData).sort(
-      (a: any, b: any) => a.timestamp - b.timestamp
-    );
-
-    return c.json({
-      serverId: id,
-      timeRange,
-      startTime: startTime.toISOString(),
-      endTime: new Date().toISOString(),
-      dataSource: "historical",
-      queues: Object.values(groupedData),
-      aggregatedThroughput,
-      metadata: {
-        plan: server.workspace.plan,
-        dataPoints: historicalData.length,
-      },
-    });
-  } catch (error) {
-    logger.error({ error, id }, "Error fetching historical data for server");
-
-    // Check if this is a 401 Unauthorized error from RabbitMQ API
-    if (error instanceof Error && error.message.includes("401")) {
-      // Return successful response with permission status instead of error
-      return c.json({
-        serverId: id,
-        timeRange,
-        startTime: new Date().toISOString(),
-        endTime: new Date().toISOString(),
-        dataSource: "permission_denied",
-        queues: [],
-        aggregatedThroughput: [],
-        permissionStatus: {
-          hasPermission: false,
-          requiredPermission: "monitor",
-          message:
-            "User does not have 'monitor' permissions to view metrics data. Please contact your RabbitMQ administrator to grant the necessary permissions.",
-        },
-        metadata: {
-          plan: null,
-        },
-      });
-    }
-
-    return createErrorResponse(
-      c,
-      error,
-      500,
-      "Failed to fetch historical data"
-    );
-  }
-});
 
 export default metricsController;

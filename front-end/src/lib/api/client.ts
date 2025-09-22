@@ -223,19 +223,29 @@ class ApiClient {
     );
   }
 
-  async getLiveRatesMetrics(serverId: string, workspaceId: string) {
-    return this.rabbitmqClient.getLiveRatesMetrics(serverId, workspaceId);
+  async getLiveRatesMetrics(
+    serverId: string,
+    workspaceId: string,
+    timeRange: "1m" | "10m" | "1h" = "1m"
+  ) {
+    return this.rabbitmqClient.getLiveRatesMetrics(
+      serverId,
+      workspaceId,
+      timeRange
+    );
   }
 
   async getQueueLiveRates(
     serverId: string,
     queueName: string,
-    workspaceId: string
+    workspaceId: string,
+    timeRange: "1m" | "10m" | "1h" = "1m"
   ) {
     return this.rabbitmqClient.getQueueLiveRates(
       serverId,
       queueName,
-      workspaceId
+      workspaceId,
+      timeRange
     );
   }
 

@@ -41,6 +41,45 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
+  async getOverviewWithTimeRange(timeRange: {
+    age: number; // seconds (e.g., 60 for last minute, 600 for last 10 minutes, 3600 for last hour)
+    increment: number; // seconds between samples (e.g., 10)
+  }): Promise<RabbitMQOverview> {
+    try {
+      logger.debug("Fetching RabbitMQ overview with time range", {
+        age: timeRange.age,
+        increment: timeRange.increment,
+      });
+
+      const queryParams = new URLSearchParams({
+        msg_rates_age: timeRange.age.toString(),
+        msg_rates_incr: timeRange.increment.toString(),
+        columns:
+          "message_stats.publish,message_stats.publish_details,message_stats.deliver,message_stats.deliver_details,message_stats.ack,message_stats.ack_details,message_stats.deliver_get,message_stats.deliver_get_details,message_stats.confirm,message_stats.confirm_details,message_stats.get,message_stats.get_details,message_stats.get_no_ack,message_stats.get_no_ack_details,message_stats.redeliver,message_stats.redeliver_details,message_stats.reject,message_stats.reject_details,message_stats.return_unroutable,message_stats.return_unroutable_details,message_stats.disk_reads,message_stats.disk_reads_details,message_stats.disk_writes,message_stats.disk_writes_details",
+      });
+
+      const overview = await this.request(
+        `/overview?${queryParams.toString()}`
+      );
+      logger.debug("RabbitMQ overview with time range fetched successfully");
+      return overview;
+    } catch (error) {
+      logger.error(
+        { error },
+        "Failed to fetch RabbitMQ overview with time range"
+      );
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getOverviewWithTimeRange",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
   async getQueues(): Promise<RabbitMQQueue[]> {
     try {
       logger.debug("Fetching RabbitMQ queues", { vhost: this.vhost });
@@ -55,6 +94,48 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       if (error instanceof Error) {
         captureRabbitMQError(error, {
           operation: "getQueues",
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async getQueuesWithTimeRange(timeRange: {
+    age: number; // seconds (e.g., 60 for last minute, 600 for last 10 minutes, 3600 for last hour)
+    increment: number; // seconds between samples (e.g., 10)
+  }): Promise<RabbitMQQueue[]> {
+    try {
+      logger.debug("Fetching RabbitMQ queues with time range", {
+        vhost: this.vhost,
+        age: timeRange.age,
+        increment: timeRange.increment,
+      });
+
+      const queryParams = new URLSearchParams({
+        msg_rates_age: timeRange.age.toString(),
+        msg_rates_incr: timeRange.increment.toString(),
+        columns:
+          "name,message_stats.publish,message_stats.publish_details,message_stats.deliver,message_stats.deliver_details,message_stats.ack,message_stats.ack_details,message_stats.deliver_get,message_stats.deliver_get_details,message_stats.confirm,message_stats.confirm_details,message_stats.get,message_stats.get_details,message_stats.get_no_ack,message_stats.get_no_ack_details,message_stats.redeliver,message_stats.redeliver_details,message_stats.reject,message_stats.reject_details,message_stats.return_unroutable,message_stats.return_unroutable_details",
+      });
+
+      const queues = await this.request(
+        `/queues/${this.vhost}?${queryParams.toString()}`
+      );
+      logger.debug("RabbitMQ queues with time range fetched successfully", {
+        count: queues?.length || 0,
+      });
+      return queues;
+    } catch (error) {
+      logger.error(
+        { error },
+        "Failed to fetch RabbitMQ queues with time range"
+      );
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getQueuesWithTimeRange",
           serverId: this.baseUrl,
         });
       }
@@ -100,6 +181,53 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       if (error instanceof Error) {
         captureRabbitMQError(error, {
           operation: "getQueue",
+          queueName,
+          serverId: this.baseUrl,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  async getQueueWithTimeRange(
+    queueName: string,
+    timeRange: {
+      age: number; // seconds (e.g., 60 for last minute, 600 for last 10 minutes, 3600 for last hour)
+      increment: number; // seconds between samples (e.g., 10)
+    }
+  ): Promise<RabbitMQQueue> {
+    try {
+      logger.debug("Fetching RabbitMQ queue with time range", {
+        queueName,
+        age: timeRange.age,
+        increment: timeRange.increment,
+      });
+
+      const encodedQueueName = encodeURIComponent(queueName);
+      const queryParams = new URLSearchParams({
+        msg_rates_age: timeRange.age.toString(),
+        msg_rates_incr: timeRange.increment.toString(),
+        columns:
+          "name,message_stats.publish,message_stats.publish_details,message_stats.deliver,message_stats.deliver_details,message_stats.ack,message_stats.ack_details,message_stats.deliver_get,message_stats.deliver_get_details,message_stats.confirm,message_stats.confirm_details,message_stats.get,message_stats.get_details,message_stats.get_no_ack,message_stats.get_no_ack_details,message_stats.redeliver,message_stats.redeliver_details,message_stats.reject,message_stats.reject_details,message_stats.return_unroutable,message_stats.return_unroutable_details",
+      });
+
+      const queue = await this.request(
+        `/queues/${this.vhost}/${encodedQueueName}?${queryParams.toString()}`
+      );
+      logger.debug("RabbitMQ queue with time range fetched successfully", {
+        queueName,
+      });
+      return queue;
+    } catch (error) {
+      logger.error("Failed to fetch RabbitMQ queue with time range:", {
+        error,
+        queueName,
+      });
+
+      if (error instanceof Error) {
+        captureRabbitMQError(error, {
+          operation: "getQueueWithTimeRange",
           queueName,
           serverId: this.baseUrl,
         });

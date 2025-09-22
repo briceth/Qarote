@@ -47,7 +47,6 @@ export const MetricsChart = ({
   data,
   onTimeRangeChange,
   selectedTimeRange = "24h",
-  isLoading = false,
 }: MetricsChartProps) => {
   const [localTimeRange, setLocalTimeRange] =
     useState<TimeRange>(selectedTimeRange);

@@ -8,11 +8,18 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
 import { useEffect, useState } from "react";
+import { TimeRangeSelector, TimeRange } from "@/components/TimeRangeSelector";
 
 interface LiveRates {
   timestamp: number;
@@ -34,16 +41,26 @@ interface LiveRates {
 
 interface LiveRatesChartProps {
   liveRates?: LiveRates;
+  aggregatedThroughput?: Array<{
+    timestamp: number;
+    publishRate: number;
+    consumeRate: number;
+  }>;
   isLoading: boolean;
   isFetching?: boolean;
   error?: Error | null;
+  timeRange?: TimeRange;
+  onTimeRangeChange?: (timeRange: TimeRange) => void;
 }
 
 export const LiveRatesChart = ({
   liveRates,
+  aggregatedThroughput,
   isLoading,
   isFetching = false,
   error,
+  timeRange = "1m",
+  onTimeRangeChange,
 }: LiveRatesChartProps) => {
   const [showUpdating, setShowUpdating] = useState(false);
 
@@ -72,18 +89,16 @@ export const LiveRatesChart = ({
   }
 
   // Create time series data for line chart
-  const currentTime = Date.now();
-  const timePoints = 20; // Show 20 time points
-  const intervalMs = 30000; // 30 seconds between points
-
-  const chartData = [];
-  for (let i = timePoints - 1; i >= 0; i--) {
-    const timestamp = currentTime - i * intervalMs;
-    chartData.push({
-      timestamp,
-      time: new Date(timestamp).toLocaleTimeString(),
-      publish: liveRates?.rates.publish || 0,
-      deliver: liveRates?.rates.deliver || 0,
+  const chartData =
+    aggregatedThroughput?.map((point) => ({
+      timestamp: point.timestamp,
+      time: new Date(point.timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+      publish: point.publishRate,
+      deliver: point.consumeRate,
       ack: liveRates?.rates.ack || 0,
       deliver_get: liveRates?.rates.deliver_get || 0,
       confirm: liveRates?.rates.confirm || 0,
@@ -94,21 +109,131 @@ export const LiveRatesChart = ({
       return_unroutable: liveRates?.rates.return_unroutable || 0,
       disk_reads: liveRates?.rates.disk_reads || 0,
       disk_writes: liveRates?.rates.disk_writes || 0,
-    });
-  }
+    })) ||
+    (() => {
+      // Fallback: generate time series data based on time range
+      const timeConfigs = {
+        "1m": { age: 60, increment: 10 },
+        "10m": { age: 600, increment: 30 },
+        "1h": { age: 3600, increment: 300 },
+      };
+
+      const config = timeConfigs[timeRange];
+      const timePoints = Math.floor(config.age / config.increment);
+      const intervalMs = config.increment * 1000;
+      const currentTime = Date.now();
+
+      const fallbackData = [];
+      for (let i = timePoints - 1; i >= 0; i--) {
+        const timestamp = currentTime - i * intervalMs;
+        fallbackData.push({
+          timestamp,
+          time: new Date(timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+          publish: liveRates?.rates.publish || 0,
+          deliver: liveRates?.rates.deliver || 0,
+          ack: liveRates?.rates.ack || 0,
+          deliver_get: liveRates?.rates.deliver_get || 0,
+          confirm: liveRates?.rates.confirm || 0,
+          get: liveRates?.rates.get || 0,
+          get_no_ack: liveRates?.rates.get_no_ack || 0,
+          redeliver: liveRates?.rates.redeliver || 0,
+          reject: liveRates?.rates.reject || 0,
+          return_unroutable: liveRates?.rates.return_unroutable || 0,
+          disk_reads: liveRates?.rates.disk_reads || 0,
+          disk_writes: liveRates?.rates.disk_writes || 0,
+        });
+      }
+      return fallbackData;
+    })();
 
   return (
     <Card className="border-0 shadow-md bg-card-unified backdrop-blur-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">
-            Messages rates
-          </CardTitle>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-gray-500">
-              Updates every 5 seconds{showUpdating && " (updating...)"}
-            </span>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Messages rates
+            </CardTitle>
+            <TooltipProvider>
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm p-3">
+                  <div className="space-y-2 text-sm">
+                    <p className="font-medium">Message Rate Definitions:</p>
+                    <div className="space-y-1 text-xs">
+                      <p>
+                        <strong>Publish:</strong> Rate at which messages are
+                        entering the server
+                      </p>
+                      <p>
+                        <strong>Deliver:</strong> Rate at which messages are
+                        delivered to consumers
+                      </p>
+                      <p>
+                        <strong>Ack:</strong> Rate at which message
+                        acknowledgments are received
+                      </p>
+                      <p>
+                        <strong>Deliver Get:</strong> Rate at which messages are
+                        delivered via basic.get
+                      </p>
+                      <p>
+                        <strong>Confirm:</strong> Rate at which publisher
+                        confirms are received
+                      </p>
+                      <p>
+                        <strong>Get:</strong> Rate at which messages are
+                        retrieved via basic.get
+                      </p>
+                      <p>
+                        <strong>Get No Ack:</strong> Rate at which messages are
+                        retrieved without acknowledgment
+                      </p>
+                      <p>
+                        <strong>Redeliver:</strong> Rate at which messages are
+                        redelivered
+                      </p>
+                      <p>
+                        <strong>Reject:</strong> Rate at which messages are
+                        rejected
+                      </p>
+                      <p>
+                        <strong>Return Unroutable:</strong> Rate at which
+                        unroutable messages are returned
+                      </p>
+                      <p>
+                        <strong>Disk Reads:</strong> Rate at which messages are
+                        read from disk
+                      </p>
+                      <p>
+                        <strong>Disk Writes:</strong> Rate at which messages are
+                        written to disk
+                      </p>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </UITooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-gray-500">
+                Updates every 5 seconds{showUpdating && " (updating...)"}
+              </span>
+            </div>
+            {onTimeRangeChange && (
+              <TimeRangeSelector
+                value={timeRange}
+                onValueChange={onTimeRangeChange}
+              />
+            )}
           </div>
         </div>
       </CardHeader>

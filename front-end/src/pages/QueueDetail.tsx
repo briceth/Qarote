@@ -21,6 +21,7 @@ import {
   useDeleteQueue,
   useQueueLiveRates,
 } from "@/hooks/useApi";
+import { TimeRange } from "@/components/TimeRangeSelector";
 
 // Queue Detail Components
 import { QueueHeader } from "@/components/QueueDetail/QueueHeader";
@@ -40,6 +41,7 @@ const QueueDetail = () => {
   const { selectedServerId } = useServerContext();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("1m");
 
   const {
     data: queueData,
@@ -56,7 +58,7 @@ const QueueDetail = () => {
   );
 
   const { data: queueLiveRatesData, isLoading: liveRatesLoading } =
-    useQueueLiveRates(selectedServerId || "", queueName || "");
+    useQueueLiveRates(selectedServerId || "", queueName || "", timeRange);
 
   const deleteQueueMutation = useDeleteQueue();
 
@@ -154,6 +156,8 @@ const QueueDetail = () => {
                     liveRates={queueLiveRatesData?.liveRates}
                     isLoading={liveRatesLoading}
                     error={null}
+                    timeRange={timeRange}
+                    onTimeRangeChange={setTimeRange}
                   />
 
                   {/* Consumer Details Section */}

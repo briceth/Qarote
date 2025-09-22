@@ -8,7 +8,7 @@ import {
   useConnections,
 } from "./useApi";
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
-import { TimeRange } from "@/components/ThroughputChart";
+import { TimeRange } from "@/components/TimeRangeSelector";
 
 interface ChartData {
   time: string;
@@ -16,7 +16,10 @@ interface ChartData {
   consumed: number;
 }
 
-export const useDashboardData = (selectedServerId: string | null) => {
+export const useDashboardData = (
+  selectedServerId: string | null,
+  timeRange: TimeRange = "1m"
+) => {
   const [chartData, setChartData] = useState<ChartData[]>([
     { time: "00:00", published: 0, consumed: 0 },
     { time: "04:00", published: 0, consumed: 0 },
@@ -48,7 +51,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
     data: liveRatesData,
     isLoading: liveRatesLoading,
     isFetching: liveRatesFetching,
-  } = useLiveRatesMetrics(selectedServerId);
+  } = useLiveRatesMetrics(selectedServerId, timeRange);
   const {
     data: connectionsData,
     isLoading: connectionsLoading,
@@ -170,6 +173,7 @@ export const useDashboardData = (selectedServerId: string | null) => {
     metrics,
     chartData,
     liveRates: liveRatesData?.liveRates,
+    liveRatesData,
     connections,
 
     // Loading states

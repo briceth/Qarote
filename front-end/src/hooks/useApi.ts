@@ -12,8 +12,8 @@ export const queryKeys = {
   queues: (serverId: string) => ["queues", serverId] as const,
   queue: (serverId: string, queueName: string) =>
     ["queue", serverId, queueName] as const,
-  queueLiveRates: (serverId: string, queueName: string) =>
-    ["queueLiveRates", serverId, queueName] as const,
+  queueLiveRates: (serverId: string, queueName: string, timeRange?: string) =>
+    ["queueLiveRates", serverId, queueName, timeRange] as const,
   exchanges: (serverId: string) => ["exchanges", serverId] as const,
   nodes: (serverId: string) => ["nodes", serverId] as const,
   alerts: ["alerts"] as const,
@@ -382,17 +382,20 @@ export const useRecentAlerts = () => {
   });
 };
 
-export const useLiveRatesMetrics = (serverId: string) => {
+export const useLiveRatesMetrics = (
+  serverId: string,
+  timeRange: "1m" | "10m" | "1h" = "1m"
+) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
 
   return useQuery({
-    queryKey: ["liveRates", serverId],
+    queryKey: ["liveRates", serverId, timeRange],
     queryFn: () => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.getLiveRatesMetrics(serverId, workspace.id);
+      return apiClient.getLiveRatesMetrics(serverId, workspace.id, timeRange);
     },
     enabled: !!serverId && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds
@@ -400,17 +403,26 @@ export const useLiveRatesMetrics = (serverId: string) => {
   });
 };
 
-export const useQueueLiveRates = (serverId: string, queueName: string) => {
+export const useQueueLiveRates = (
+  serverId: string,
+  queueName: string,
+  timeRange: "1m" | "10m" | "1h" = "1m"
+) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
 
   return useQuery({
-    queryKey: queryKeys.queueLiveRates(serverId, queueName),
+    queryKey: queryKeys.queueLiveRates(serverId, queueName, timeRange),
     queryFn: () => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.getQueueLiveRates(serverId, queueName, workspace.id);
+      return apiClient.getQueueLiveRates(
+        serverId,
+        queueName,
+        workspace.id,
+        timeRange
+      );
     },
     enabled: !!serverId && !!queueName && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds

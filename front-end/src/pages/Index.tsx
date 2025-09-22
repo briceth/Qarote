@@ -21,13 +21,15 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { TimeRange } from "@/components/TimeRangeSelector";
 
 const Index = () => {
   const { selectedServerId, hasServers } = useServerContext();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { workspacePlan, workspace } = useWorkspace();
+  const { workspacePlan } = useWorkspace();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [liveRatesTimeRange, setLiveRatesTimeRange] = useState<TimeRange>("1m");
 
   // Check if user needs to create a workspace
   useEffect(() => {
@@ -42,6 +44,7 @@ const Index = () => {
     nodes,
     metrics,
     liveRates,
+    liveRatesData,
     connections,
     isLoading,
     queuesLoading,
@@ -57,7 +60,7 @@ const Index = () => {
     liveRatesError,
     nodesError,
     connectionsError,
-  } = useDashboardData(selectedServerId);
+  } = useDashboardData(selectedServerId, liveRatesTimeRange);
 
   if (!hasServers) {
     return (
@@ -166,9 +169,12 @@ const Index = () => {
               {/* Live Message Rates Chart */}
               <LiveRatesChart
                 liveRates={liveRates}
+                aggregatedThroughput={liveRatesData?.aggregatedThroughput}
                 isLoading={liveRatesLoading}
                 isFetching={liveRatesFetching}
                 error={liveRatesError}
+                timeRange={liveRatesTimeRange}
+                onTimeRangeChange={setLiveRatesTimeRange}
               />
 
               {/* Data Rates Chart */}
