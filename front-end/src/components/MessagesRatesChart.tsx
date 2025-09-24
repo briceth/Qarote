@@ -362,7 +362,7 @@ export const MessagesRatesChart = ({
                     <Line
                       type="monotone"
                       dataKey="return_unroutable"
-                      stroke="#06B6D4"
+                      stroke="#1E40AF"
                       strokeWidth={2}
                       dot={false}
                       name="Return Unroutable"
@@ -406,41 +406,41 @@ export const MessagesRatesChart = ({
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-xs">
               {[
                 // Column 1
-                { key: "publish", name: "Publish", color: "#F97316" },
-                { key: "confirm", name: "Publisher confirm", color: "#F59E0B" },
+                { key: "publish", name: "Publish", color: "#F97316" }, // Orange
+                { key: "confirm", name: "Publisher confirm", color: "#F59E0B" }, // Amber
                 {
                   key: "deliver",
                   name: "Deliver (manual ack)",
-                  color: "#DC2626",
+                  color: "#3B82F6", // Blue
                 },
 
                 // Column 2
                 {
                   key: "deliver_get",
                   name: "Deliver (auto ack)",
-                  color: "#10B981",
+                  color: "#EC4899", // Pink
                 },
-                { key: "ack", name: "Consumer ack", color: "#8B5CF6" },
-                { key: "redeliver", name: "Redelivered", color: "#6B7280" },
+                { key: "ack", name: "Consumer ack", color: "#10B981" }, // Emerald
+                { key: "redeliver", name: "Redelivered", color: "#8B5CF6" }, // Violet
 
                 // Column 3
-                { key: "get", name: "Get (manual ack)", color: "#6B7280" },
-                { key: "get_no_ack", name: "Get (auto ack)", color: "#C4B5FD" },
-                { key: "reject", name: "Get (empty)", color: "#92400E" },
+                { key: "get", name: "Get (manual ack)", color: "#06B6D4" }, // Cyan
+                { key: "get_no_ack", name: "Get (auto ack)", color: "#C4B5FD" }, // Light purple
+                { key: "reject", name: "Get (empty)", color: "#92400E" }, // Brown
 
                 // Column 4
                 {
                   key: "return_unroutable",
                   name: "Unroutable (return)",
-                  color: "#1E40AF",
+                  color: "#1E40AF", // Indigo
                 },
                 {
                   key: "unroutable_drop",
                   name: "Unroutable (drop)",
-                  color: "#FDE047",
+                  color: "#FDE047", // Yellow
                 },
-                { key: "disk_writes", name: "Disk write", color: "#C4B5FD" },
-                { key: "disk_reads", name: "Disk read", color: "#374151" },
+                { key: "disk_writes", name: "Disk write", color: "#DC2626" }, // Red
+                { key: "disk_reads", name: "Disk read", color: "#059669" }, // Green
               ].map((metric) => (
                 <div
                   key={metric.key}
