@@ -126,6 +126,16 @@ export const PurgeQueueDialog = ({
               <li>Reset the queue message count to zero</li>
               <li>Cannot be reversed once executed</li>
             </ul>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <div className="w-4 h-4 text-blue-600 mt-0.5">ℹ️</div>
+                <div className="text-sm text-blue-800">
+                  <strong>Note:</strong> Queue purging is an asynchronous
+                  operation. The message count may take a few moments to update
+                  in the interface after the purge is initiated.
+                </div>
+              </div>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
