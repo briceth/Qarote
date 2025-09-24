@@ -36,7 +36,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api";
 import { formatTagsDisplay, formatVhostsDisplay } from "@/lib/formatTags";
 import { RabbitMQUser } from "@/lib/api/userTypes";
-import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { DeleteUserModal } from "@/components/users/DeleteUserModal";
 import { toast } from "sonner";
 
@@ -48,7 +47,6 @@ export default function UsersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteUser, setDeleteUser] = useState<RabbitMQUser | null>(null);
   const [filterRegex, setFilterRegex] = useState("");
   const [newUserName, setNewUserName] = useState("");
@@ -99,47 +97,6 @@ export default function UsersPage() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete user");
-    },
-  });
-
-  const createUserMutation = useMutation({
-    mutationFn: async (data: {
-      username: string;
-      password: string;
-      tags?: string;
-    }) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-
-      // First create the user
-      await apiClient.createUser(currentServerId!, data, workspace.id);
-
-      // Then set permissions on the selected virtual host
-      await apiClient.setUserPermissions(
-        currentServerId!,
-        data.username,
-        {
-          vhost: newUserVhost,
-          configure: ".*",
-          write: ".*",
-          read: ".*",
-        },
-        workspace.id
-      );
-
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users", currentServerId] });
-      toast.success("User created successfully");
-      setNewUserName("");
-      setNewUserPassword("");
-      setNewUserTags("");
-      setNewUserVhost("/");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create user");
     },
   });
 
@@ -361,7 +318,9 @@ export default function UsersPage() {
                               {formatVhostsDisplay(user.accessibleVhosts)}
                             </TableCell>
                             <TableCell>
-                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                              <div
+                                className={`w-2 h-2 rounded-full ${user.password_hash && user.password_hash.trim() ? "bg-green-500" : "bg-red-500"}`}
+                              ></div>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1">
@@ -455,9 +414,89 @@ export default function UsersPage() {
                         id="user-tags"
                         value={newUserTags}
                         onChange={(e) => setNewUserTags(e.target.value)}
-                        placeholder="policymaker, monitoring, management"
+                        placeholder="administrator"
                         className="w-full"
                       />
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <span
+                          className="font-medium cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => {
+                            const tag = "administrator";
+                            if (newUserTags.trim()) {
+                              setNewUserTags(newUserTags + ", " + tag);
+                            } else {
+                              setNewUserTags(tag);
+                            }
+                          }}
+                        >
+                          Administrator
+                        </span>{" "}
+                        |{" "}
+                        <span
+                          className="font-medium cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => {
+                            const tag = "policymaker";
+                            if (newUserTags.trim()) {
+                              setNewUserTags(newUserTags + ", " + tag);
+                            } else {
+                              setNewUserTags(tag);
+                            }
+                          }}
+                        >
+                          Policymaker
+                        </span>{" "}
+                        |{" "}
+                        <span
+                          className="font-medium cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => {
+                            const tag = "monitoring";
+                            if (newUserTags.trim()) {
+                              setNewUserTags(newUserTags + ", " + tag);
+                            } else {
+                              setNewUserTags(tag);
+                            }
+                          }}
+                        >
+                          Monitoring
+                        </span>{" "}
+                        |{" "}
+                        <span
+                          className="font-medium cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => {
+                            const tag = "management";
+                            if (newUserTags.trim()) {
+                              setNewUserTags(newUserTags + ", " + tag);
+                            } else {
+                              setNewUserTags(tag);
+                            }
+                          }}
+                        >
+                          Management
+                        </span>{" "}
+                        |{" "}
+                        <span
+                          className="font-medium cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => {
+                            const tag = "impersonator";
+                            if (newUserTags.trim()) {
+                              setNewUserTags(newUserTags + ", " + tag);
+                            } else {
+                              setNewUserTags(tag);
+                            }
+                          }}
+                        >
+                          Impersonator
+                        </span>{" "}
+                        |{" "}
+                        <span
+                          className="font-medium cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => {
+                            setNewUserTags("");
+                          }}
+                        >
+                          None
+                        </span>
+                      </div>
                     </div>
 
                     {/* Virtual Host Access Section */}
@@ -503,22 +542,6 @@ export default function UsersPage() {
               </Card>
 
               {/* Modals */}
-              <CreateUserModal
-                isOpen={showCreateModal}
-                onClose={() => {
-                  setShowCreateModal(false);
-                  setNewUserName("");
-                  setNewUserPassword("");
-                  setNewUserTags("");
-                }}
-                serverId={currentServerId}
-                initialName={newUserName}
-                onSuccess={() => {
-                  setNewUserName("");
-                  setNewUserPassword("");
-                  setNewUserTags("");
-                }}
-              />
 
               {deleteUser && (
                 <DeleteUserModal

@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { Lock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { WorkspacePlan } from "@/types/plans";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api";
+import { toast } from "sonner";
 
 interface AddUserButtonProps {
   serverId: string;
@@ -24,11 +25,57 @@ export function AddUserButton({
   initialTags = "",
   initialVhost = "/",
 }: AddUserButtonProps) {
-  const { workspacePlan, isLoading: workspaceLoading } = useWorkspace();
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const {
+    workspacePlan,
+    isLoading: workspaceLoading,
+    workspace,
+  } = useWorkspace();
+  const queryClient = useQueryClient();
 
   // For Free plan users, user creation is restricted
   const canAddUser = workspacePlan !== WorkspacePlan.FREE;
+
+  const createUserMutation = useMutation({
+    mutationFn: async () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+
+      // First create the user
+      await apiClient.createUser(
+        serverId,
+        {
+          username: initialName,
+          password: initialPassword.trim() || undefined,
+          tags: initialTags,
+        },
+        workspace.id
+      );
+
+      // Then set permissions on the selected virtual host
+      await apiClient.setUserPermissions(
+        serverId,
+        initialName,
+        {
+          vhost: initialVhost,
+          configure: ".*",
+          write: ".*",
+          read: ".*",
+        },
+        workspace.id
+      );
+
+      return { username: initialName };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users", serverId] });
+      toast.success("User created successfully");
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create user");
+    },
+  });
 
   const getUserButtonConfig = () => {
     if (workspaceLoading || canAddUser) return null;
@@ -45,32 +92,26 @@ export function AddUserButton({
     if (!canAddUser) {
       onUpgradeClick();
     } else {
-      setShowCreateModal(true);
+      // Validate required fields
+      if (!initialName.trim()) {
+        toast.error("Username is required");
+        return;
+      }
+
+      createUserMutation.mutate();
     }
   };
 
   if (canAddUser) {
     return (
-      <>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add user
-        </Button>
-
-        <CreateUserModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          serverId={serverId}
-          initialName={initialName}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            onSuccess?.();
-          }}
-        />
-      </>
+      <Button
+        onClick={handleAddUserClick}
+        disabled={createUserMutation.isPending}
+        className="btn-primary flex items-center gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        {createUserMutation.isPending ? "Creating..." : "Add user"}
+      </Button>
     );
   }
 

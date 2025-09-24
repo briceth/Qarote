@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 const createUserSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -41,6 +42,7 @@ export function CreateUserModal({
 }: CreateUserModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
 
   const {
     register,
@@ -65,12 +67,20 @@ export function CreateUserModal({
   }, [initialName, setValue]);
 
   const createUserMutation = useMutation({
-    mutationFn: (data: CreateUserFormData) =>
-      apiClient.createUser(serverId, {
-        username: data.username,
-        password: data.password,
-        tags: data.tags,
-      }),
+    mutationFn: (data: CreateUserFormData) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.createUser(
+        serverId,
+        {
+          username: data.username,
+          password: data.password,
+          tags: data.tags,
+        },
+        workspace.id
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users", serverId] });
       toast.success("User created successfully");

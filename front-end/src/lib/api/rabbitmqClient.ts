@@ -596,6 +596,7 @@ export class RabbitMQApiClient extends BaseApiClient {
             workspaceId
           );
           const accessibleVhosts = userDetails.permissions.map((p) => p.vhost);
+          // Preserve the original user data (including password_hash) and add accessibleVhosts
           return { ...user, accessibleVhosts };
         } catch {
           return { ...user, accessibleVhosts: [] };
