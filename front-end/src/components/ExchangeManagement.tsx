@@ -31,9 +31,15 @@ import { Loader2, Plus, HelpCircle } from "lucide-react";
 
 interface ExchangeManagementProps {
   serverId: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
+export const CreateExchangeDialog = ({
+  serverId,
+  isOpen,
+  onClose,
+}: ExchangeManagementProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [exchangeName, setExchangeName] = useState("");
@@ -95,7 +101,11 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
       setAutoDelete(false);
       setInternal(false);
       setArguments("");
-      setOpen(false);
+      if (isOpen !== undefined && onClose) {
+        onClose();
+      } else {
+        setOpen(false);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -107,13 +117,28 @@ export const CreateExchangeDialog = ({ serverId }: ExchangeManagementProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Exchange
-        </Button>
-      </DialogTrigger>
+    <Dialog
+      open={isOpen !== undefined ? isOpen : open}
+      onOpenChange={(open) => {
+        if (isOpen !== undefined) {
+          // External control
+          if (!open && onClose) {
+            onClose();
+          }
+        } else {
+          // Internal control
+          setOpen(open);
+        }
+      }}
+    >
+      {isOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Add Exchange
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
         <TooltipProvider>
           <DialogHeader>

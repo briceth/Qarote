@@ -56,6 +56,7 @@ const Exchanges = () => {
   const [exchangeToDelete, setExchangeToDelete] = useState<string>("");
   const [forceDelete, setForceDelete] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showCreateExchangeModal, setShowCreateExchangeModal] = useState(false);
 
   const {
     data: exchangesData,
@@ -243,10 +244,7 @@ const Exchanges = () => {
                 <PlanBadge workspacePlan={workspacePlan} />
                 <AddExchangeButton
                   onUpgradeClick={() => setShowUpgradeModal(true)}
-                  onAddClick={() => {
-                    // Handle add click for Pro users
-                    console.log("Add exchange clicked");
-                  }}
+                  onAddClick={() => setShowCreateExchangeModal(true)}
                 />
               </div>
             </div>
@@ -698,6 +696,12 @@ const Exchanges = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateExchangeDialog
+        serverId={selectedServerId}
+        isOpen={showCreateExchangeModal}
+        onClose={() => setShowCreateExchangeModal(false)}
+      />
 
       <PlanUpgradeModal
         isOpen={showUpgradeModal}
