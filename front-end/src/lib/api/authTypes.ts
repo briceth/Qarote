@@ -48,6 +48,7 @@ export interface User {
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+  googleId?: string | null;
 }
 
 export interface Workspace {

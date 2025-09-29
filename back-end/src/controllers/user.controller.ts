@@ -491,6 +491,7 @@ userController.get("/profile/me", async (c) => {
         lastLogin: true,
         createdAt: true,
         updatedAt: true,
+        googleId: true,
         workspace: {
           select: {
             id: true,

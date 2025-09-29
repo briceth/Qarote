@@ -144,6 +144,7 @@ sessionController.get("/me", authenticate, async (c) => {
         lastLogin: true,
         createdAt: true,
         updatedAt: true,
+        googleId: true,
         workspace: {
           select: {
             id: true,
