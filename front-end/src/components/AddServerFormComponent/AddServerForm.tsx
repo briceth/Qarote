@@ -222,7 +222,7 @@ export const AddServerForm = ({
           )}
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[700px] lg:max-w-[800px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[700px] lg:max-w-[800px] max-h-[90vh] flex flex-col bg-card">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {mode === "edit" ? (

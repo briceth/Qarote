@@ -99,7 +99,7 @@ export const ServerDetails = ({ form }: ServerDetailsProps) => {
                 />
               </FormControl>
               <div className="text-xs text-muted-foreground mt-1">
-                Default: 5672
+                Default: 5672 (AMQP) • 5671 (AMQPS SSL/TLS)
               </div>
               <FormMessage />
             </FormItem>

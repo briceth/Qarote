@@ -100,6 +100,9 @@ export default {
         "gradient-title":
           "linear-gradient(to right, rgb(234 88 12), rgb(220 38 38))", // from-orange-600 to-red-600
       },
+      backdropBlur: {
+        dialog: "2px",
+      },
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-require-imports

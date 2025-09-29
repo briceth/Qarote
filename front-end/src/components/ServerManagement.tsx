@@ -135,7 +135,7 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
     toast.success(`Server "${server.name}" has been updated successfully`);
   };
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-white-100 rounded-lg">
           <ServerIcon className="h-4 w-4 text-orange-600" />
@@ -155,7 +155,7 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
           variant="ghost"
           size="sm"
           onClick={() => setIsEditDialogOpen(true)}
-          className="text-black hover:text-black hover:bg-transparent"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent"
           title="Edit Server"
         >
           <Edit className="h-4 w-4" />
@@ -164,7 +164,7 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
           variant="ghost"
           size="sm"
           onClick={() => setIsDeleteDialogOpen(true)}
-          className="text-red-600 hover:text-red-600 hover:bg-transparent"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10"
           title="Delete Server"
         >
           <Trash2 className="h-4 w-4" />
