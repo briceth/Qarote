@@ -130,9 +130,6 @@ model Workspace {
   alertRules               AlertRule[]
   alerts                   Alert[]
   feedback                 Feedback[]
-  monthlyMessageCounts     MonthlyMessageCount[]
-  capturedMessages         CapturedMessage[]
-  retentionPolicy          UserRetentionPolicy?
   
   // Payment relations
   subscription             Subscription?
@@ -258,7 +255,6 @@ model RabbitMQServer {
   updatedAt               DateTime             @updatedAt
   Queues                  Queue[]
   alertRules              AlertRule[]
-  capturedMessages        CapturedMessage[]
 }
 
 model Queue {
@@ -342,37 +338,6 @@ model AlertRule {
   alerts      Alert[]
 }
 
-model WorkspaceAlertThresholds {
-  id          String    @id @default(uuid())
-  
-  // Node health thresholds
-  memoryWarning           Float     @default(80.0)   // Memory usage percentage
-  memoryCritical          Float     @default(90.0)
-  diskWarning             Float     @default(80.0)   // Disk usage percentage
-  diskCritical            Float     @default(90.0)
-  fileDescriptorsWarning  Float     @default(80.0)   // File descriptors usage percentage
-  fileDescriptorsCritical Float     @default(90.0)
-  socketsWarning          Float     @default(80.0)   // Socket usage percentage
-  socketsCritical         Float     @default(90.0)
-  processesWarning        Float     @default(80.0)   // Process count percentage
-  processesCritical       Float     @default(90.0)
-  
-  // Queue health thresholds
-  unackedMessagesWarning      Int   @default(1000)   // Unacknowledged messages count
-  unackedMessagesCritical     Int   @default(5000)
-  consumerUtilizationWarning  Float @default(20.0)   // Consumer utilization percentage (low is bad)
-  consumerUtilizationCritical Float @default(10.0)
-  runQueueWarning             Int   @default(50)     // Erlang run queue length
-  runQueueCritical            Int   @default(100)
-  
-  // Relations
-  workspaceId String    @unique
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
 
 model Feedback {
   id          String           @id @default(uuid())
@@ -410,108 +375,36 @@ model Feedback {
   @@index([createdAt], name: "feedback_created_at_idx")
 }
 
-model TempCache {
-  key       String   @id @db.VarChar(255)
-  value     Json
-  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-
-  @@index([expiresAt], name: "temp_cache_expires_at_idx")
-  @@index([createdAt], name: "temp_cache_created_at_idx")
-  @@map("temp_cache")
-}
-
-model MonthlyMessageCount {
-  id          String   @id @default(uuid())
-  workspaceId String
-  year        Int
-  month       Int      // 1-12
-  count       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+model WorkspaceAlertThresholds {
+  id          String    @id @default(uuid())
+  
+  // Node health thresholds
+  memoryWarning           Float     @default(80.0)   // Memory usage percentage
+  memoryCritical          Float     @default(90.0)
+  diskWarning             Float     @default(80.0)   // Disk usage percentage
+  diskCritical            Float     @default(90.0)
+  fileDescriptorsWarning  Float     @default(80.0)   // File descriptors usage percentage
+  fileDescriptorsCritical Float     @default(90.0)
+  socketsWarning          Float     @default(80.0)   // Socket usage percentage
+  socketsCritical         Float     @default(90.0)
+  processesWarning        Float     @default(80.0)   // Process count percentage
+  processesCritical       Float     @default(90.0)
+  
+  // Queue health thresholds
+  unackedMessagesWarning      Int   @default(1000)   // Unacknowledged messages count
+  unackedMessagesCritical     Int   @default(5000)
+  consumerUtilizationWarning  Float @default(20.0)   // Consumer utilization percentage (low is bad)
+  consumerUtilizationCritical Float @default(10.0)
+  runQueueWarning             Int   @default(50)     // Erlang run queue length
+  runQueueCritical            Int   @default(100)
+  
   // Relations
+  workspaceId String    @unique
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
-  // Ensure unique monthly count per workspace
-  @@unique([workspaceId, year, month], name: "monthly_message_count_unique")
-  @@index([workspaceId], name: "monthly_message_count_workspace_idx")
-  @@index([year, month], name: "monthly_message_count_date_idx")
-  @@map("monthly_message_counts")
-}
-
-model CapturedMessage {
-  id                  BigInt    @id @default(autoincrement())
-  workspaceId         String
-  serverId            String
-  queueName           String
-  vhost               String    @default("/")
-  
-  // Message content
-  payload             String
-  payloadEncoding     String    @default("string") // 'string', 'base64', 'json'
-  payloadSize         Int
-  
-  // Message properties (stored as JSON for flexibility)
-  properties          Json?
-  headers             Json?
-  routingKey          String?
-  exchangeName        String?
-  deliveryMode        Int?
-  priority            Int?
-  correlationId       String?
-  replyTo             String?
-  messageId           String?
-  appId               String?
-  contentType         String?
-  contentEncoding     String?
-  expiration          String?
-  
-  // Message state
-  redelivered         Boolean   @default(false)
-  deliveryTag         BigInt?
-  consumerTag         String?
   
   // Timestamps
-  messageTimestamp    DateTime? // From message properties
-  publishedAt         DateTime  @default(now())
-  consumedAt          DateTime? // Set when message is actually consumed/acked
-  capturedAt          DateTime  @default(now())
-  
-  // Partitioning key
-  partitionDate       DateTime  @default(now()) @db.Date
-  
-  // Relations
-  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  server              RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  
-  // Indexes for high-performance querying
-  @@index([workspaceId, serverId, queueName, consumedAt(sort: Desc)], name: "captured_messages_workspace_server_queue_idx")
-  @@index([workspaceId, consumedAt(sort: Desc)], name: "captured_messages_workspace_time_idx")
-  @@index([exchangeName, routingKey], name: "captured_messages_exchange_routing_idx")
-  @@index([correlationId], name: "captured_messages_correlation_idx")
-  @@index([messageId], name: "captured_messages_message_id_idx")
-  @@index([partitionDate], name: "captured_messages_partition_idx")
-  @@map("captured_messages")
-}
-
-model UserRetentionPolicy {
-  id                    String    @id @default(uuid())
-  workspaceId           String    @unique
-  retentionDays         Int       @default(1)
-  maxMessageSizeMb      Int       @default(10)
-  maxStorageGb          Int       @default(1)
-  autoCleanup           Boolean   @default(true)
-  compressOldMessages   Boolean   @default(false)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  
-  // Relations
-  workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
-  @@index([workspaceId], name: "user_retention_workspace_idx")
-  @@index([autoCleanup, updatedAt], name: "user_retention_cleanup_idx")
-  @@map("user_retention_policies")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Subscription {
