@@ -259,6 +259,7 @@ const AcceptInvitation = () => {
                   value={invitation?.email || ""}
                   disabled
                   className="bg-gray-50"
+                  autoComplete="username"
                 />
               </div>
 
@@ -276,6 +277,7 @@ const AcceptInvitation = () => {
                         onToggleVisibility={() =>
                           setShowPassword(!showPassword)
                         }
+                        autoComplete="new-password"
                         {...field}
                       />
                     </FormControl>
@@ -302,6 +304,7 @@ const AcceptInvitation = () => {
                         onToggleVisibility={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
+                        autoComplete="new-password"
                         {...field}
                       />
                     </FormControl>

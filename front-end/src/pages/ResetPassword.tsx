@@ -188,6 +188,7 @@ export const ResetPassword: React.FC = () => {
                   }
                   className={errors.password ? "border-red-500" : ""}
                   disabled={resetPasswordMutation.isPending}
+                  autoComplete="new-password"
                 />
                 <Button
                   type="button"
@@ -255,6 +256,7 @@ export const ResetPassword: React.FC = () => {
                   }
                   className={errors.confirmPassword ? "border-red-500" : ""}
                   disabled={resetPasswordMutation.isPending}
+                  autoComplete="new-password"
                 />
                 <Button
                   type="button"

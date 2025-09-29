@@ -128,6 +128,7 @@ const SignIn: React.FC = () => {
                           type="email"
                           placeholder="Enter your email"
                           disabled={loginMutation.isPending}
+                          autoComplete="username"
                           {...field}
                         />
                       </FormControl>
@@ -150,6 +151,7 @@ const SignIn: React.FC = () => {
                           onToggleVisibility={() =>
                             setShowPassword(!showPassword)
                           }
+                          autoComplete="current-password"
                           {...field}
                         />
                       </FormControl>

@@ -72,7 +72,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
         text={mode === "signup" ? "signup_with" : "signin_with"}
         shape="rectangular"
         logo_alignment="left"
-        width="100%"
+        width={200}
       />
     </div>
   );

@@ -140,6 +140,7 @@ export const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({
                 }
                 className={errors.currentPassword ? "border-red-500" : ""}
                 disabled={isLoading}
+                autoComplete="current-password"
               />
               <Button
                 type="button"
@@ -174,6 +175,7 @@ export const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({
                 }
                 className={errors.newPassword ? "border-red-500" : ""}
                 disabled={isLoading}
+                autoComplete="new-password"
               />
               <Button
                 type="button"
@@ -207,6 +209,7 @@ export const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({
                   handleInputChange("confirmPassword", e.target.value)
                 }
                 className={errors.confirmPassword ? "border-red-500" : ""}
+                autoComplete="new-password"
                 disabled={isLoading}
               />
               <Button

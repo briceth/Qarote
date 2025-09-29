@@ -111,6 +111,7 @@ export const CompactPasswordChangeForm: React.FC<
                 placeholder="Enter current password"
                 disabled={isLoading}
                 className="pr-10"
+                autoComplete="current-password"
               />
               <Button
                 type="button"
@@ -150,6 +151,7 @@ export const CompactPasswordChangeForm: React.FC<
                 placeholder="Enter new password"
                 disabled={isLoading}
                 className="pr-10"
+                autoComplete="new-password"
               />
               <Button
                 type="button"
@@ -187,6 +189,7 @@ export const CompactPasswordChangeForm: React.FC<
                 placeholder="Confirm new password"
                 disabled={isLoading}
                 className="pr-10"
+                autoComplete="new-password"
               />
               <Button
                 type="button"

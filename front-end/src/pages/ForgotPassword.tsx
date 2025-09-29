@@ -116,6 +116,7 @@ export const ForgotPassword: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={resetPasswordMutation.isPending}
                 required
+                autoComplete="username"
               />
             </div>
 

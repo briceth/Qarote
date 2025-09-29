@@ -186,6 +186,7 @@ const SignUp: React.FC = () => {
                             type="email"
                             placeholder="john@example.com"
                             disabled={registerMutation.isPending}
+                            autoComplete="username"
                             {...field}
                           />
                         </FormControl>
@@ -208,6 +209,7 @@ const SignUp: React.FC = () => {
                             onToggleVisibility={() =>
                               setShowPassword(!showPassword)
                             }
+                            autoComplete="new-password"
                             {...field}
                           />
                         </FormControl>
@@ -234,6 +236,7 @@ const SignUp: React.FC = () => {
                             onToggleVisibility={() =>
                               setShowConfirmPassword(!showConfirmPassword)
                             }
+                            autoComplete="new-password"
                             {...field}
                           />
                         </FormControl>
