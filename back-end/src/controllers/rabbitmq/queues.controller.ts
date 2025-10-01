@@ -323,8 +323,8 @@ queuesController.post(
       }
 
       const [plan, resourceCounts] = await Promise.all([
-        getUserPlan(server.workspaceId),
-        getUserResourceCounts(server.workspaceId),
+        getUserPlan(user.id),
+        getUserResourceCounts(user.id),
       ]);
 
       logger.info(

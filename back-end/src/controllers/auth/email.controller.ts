@@ -23,8 +23,6 @@ emailController.post(
       c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
     const userAgent = c.req.header("user-agent") || "unknown";
 
-    console.log("new email:", newEmail);
-
     try {
       // Get user with password hash
       const userWithPassword = await prisma.user.findUnique({

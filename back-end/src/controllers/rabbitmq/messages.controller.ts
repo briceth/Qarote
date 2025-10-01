@@ -60,7 +60,7 @@ messagesController.post(
         );
       }
 
-      const plan = await getUserPlan(server.workspaceId);
+      const plan = await getUserPlan(user.id);
 
       logger.info({ plan }, "Message sending validation");
 

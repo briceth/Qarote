@@ -157,7 +157,7 @@ serverController.post(
 
       // Validate plan restrictions for server creation
       const [plan, resourceCounts] = await Promise.all([
-        getUserPlan(user.workspaceId),
+        getUserPlan(user.id),
         getUserResourceCounts(user.id),
       ]);
 

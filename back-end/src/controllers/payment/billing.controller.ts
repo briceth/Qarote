@@ -3,9 +3,8 @@ import { authenticate } from "@/core/auth";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
 import { StripeService } from "@/services/stripe/stripe.service";
-import { strictRateLimiter } from "@/middlewares/security";
+import { strictRateLimiter, billingRateLimiter } from "@/middlewares/security";
 import { getUserResourceCounts } from "@/services/plan/plan.service";
-import { SubscriptionStatus } from "@prisma/client";
 import {
   extractStringId,
   mapStripeStatusToSubscriptionStatus,
@@ -14,10 +13,9 @@ import {
 const billingController = new Hono();
 
 billingController.use("*", authenticate);
-billingController.use("*", strictRateLimiter);
 
-// Get comprehensive billing overview
-billingController.get("/billing/overview", async (c) => {
+// Get comprehensive billing overview - use more lenient rate limiting
+billingController.get("/billing/overview", billingRateLimiter, async (c) => {
   const user = c.get("user");
 
   try {
@@ -49,38 +47,36 @@ billingController.get("/billing/overview", async (c) => {
     let paymentMethod = null;
 
     // Fetch Stripe subscription details if exists
-    if (userWithSubscription.subscription?.stripeSubscriptionId) {
+    if (userWithSubscription.stripeSubscriptionId) {
       try {
         stripeSubscription = await StripeService.getSubscription(
-          userWithSubscription.subscription!.stripeSubscriptionId,
-          ["latest_invoice"]
+          userWithSubscription.stripeSubscriptionId
         );
 
         // Get upcoming invoice
-        upcomingInvoice = await StripeService.getUpcomingInvoice(
-          userWithSubscription.subscription!.stripeSubscriptionId
-        );
+        if (stripeSubscription && !stripeSubscription.canceled_at) {
+          upcomingInvoice = await StripeService.getUpcomingInvoice(
+            userWithSubscription.stripeCustomerId || ""
+          );
+        }
 
         // Get payment method
-        if (stripeSubscription.default_payment_method) {
-          const paymentMethodId = extractStringId(
-            stripeSubscription.default_payment_method
+        if (userWithSubscription.stripeCustomerId) {
+          paymentMethod = await StripeService.getPaymentMethod(
+            userWithSubscription.stripeCustomerId
           );
-          paymentMethod = await StripeService.getPaymentMethod(paymentMethodId);
         }
-      } catch (error) {
-        logger.error("Error fetching Stripe data:", error);
+      } catch (stripeError) {
+        logger.warn("Failed to fetch Stripe data:", stripeError);
+        // Continue without Stripe data
       }
     }
-
-    // Get user's resource counts across all workspaces
-    const resourceCounts = await getUserResourceCounts(user.id);
 
     // Get recent payments
     const recentPayments = await prisma.payment.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 10,
       select: {
         id: true,
         amount: true,
@@ -90,170 +86,211 @@ billingController.get("/billing/overview", async (c) => {
       },
     });
 
-    return c.json({
+    // Get current usage
+    const resourceCounts = await getUserResourceCounts(user.id);
+
+    const response = {
       workspace: {
         id: currentWorkspace.id,
         name: currentWorkspace.name,
       },
-      subscription: userWithSubscription.subscription,
+      subscription: userWithSubscription.subscription
+        ? {
+            id: userWithSubscription.subscription.id,
+            status: userWithSubscription.subscription.status,
+            stripeCustomerId: userWithSubscription.stripeCustomerId,
+            stripeSubscriptionId: userWithSubscription.stripeSubscriptionId,
+            plan: userWithSubscription.subscription.plan,
+            canceledAt: userWithSubscription.subscription.canceledAt,
+            isRenewalAfterCancel:
+              userWithSubscription.subscription.isRenewalAfterCancel,
+            previousCancelDate:
+              userWithSubscription.subscription.previousCancelDate,
+            createdAt: userWithSubscription.subscription.createdAt,
+            updatedAt: userWithSubscription.subscription.updatedAt,
+          }
+        : null,
       stripeSubscription,
       upcomingInvoice,
       paymentMethod,
       currentUsage: {
         servers: resourceCounts.servers,
         users: resourceCounts.users,
+        queues: 0, // TODO: Add queue counting when needed
+        messagesThisMonth: 0, // TODO: Add message counting when needed
       },
-      recentPayments,
-    });
+      recentPayments: recentPayments.map((payment) => ({
+        id: payment.id,
+        amount: payment.amount,
+        status: payment.status,
+        description: payment.description,
+        createdAt: payment.createdAt.toISOString(),
+      })),
+    };
+
+    return c.json(response);
   } catch (error) {
     logger.error("Error fetching billing overview:", error);
-    return c.json({ error: "Failed to fetch billing overview" }, 500);
+    return c.json({ error: "Internal server error" }, 500);
   }
 });
 
-// Get subscription details
-billingController.get("/subscription", async (c) => {
+// All other billing endpoints use strict rate limiting
+billingController.use("*", strictRateLimiter);
+
+// Create billing portal session
+billingController.post("/billing/portal", async (c) => {
   const user = c.get("user");
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId: user.id },
-    });
+    if (!user.stripeCustomerId) {
+      return c.json({ error: "No Stripe customer ID found" }, 400);
+    }
 
-    return c.json({ subscription });
+    const session = await StripeService.createPortalSession(
+      user.stripeCustomerId,
+      `${process.env.FRONTEND_URL}/billing`
+    );
+
+    return c.json({ url: session.url });
   } catch (error) {
-    logger.error({ error }, "Error fetching subscription");
-    return c.json({ error: "Failed to fetch subscription" }, 500);
-  }
-});
-
-// Get payment history with pagination
-billingController.get("/payments", async (c) => {
-  const user = c.get("user");
-  const limit = parseInt(c.req.query("limit") || "20");
-  const offset = parseInt(c.req.query("offset") || "0");
-
-  try {
-    const [payments, total] = await Promise.all([
-      prisma.payment.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.payment.count({
-        where: { userId: user.id },
-      }),
-    ]);
-
-    return c.json({
-      payments,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total,
-      },
-    });
-  } catch (error) {
-    logger.error({ error }, "Error fetching payment history");
-    return c.json({ error: "Failed to fetch payment history" }, 500);
+    logger.error("Error creating billing portal session:", error);
+    return c.json({ error: "Failed to create billing portal session" }, 500);
   }
 });
 
 // Cancel subscription
 billingController.post("/billing/cancel", async (c) => {
   const user = c.get("user");
-  const { cancelImmediately, reason, feedback } = await c.req.json();
+  const body = await c.req.json();
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId: user.id },
-    });
+    const { cancelImmediately = false, reason = "", feedback = "" } = body;
 
-    if (!subscription) {
-      return c.json({ error: "No active subscription found" }, 404);
+    if (!user.stripeSubscriptionId) {
+      return c.json({ error: "No active subscription found" }, 400);
     }
 
-    // Cancel subscription in Stripe
-    const canceledSubscription = await StripeService.cancelSubscriptionAdvanced(
-      subscription.stripeSubscriptionId,
-      {
-        cancelImmediately,
-        reason,
-        feedback,
-        canceledBy: user.email,
-      }
+    const subscription = await StripeService.cancelSubscription(
+      user.stripeSubscriptionId,
+      cancelImmediately
     );
 
     // Update subscription in database
-    const updatedSubscription = await prisma.subscription.update({
+    await prisma.subscription.update({
       where: { userId: user.id },
       data: {
-        status: mapStripeStatusToSubscriptionStatus(
-          canceledSubscription.status
-        ),
-        cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
-        canceledAt: canceledSubscription.canceled_at
-          ? new Date(canceledSubscription.canceled_at * 1000)
+        status: mapStripeStatusToSubscriptionStatus(subscription.status),
+        canceledAt: subscription.canceled_at
+          ? new Date(subscription.canceled_at * 1000)
           : null,
-        cancelationReason: reason,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
       },
     });
 
+    // Log cancellation reason and feedback
+    if (reason || feedback) {
+      // TODO: Create subscriptionCancellation table if needed
+      logger.info("Subscription cancellation feedback", {
+        userId: user.id,
+        reason,
+        feedback,
+      });
+    }
+
     return c.json({
       success: true,
-      subscription: updatedSubscription,
+      subscription: {
+        id: subscription.id,
+        status: subscription.status,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodEnd: subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : null,
+        canceledAt: subscription.canceled_at
+          ? new Date(subscription.canceled_at * 1000).toISOString()
+          : null,
+      },
       message: cancelImmediately
-        ? "Subscription canceled immediately. All workspaces have been downgraded to FREE."
-        : "Subscription will be canceled at the end of the current billing period.",
+        ? "Subscription canceled immediately"
+        : "Subscription will be canceled at the end of the current period",
     });
   } catch (error) {
-    logger.error({ error }, "Error canceling subscription");
+    logger.error("Error canceling subscription:", error);
     return c.json({ error: "Failed to cancel subscription" }, 500);
   }
 });
 
-// Reactivate subscription
-billingController.post("/billing/reactivate", async (c) => {
+// Renew subscription
+billingController.post("/billing/renew", async (c) => {
   const user = c.get("user");
+  const body = await c.req.json();
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId: user.id },
-    });
+    const { plan, interval = "monthly" } = body;
 
-    if (!subscription) {
-      return c.json({ error: "No subscription found" }, 404);
+    if (!plan) {
+      return c.json({ error: "Plan is required" }, 400);
     }
 
-    // Reactivate subscription in Stripe
-    const reactivatedSubscription = await StripeService.updateSubscription(
-      subscription.stripeSubscriptionId,
-      subscription.stripePriceId
-    );
+    const checkoutSession = await StripeService.createCheckoutSession({
+      userId: user.id,
+      plan,
+      billingInterval: interval,
+      successUrl: `${process.env.FRONTEND_URL}/payment/success`,
+      cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
+      customerEmail: user.email,
+    });
 
-    // Update subscription in database
-    const updatedSubscription = await prisma.subscription.update({
+    return c.json({ url: checkoutSession.url });
+  } catch (error) {
+    logger.error("Error renewing subscription:", error);
+    return c.json({ error: "Failed to renew subscription" }, 500);
+  }
+});
+
+// Get payment history
+billingController.get("/payments", async (c) => {
+  const user = c.get("user");
+  const limit = parseInt(c.req.query("limit") || "20");
+  const offset = parseInt(c.req.query("offset") || "0");
+
+  try {
+    const payments = await prisma.payment.findMany({
       where: { userId: user.id },
-      data: {
-        status: mapStripeStatusToSubscriptionStatus(
-          reactivatedSubscription.status
-        ),
-        cancelAtPeriodEnd: false,
-        isRenewalAfterCancel: true,
-        previousCancelDate: subscription.canceledAt,
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+      select: {
+        id: true,
+        amount: true,
+        status: true,
+        description: true,
+        createdAt: true,
+        stripePaymentId: true,
       },
     });
 
+    const total = await prisma.payment.count({
+      where: { userId: user.id },
+    });
+
     return c.json({
-      success: true,
-      subscription: updatedSubscription,
-      message: "Subscription reactivated successfully.",
+      payments: payments.map((payment) => ({
+        id: payment.id,
+        amount: payment.amount,
+        status: payment.status,
+        description: payment.description,
+        createdAt: payment.createdAt.toISOString(),
+        stripePaymentId: payment.stripePaymentId,
+      })),
+      total,
+      limit,
+      offset,
     });
   } catch (error) {
-    logger.error({ error }, "Error reactivating subscription");
-    return c.json({ error: "Failed to reactivate subscription" }, 500);
+    logger.error("Error fetching payment history:", error);
+    return c.json({ error: "Failed to fetch payment history" }, 500);
   }
 });
 
