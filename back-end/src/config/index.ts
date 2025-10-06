@@ -53,6 +53,10 @@ const envSchema = z.object({
   // Google OAuth Configuration
   GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
 
+  // Discourse Configuration
+  DISCOURSE_SSO_SECRET: z.string().min(1, "DISCOURSE_SSO_SECRET is required"),
+  DISCOURSE_URL: z.url("DISCOURSE_URL must be a valid URL"),
+
   // NPM package version (for Sentry releases)
   npm_package_version: z.string().describe("1.0.0"),
 });
@@ -143,4 +147,9 @@ export const sentryConfig = {
 
 export const googleConfig = {
   clientId: config.GOOGLE_CLIENT_ID,
+} as const;
+
+export const discourseConfig = {
+  ssoSecret: config.DISCOURSE_SSO_SECRET,
+  url: config.DISCOURSE_URL,
 } as const;

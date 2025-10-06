@@ -42,6 +42,7 @@ import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
 import { useLocation, Link } from "react-router-dom";
 import { ServerManagement } from "@/components/ServerManagement";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { DiscourseLink } from "@/components/DiscourseWidget";
 
 const menuItems = [
   {
@@ -283,6 +284,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4 space-y-4">
+        {/* Community Support */}
+        <DiscourseLink
+          userId={user?.id}
+          userEmail={user?.email}
+          userName={`${user?.firstName} ${user?.lastName}`}
+          userUsername={user?.email?.split("@")[0]}
+        />
+
         {/* Theme Toggle */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-sidebar-foreground/70">Theme</span>

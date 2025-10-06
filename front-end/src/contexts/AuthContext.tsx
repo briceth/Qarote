@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { User } from "@/lib/api";
 import { setSentryUser } from "@/lib/sentry";
 import logger from "@/lib/logger";

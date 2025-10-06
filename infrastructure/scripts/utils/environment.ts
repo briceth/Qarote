@@ -72,6 +72,9 @@ export interface FrontendEnvConfig {
 
   // Domain Configuration
   DOMAIN_FRONTEND: string;
+
+  // Discourse
+  VITE_DISCOURSE_URL: string;
 }
 
 /**

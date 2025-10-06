@@ -30,6 +30,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { DiscourseWidget } from "@/components/DiscourseWidget";
+import { useAuth } from "@/contexts/AuthContextDefinition";
 
 const faqs = [
   {
@@ -87,6 +89,7 @@ export function HelpSupport() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { userPlan } = useUser();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleEmailCopy = async () => {
     try {
@@ -134,10 +137,10 @@ export function HelpSupport() {
                   </p>
                 </div>
               </div>
-              <PlanBadge workspacePlan={userPlan} />
+              <PlanBadge />
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-3 gap-6">
               {/* Quick Help Links */}
               <div className="space-y-6">
                 <div>
@@ -279,6 +282,22 @@ export function HelpSupport() {
                       </Card>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Community Section */}
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold mb-4 text-foreground">
+                    Community Support
+                  </h2>
+                  <DiscourseWidget
+                    userId={user?.id}
+                    userEmail={user?.email}
+                    userName={`${user?.firstName} ${user?.lastName}`}
+                    userUsername={user?.email?.split("@")[0]}
+                    className="w-full"
+                  />
                 </div>
               </div>
             </div>

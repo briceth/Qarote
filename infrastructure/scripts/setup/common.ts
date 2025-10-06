@@ -25,7 +25,7 @@ export interface ServerConfig {
     name: string;
     type: string;
   };
-  loadBalancer: {
+  loadBalancer?: {
     name: string;
   };
 }

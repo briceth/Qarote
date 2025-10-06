@@ -13,10 +13,19 @@ import { FeedbackApiClient } from "./feedbackClient";
 import { PlanApiClient } from "./planClient";
 import { PaymentApiClient } from "./paymentClient";
 import { PasswordApiClient } from "./passwordClient";
+import { DiscourseApiClient } from "./discourseClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 import type { FeedbackRequest } from "@/types/feedback";
 import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
 import { AlertThresholds } from "@/types/alerts";
+import type {
+  DiscourseUser,
+  DiscourseSSOResponse,
+  DiscourseEmbedResponse,
+  DiscourseInfoResponse,
+  DiscourseStatsResponse,
+  DiscourseTopicsResponse,
+} from "./discourseClient";
 
 class ApiClient {
   private serverClient: ServerApiClient;
@@ -29,6 +38,7 @@ class ApiClient {
   private planClient: PlanApiClient;
   private paymentClient: PaymentApiClient;
   private passwordClient: PasswordApiClient;
+  private discourseClient: DiscourseApiClient;
 
   constructor(baseUrl?: string) {
     this.serverClient = new ServerApiClient(baseUrl);
@@ -41,6 +51,7 @@ class ApiClient {
     this.planClient = new PlanApiClient(baseUrl);
     this.paymentClient = new PaymentApiClient(baseUrl);
     this.passwordClient = new PasswordApiClient(baseUrl);
+    this.discourseClient = new DiscourseApiClient(baseUrl);
   }
 
   // Server methods
@@ -781,6 +792,45 @@ class ApiClient {
       thresholds,
       workspaceId
     );
+  }
+
+  // Discourse methods
+  async generateDiscourseSSOUrl(
+    user: DiscourseUser
+  ): Promise<DiscourseSSOResponse> {
+    return this.discourseClient.generateSSOUrl(user);
+  }
+
+  async processDiscourseSSOCallback(
+    sso: string,
+    sig: string
+  ): Promise<{ redirectUrl: string }> {
+    return this.discourseClient.processSSOCallback(sso, sig);
+  }
+
+  async getDiscourseEmbedUrl(
+    topicId?: string,
+    categoryId?: string
+  ): Promise<DiscourseEmbedResponse> {
+    return this.discourseClient.getEmbedUrl(topicId, categoryId);
+  }
+
+  async getDiscourseInfo(): Promise<DiscourseInfoResponse> {
+    return this.discourseClient.getInfo();
+  }
+
+  async getDiscourseStats(): Promise<DiscourseStatsResponse> {
+    return this.discourseClient.getStats();
+  }
+
+  async getDiscourseTopics(
+    limit: number = 5
+  ): Promise<DiscourseTopicsResponse> {
+    return this.discourseClient.getTopics(limit);
+  }
+
+  async checkDiscourseAuth(): Promise<boolean> {
+    return this.discourseClient.checkAuth();
   }
 }
 

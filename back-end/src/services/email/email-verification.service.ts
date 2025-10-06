@@ -343,7 +343,7 @@ export class EmailVerificationService {
 
       return { success: true };
     } catch (error) {
-      console.error("Error resending verification email:", error);
+      logger.error({ error }, "Error resending verification email");
       return { success: false, error: "Failed to resend verification email" };
     }
   }

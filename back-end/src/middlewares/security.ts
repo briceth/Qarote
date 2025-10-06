@@ -1,7 +1,7 @@
 import { Context, Next } from "hono";
-import { UserRole } from "@prisma/client";
 import { rateLimiter } from "hono-rate-limiter";
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "@/core/logger";
 
 // Performance monitoring thresholds
 const SLOW_REQUEST_THRESHOLD = 1000; // 1 second
@@ -14,7 +14,7 @@ export const requestIdMiddleware = async (c: Context, next: Next) => {
   c.set("requestId", requestId);
   c.header("X-Request-ID", requestId);
 
-  console.log(`[REQUEST] ${requestId} ${c.req.method} ${c.req.path}`);
+  logger.info(`[REQUEST] ${requestId} ${c.req.method} ${c.req.path}`);
 
   await next();
 };
@@ -31,7 +31,7 @@ export const performanceMonitoring = async (c: Context, next: Next) => {
   const duration = Date.now() - startTime;
 
   if (duration > SLOW_REQUEST_THRESHOLD) {
-    console.warn(
+    logger.warn(
       `[SLOW_REQUEST] ${requestId} ${c.req.method} ${c.req.path} took ${duration}ms`
     );
   }

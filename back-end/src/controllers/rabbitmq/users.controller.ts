@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { authenticate, authorize } from "@/core/auth";
 import { UserRole } from "@prisma/client";
@@ -10,6 +9,7 @@ import {
   SetPermissionsSchema,
   UpdateUserSchema,
 } from "@/schemas/rabbitmq";
+import { logger } from "@/core/logger";
 
 const usersController = new Hono();
 
@@ -35,7 +35,7 @@ usersController.get(
 
       return c.json({ users });
     } catch (error: any) {
-      console.error("Error fetching users:", error);
+      logger.error("Error fetching users:", error);
       return c.json({ error: error.message }, 500);
     }
   }
@@ -64,7 +64,7 @@ usersController.get(
         permissions,
       });
     } catch (error: any) {
-      console.error("Error fetching user details:", error);
+      logger.error("Error fetching user details:", error);
       return c.json({ error: error.message }, 500);
     }
   }
@@ -93,7 +93,7 @@ usersController.post(
 
       return c.json({ message: "User created successfully" });
     } catch (error: any) {
-      console.error("Error creating user:", error);
+      logger.error("Error creating user:", error);
       return c.json({ error: error.message }, 500);
     }
   }
@@ -131,7 +131,7 @@ usersController.put(
 
       return c.json({ message: "User updated successfully" });
     } catch (error: any) {
-      console.error("Error updating user:", error);
+      logger.error("Error updating user:", error);
       return c.json({ error: error.message }, 500);
     }
   }
@@ -155,7 +155,7 @@ usersController.delete(
 
       return c.json({ message: "User deleted successfully" });
     } catch (error: any) {
-      console.error("Error deleting user:", error);
+      logger.error("Error deleting user:", error);
       return c.json({ error: error.message }, 500);
     }
   }
@@ -186,7 +186,7 @@ usersController.put(
 
       return c.json({ message: "Permissions set successfully" });
     } catch (error: any) {
-      console.error("Error setting permissions:", error);
+      logger.error("Error setting permissions:", error);
       return c.json({ error: error.message }, 500);
     }
   }
@@ -211,7 +211,7 @@ usersController.delete(
 
       return c.json({ message: "Permissions deleted successfully" });
     } catch (error: any) {
-      console.error("Error deleting permissions:", error);
+      logger.error("Error deleting permissions:", error);
       return c.json({ error: error.message }, 500);
     }
   }
