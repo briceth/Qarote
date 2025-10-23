@@ -20,7 +20,7 @@ import feedbackController from "@/controllers/feedback.controller";
 import paymentController from "@/controllers/payment.controller";
 import webhookController from "@/controllers/payment/webhook.controller";
 import healthcheckController from "@/controllers/healthcheck.controller";
-import { discourseController } from "@/controllers/discourse.controller";
+import discourseController from "@/controllers/discourse.controller";
 
 import { corsMiddleware } from "@/middlewares/cors";
 import {

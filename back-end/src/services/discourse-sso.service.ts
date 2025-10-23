@@ -38,32 +38,32 @@ export class DiscourseSSO {
   /**
    * Generate SSO URL for redirecting user to Discourse
    */
-  generateSSOUrl(user: DiscourseUser, nonce?: string): string {
-    const payload: DiscourseSSOPayload = {
-      nonce: nonce || this.generateNonce(),
-      email: user.email,
-      name: user.name,
-      username: user.username,
-      external_id: user.id,
-      avatar_url: user.avatar_url,
-    };
+  // generateSSOUrl(user: DiscourseUser, nonce?: string): string {
+  //   const payload: DiscourseSSOPayload = {
+  //     nonce: nonce || this.generateNonce(),
+  //     email: user.email,
+  //     name: user.name,
+  //     username: user.username,
+  //     external_id: user.id,
+  //     avatar_url: user.avatar_url,
+  //   };
 
-    // Encode payload as base64
-    const payloadString = Buffer.from(JSON.stringify(payload)).toString(
-      "base64"
-    );
+  //   // Encode payload as base64
+  //   const payloadString = Buffer.from(JSON.stringify(payload)).toString(
+  //     "base64"
+  //   );
 
-    // Generate HMAC signature
-    const signature = crypto
-      .createHmac("sha256", this.ssoSecret)
-      .update(payloadString)
-      .digest("hex");
+  //   // Generate HMAC signature
+  //   const signature = crypto
+  //     .createHmac("sha256", this.ssoSecret)
+  //     .update(payloadString)
+  //     .digest("hex");
 
-    // Build SSO URL
-    const ssoUrl = `${this.discourseUrl}/session/sso_provider?sso=${payloadString}&sig=${signature}`;
-    logger.info({ ssoUrl }, "SSO URL");
-    return ssoUrl;
-  }
+  //   // Build SSO URL
+  //   const ssoUrl = `${this.discourseUrl}/session/sso_provider?sso=${payloadString}&sig=${signature}`;
+  //   logger.info({ ssoUrl }, "SSO URL");
+  //   return ssoUrl;
+  // }
 
   /**
    * Verify SSO callback from Discourse
@@ -151,8 +151,8 @@ export class DiscourseSSO {
       "base64"
     );
 
-    logger.info("Response query string:", responseParams.toString());
-    logger.info("Response payload (base64):", payloadString);
+    logger.debug("Response query string: %s", responseParams.toString());
+    logger.debug("Response payload (base64): %s", payloadString);
 
     // Generate HMAC signature
     const signature = crypto
@@ -160,14 +160,14 @@ export class DiscourseSSO {
       .update(payloadString)
       .digest("hex");
 
-    logger.info("Response signature:", signature);
+    logger.debug("Return SSO URL: %s", userData.return_sso_url);
+    logger.debug("Discourse URL: %s", this.discourseUrl);
 
     // Use the return_sso_url from the original request, or fallback to default
-    const returnUrl =
-      userData.return_sso_url || `${this.discourseUrl}/session/sso_login`;
+    const returnUrl = `${this.discourseUrl}/session/sso_login`;
 
     const finalUrl = `${returnUrl}?sso=${payloadString}&sig=${signature}`;
-    logger.info("Final redirect URL:", finalUrl);
+    logger.info(`Final redirect URL: ${finalUrl}`);
 
     // Build response URL for Discourse
     return finalUrl;

@@ -60,12 +60,12 @@ export class DiscourseApiClient extends BaseApiClient {
   /**
    * Generate SSO URL for user to access Discourse
    */
-  async generateSSOUrl(user: DiscourseUser): Promise<DiscourseSSOResponse> {
-    return this.request<DiscourseSSOResponse>("/discourse/sso", {
-      method: "POST",
-      body: JSON.stringify(user),
-    });
-  }
+  // async generateSSOUrl(user: DiscourseUser): Promise<DiscourseSSOResponse> {
+  //   return this.request<DiscourseSSOResponse>("/discourse/sso", {
+  //     method: "POST",
+  //     body: JSON.stringify(user),
+  //   });
+  // }
 
   /**
    * Process SSO callback from Discourse

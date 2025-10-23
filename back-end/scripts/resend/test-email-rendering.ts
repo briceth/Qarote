@@ -32,9 +32,9 @@ async function testEmailRendering() {
         props: {
           email: "test@example.com",
           userName: "Test User",
-          verificationUrl: "https://rabbithq.io/verify?token=test123",
+          verificationUrl: "https://app.rabbithq.io/verify?token=test123",
           type: "SIGNUP" as const,
-          frontendUrl: "https://rabbithq.io",
+          frontendUrl: "https://app.rabbithq.io",
           expiryHours: 24,
         },
       },
@@ -45,7 +45,7 @@ async function testEmailRendering() {
           name: "Test User",
           workspaceName: "Test Workspace",
           plan: "DEVELOPER" as const,
-          frontendUrl: "https://rabbithq.io",
+          frontendUrl: "https://app.rabbithq.io",
         },
       },
       {
@@ -53,9 +53,9 @@ async function testEmailRendering() {
         component: PasswordResetEmail,
         props: {
           userName: "Test User",
-          resetUrl: "https://rabbithq.io/reset?token=reset123",
+          resetUrl: "https://app.rabbithq.io/reset?token=reset123",
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          frontendUrl: "https://rabbithq.io",
+          frontendUrl: "https://app.rabbithq.io",
         },
       },
     ];

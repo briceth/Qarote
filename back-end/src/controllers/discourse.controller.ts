@@ -20,37 +20,37 @@ const discourseSSO = new DiscourseSSO(
   discourseConfig.url
 );
 
-export const discourseController = new Hono();
+const discourseController = new Hono();
 
 /**
  * Generate SSO URL for user to access Discourse
  * POST /api/discourse/sso
  */
-discourseController.post(
-  "/sso",
-  zValidator("json", DiscourseSSOUserSchema),
-  async (c) => {
-    try {
-      const userData = c.req.valid("json");
+// discourseController.post(
+//   "/sso",
+//   zValidator("json", DiscourseSSOUserSchema),
+//   async (c) => {
+//     try {
+//       const userData = c.req.valid("json");
 
-      const user: DiscourseUser = {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        username: userData.username,
-        avatar_url: userData.avatar_url,
-      };
+//       const user: DiscourseUser = {
+//         id: userData.id,
+//         email: userData.email,
+//         name: userData.name,
+//         username: userData.username,
+//         avatar_url: userData.avatar_url,
+//       };
 
-      // Generate SSO URL
-      const ssoUrl = discourseSSO.generateSSOUrl(user);
+//       // Generate SSO URL
+//       const ssoUrl = discourseSSO.generateSSOUrl(user);
 
-      return c.json({ ssoUrl });
-    } catch (error) {
-      logger.error({ error }, "Error generating SSO URL");
-      return c.json({ error: "Failed to generate SSO URL" }, 500);
-    }
-  }
-);
+//       return c.json({ ssoUrl });
+//     } catch (error) {
+//       logger.error({ error }, "Error generating SSO URL");
+//       return c.json({ error: "Failed to generate SSO URL" }, 500);
+//     }
+//   }
+// );
 
 /**
  * Handle SSO callback from Discourse (DiscourseConnect protocol)
@@ -205,3 +205,5 @@ discourseController.get("/auth-check", async (c) => {
     return c.json({ error: "Failed to check auth status" }, 500);
   }
 });
+
+export default discourseController;

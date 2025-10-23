@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContextDefinition";
 import { apiClient } from "@/lib/api/client";
+import logger from "@/lib/logger";
 
 function DiscourseSSO() {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ function DiscourseSSO() {
 
         // Process SSO callback using API client
         const response = await apiClient.processDiscourseSSOCallback(sso, sig);
+        logger.info("SSO callback response:", response);
 
         // Redirect to Discourse with the response
         window.location.href = response.redirectUrl;

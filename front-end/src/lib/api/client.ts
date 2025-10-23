@@ -795,11 +795,11 @@ class ApiClient {
   }
 
   // Discourse methods
-  async generateDiscourseSSOUrl(
-    user: DiscourseUser
-  ): Promise<DiscourseSSOResponse> {
-    return this.discourseClient.generateSSOUrl(user);
-  }
+  // async generateDiscourseSSOUrl(
+  //   user: DiscourseUser
+  // ): Promise<DiscourseSSOResponse> {
+  //   return this.discourseClient.generateSSOUrl(user);
+  // }
 
   async processDiscourseSSOCallback(
     sso: string,

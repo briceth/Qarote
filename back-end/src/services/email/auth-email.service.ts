@@ -111,7 +111,6 @@ export class AuthEmailService {
     const { to, userName, verificationToken, type } = params;
 
     const { frontendUrl } = CoreEmailService.getConfig();
-    const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
     const expiryHours = 24;
 
     // Render the React email template
