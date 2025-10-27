@@ -382,6 +382,7 @@ export interface RabbitMQOverview {
 export interface RabbitMQCredentials {
   host: string;
   port: number;
+  amqpPort: number;
   username: string;
   password: string;
   vhost: string;

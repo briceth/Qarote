@@ -169,6 +169,7 @@ serverController.post(
       const client = new RabbitMQClient({
         host: data.host,
         port: data.port,
+        amqpPort: data.amqpPort,
         username: data.username,
         password: data.password,
         vhost: data.vhost,
@@ -269,6 +270,7 @@ serverController.put(
         const client = new RabbitMQClient({
           host: data.host || existingServer.host,
           port: data.port || existingServer.port,
+          amqpPort: data.amqpPort || existingServer.amqpPort,
           username: data.username || existingServer.username,
           password: data.password || existingServer.password,
           vhost: data.vhost || existingServer.vhost,

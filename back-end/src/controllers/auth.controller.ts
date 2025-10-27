@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { strictRateLimiter } from "@/middlewares/security";
 import registrationRoutes from "./auth/registration.controller";
 import sessionRoutes from "./auth/session.controller";
 import verificationRoutes from "./auth/verification.controller";
