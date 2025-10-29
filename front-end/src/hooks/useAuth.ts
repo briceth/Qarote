@@ -10,7 +10,7 @@ export const useLogin = () => {
     mutationFn: async (credentials: LoginRequest) => {
       return await apiClient.login(credentials);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       logger.info("Login success", data);
       login(data.token, data.user);
     },

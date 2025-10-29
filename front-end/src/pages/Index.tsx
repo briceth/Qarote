@@ -25,17 +25,21 @@ import { TimeRange } from "@/components/TimeRangeSelector";
 
 const Index = () => {
   const { selectedServerId, hasServers } = useServerContext();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, refetchUser } = useAuth();
   const navigate = useNavigate();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [liveRatesTimeRange, setLiveRatesTimeRange] = useState<TimeRange>("1d");
 
   // Check if user needs to create a workspace
   useEffect(() => {
-    if (isAuthenticated && user && !user?.workspaceId) {
-      navigate("/workspace", { replace: true });
+    if (isAuthenticated) {
+      if (!user?.workspaceId) {
+        navigate("/workspace", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, refetchUser]);
 
   const {
     overview,

@@ -18,7 +18,6 @@ import {
 import { Plus, Loader2, CheckCircle } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContextDefinition";
-import { useUser } from "@/hooks/useUser";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
 import { WorkspaceFormData, workspaceSchema } from "@/schemas/forms";
@@ -29,7 +28,7 @@ const Workspace = () => {
   const queryClient = useQueryClient();
 
   // Check if user already has workspaces
-  const { data: workspacesData, isLoading: workspacesLoading } = useQuery({
+  const { isLoading: workspacesLoading } = useQuery({
     queryKey: ["workspaces"],
     queryFn: () => apiClient.getUserWorkspaces(),
     enabled: !!user,
@@ -75,14 +74,6 @@ const Workspace = () => {
       tags: data.tags?.filter((tag) => tag.trim().length > 0) || undefined,
     });
   };
-
-  // Check if user already has workspaces and redirect if needed
-  useEffect(() => {
-    const existingWorkspaces = workspacesData?.workspaces || [];
-    if (existingWorkspaces.length > 0 && !createWorkspaceMutation.isSuccess) {
-      navigate("/", { replace: true });
-    }
-  }, [workspacesData, createWorkspaceMutation.isSuccess, navigate]);
 
   if (workspacesLoading) {
     return (

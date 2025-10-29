@@ -95,7 +95,7 @@ googleController.post(
         id: user.id,
         email: user.email,
         role: user.role,
-        workspaceId: null,
+        workspaceId: user.workspaceId || null,
       });
 
       const safeUser: SafeUser = {
@@ -104,7 +104,7 @@ googleController.post(
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        workspaceId: null,
+        workspaceId: user.workspaceId || null,
         isActive: user.isActive,
         emailVerified: user.emailVerified,
         lastLogin: user.lastLogin,
