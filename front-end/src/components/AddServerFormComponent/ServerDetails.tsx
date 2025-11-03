@@ -39,7 +39,31 @@ export const ServerDetails = ({ form }: ServerDetailsProps) => {
             <FormItem>
               <FormLabel>Host</FormLabel>
               <FormControl>
-                <Input placeholder="localhost" {...field} />
+                <Input
+                  placeholder="localhost"
+                  {...field}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value);
+
+                    // Auto-detect tunnel URLs and adjust config
+                    const lowerValue = value.toLowerCase();
+                    const isTunnel =
+                      lowerValue.includes("ngrok") ||
+                      lowerValue.includes("localtunnel") ||
+                      lowerValue.includes("loca.lt");
+
+                    if (isTunnel) {
+                      // Tunnels always use HTTPS
+                      form.setValue("useHttps", true);
+                      // Most tunnels use port 443 (implicit in HTTPS)
+                      const currentPort = form.getValues("port");
+                      if (currentPort === 15672 || currentPort === 15671) {
+                        form.setValue("port", 443);
+                      }
+                    }
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

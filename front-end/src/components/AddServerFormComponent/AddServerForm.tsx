@@ -26,6 +26,7 @@ import { Credentials } from "./Credentials";
 import { ConnectionStatusDisplay } from "./ConnectionStatusDisplay";
 import { TestConnectionButton } from "./TestConnectionButton";
 import { RabbitMqVersionInfo } from "./RabbitMqVersionInfo";
+import { TunnelHelper } from "./TunnelHelper";
 import type { AddServerFormProps, ConnectionStatus } from "./types";
 
 export const AddServerForm = ({
@@ -255,6 +256,8 @@ export const AddServerForm = ({
               <RabbitMqVersionInfo />
 
               <ServerDetails form={form} />
+
+              <TunnelHelper form={form} />
 
               <Credentials form={form} />
 

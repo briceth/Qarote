@@ -2,6 +2,7 @@ import { Agent } from "undici";
 import type { RabbitMQCredentials } from "@/types/rabbitmq";
 import { logger } from "../logger";
 import { captureRabbitMQError } from "../sentry";
+import { normalizeTunnelCredentials } from "./tunnel";
 
 // Define extended RequestInit type to include dispatcher
 // Alternative: Extend the RequestInit interface (cleaner TypeScript approach)
@@ -32,18 +33,35 @@ export class RabbitMQBaseClient {
   protected vhost: string;
 
   constructor(credentials: RabbitMQCredentials) {
+    // Normalize tunnel URLs automatically
+    const normalized = normalizeTunnelCredentials(
+      credentials.host,
+      credentials.port,
+      credentials.useHttps
+    );
+
     logger.debug(
       {
         host: credentials.host,
+        normalizedHost: normalized.host,
         port: credentials.port,
+        normalizedPort: normalized.port,
         username: credentials.username,
         vhost: credentials.vhost,
         useHttps: credentials.useHttps,
+        normalizedUseHttps: normalized.useHttps,
       },
       "Initializing RabbitMQBaseClient with credentials"
     );
-    const protocol = credentials.useHttps ? "https" : "http";
-    this.baseUrl = `${protocol}://${credentials.host}:${credentials.port}/api`;
+
+    const protocol = normalized.useHttps ? "https" : "http";
+    // For tunnels, port 443 is implicit in HTTPS URLs
+    const port =
+      normalized.useHttps && normalized.port === 443
+        ? ""
+        : `:${normalized.port}`;
+
+    this.baseUrl = `${protocol}://${normalized.host}${port}/api`;
 
     this.authHeader = `Basic ${Buffer.from(
       `${credentials.username}:${credentials.password}`
