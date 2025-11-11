@@ -35,22 +35,30 @@ const prisma = new PrismaClient();
 
 const app = new Hono();
 
-// Core middlewares - applied to all routes
+// Create a completely separate app for webhooks
+// This ensures NO middleware touches the raw body needed for Stripe signature verification
+const webhookApp = new Hono();
+// Only add essential middlewares that don't touch the body
+webhookApp.use(honoLogger());
+webhookApp.use("*", secureHeaders());
+webhookApp.use("*", requestIdMiddleware);
+webhookApp.use("*", performanceMonitoring);
+webhookApp.use("*", corsMiddleware);
+webhookApp.use("*", standardRateLimiter);
+// NO prettyJSON middleware here - it would modify the body and break signature verification!
+webhookApp.route("/", webhookController);
+
+// Core middlewares for main app
 app.use(honoLogger());
-app.use("*", async (c, next) => {
-  if (c.req.path.startsWith("/webhooks")) {
-    // Skip prettyJSON for webhook routes to preserve raw body
-    await next();
-  } else {
-    // Apply prettyJSON for all other routes
-    return prettyJSON()(c, next);
-  }
-});
+app.use("*", prettyJSON());
 app.use("*", secureHeaders());
 app.use("*", requestIdMiddleware);
 app.use("*", performanceMonitoring);
 app.use("*", corsMiddleware);
 app.use("*", standardRateLimiter);
+
+// Mount webhook app BEFORE other routes to ensure it's processed first
+app.route("/webhooks", webhookApp);
 
 // endpoint routes
 app.route("/api/servers", serverController);
@@ -62,7 +70,6 @@ app.route("/api/invitations", publicInvitationController);
 app.route("/api/feedback", feedbackController);
 app.route("/api/payments", paymentController);
 app.route("/api/discourse", discourseController);
-app.route("/webhooks", webhookController);
 app.route("/", healthcheckController);
 
 const { port, host } = serverConfig;
