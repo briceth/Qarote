@@ -10,7 +10,7 @@ import {
 } from "@/schemas/auth";
 import { EncryptionService } from "@/services/encryption.service";
 import { isDevelopment } from "@/config";
-import { strictRateLimiter } from "@/middlewares/security";
+import { strictRateLimiter } from "@/middlewares/rateLimiter";
 import { passwordResetEmailService } from "@/services/email/password-reset-email.service";
 import { auditService } from "@/services/audit.service";
 

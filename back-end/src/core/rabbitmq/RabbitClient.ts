@@ -13,7 +13,7 @@ import { RabbitMQApiClient } from "./ApiClient";
 import { RabbitMQQueueClient } from "./QueueClient";
 import { RabbitMQMetricsCalculator } from "./MetricsCalculator";
 import { logger } from "../logger";
-import { captureRabbitMQError } from "../sentry";
+import { captureRabbitMQError } from "../../services/sentry";
 
 /**
  * Main RabbitMQ client that combines all functionality

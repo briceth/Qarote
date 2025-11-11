@@ -1,6 +1,6 @@
 import { RabbitMQBaseClient } from "./BaseClient";
 import { logger } from "../logger";
-import { captureRabbitMQError } from "../sentry";
+import { captureRabbitMQError } from "../../services/sentry";
 import type {
   RabbitMQOverview,
   RabbitMQQueue,

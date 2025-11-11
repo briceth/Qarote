@@ -1,43 +1,5 @@
-import { Context, Next } from "hono";
+import { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
-import { v4 as uuidv4 } from "uuid";
-import { logger } from "@/core/logger";
-
-// Performance monitoring thresholds
-const SLOW_REQUEST_THRESHOLD = 1000; // 1 second
-
-/**
- * Request ID middleware - adds unique ID to each request for tracing
- */
-export const requestIdMiddleware = async (c: Context, next: Next) => {
-  const requestId = uuidv4();
-  c.set("requestId", requestId);
-  c.header("X-Request-ID", requestId);
-
-  logger.info(`[REQUEST] ${requestId} ${c.req.method} ${c.req.path}`);
-
-  await next();
-};
-
-/**
- * Performance monitoring middleware - logs slow requests
- */
-export const performanceMonitoring = async (c: Context, next: Next) => {
-  const startTime = Date.now();
-  const requestId = c.get("requestId") || "unknown";
-
-  await next();
-
-  const duration = Date.now() - startTime;
-
-  if (duration > SLOW_REQUEST_THRESHOLD) {
-    logger.warn(
-      `[SLOW_REQUEST] ${requestId} ${c.req.method} ${c.req.path} took ${duration}ms`
-    );
-  }
-
-  c.header("X-Response-Time", `${duration}ms`);
-};
 
 /**
  * Rate limiting using hono-rate-limiter

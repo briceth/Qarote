@@ -7,7 +7,7 @@ import {
 } from "@notionhq/client";
 import { isProduction, notionConfig, serverConfig } from "@/config";
 import { logger } from "@/core/logger";
-import { Sentry, setSentryContext } from "@/core/sentry";
+import { Sentry, setSentryContext } from "@/services/sentry";
 import type { User } from "@prisma/client";
 import type {
   CreateNotionUserParams,

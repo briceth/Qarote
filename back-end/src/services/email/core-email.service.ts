@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { logger } from "@/core/logger";
-import { Sentry, setSentryContext } from "@/core/sentry";
+import { Sentry, setSentryContext } from "@/services/sentry";
 import { emailConfig } from "@/config";
 
 export interface EmailResult {

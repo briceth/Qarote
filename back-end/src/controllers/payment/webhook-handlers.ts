@@ -6,6 +6,7 @@ import {
 } from "@prisma/client";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
+import { trackPaymentError } from "@/services/sentry";
 import {
   StripeService,
   Session,
@@ -130,6 +131,10 @@ export async function handleCheckoutSessionCompleted(session: Session) {
     logger.info(`User ${userId} upgraded to ${plan}`);
   } catch (error) {
     logger.error({ error }, "Error handling checkout session completed");
+    trackPaymentError("webhook", {
+      handler: "handleCheckoutSessionCompleted",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }
 
@@ -245,6 +250,10 @@ export async function handleSubscriptionChange(subscription: Subscription) {
     );
   } catch (error) {
     logger.error({ error }, "Error handling subscription change");
+    trackPaymentError("webhook", {
+      handler: "handleSubscriptionChange",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -278,6 +287,10 @@ export async function handleSubscriptionDeleted(subscription: Subscription) {
     logger.info(`User ${user.id} subscription deleted`);
   } catch (error) {
     logger.error({ error }, "Error handling subscription deletion");
+    trackPaymentError("webhook", {
+      handler: "handleSubscriptionDeleted",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -345,6 +358,10 @@ export async function handleInvoicePaymentSucceeded(invoice: Invoice) {
     );
   } catch (error) {
     logger.error({ error }, "Error handling invoice payment succeeded");
+    trackPaymentError("webhook", {
+      handler: "handleInvoicePaymentSucceeded",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -412,8 +429,24 @@ export async function handleInvoicePaymentFailed(invoice: Invoice) {
     logger.info(
       `Failed payment recorded for user ${user.id}: ${invoice.amount_due} ${invoice.currency}`
     );
+
+    // Track payment error metric
+    const lastPaymentAttempt = getInvoiceLastPaymentAttempt(invoice);
+    trackPaymentError("invoice_failed", {
+      user_id: user.id,
+      invoice_id: invoice.id,
+      amount: String(invoice.amount_due),
+      currency: invoice.currency || "unknown",
+      failure_code:
+        lastPaymentAttempt?.payment_intent?.last_payment_error?.code ||
+        "unknown",
+    });
   } catch (error) {
     logger.error({ error }, "Error handling invoice payment failed");
+    trackPaymentError("webhook", {
+      handler: "handleInvoicePaymentFailed",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -450,6 +483,10 @@ export async function handleCustomerSubscriptionDeleted(
     logger.info(`User ${user.id} subscription deleted`);
   } catch (error) {
     logger.error({ error }, "Error handling customer subscription deleted");
+    trackPaymentError("webhook", {
+      handler: "handleCustomerSubscriptionDeleted",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -483,6 +520,10 @@ export async function handleTrialWillEnd(subscription: Subscription) {
     logger.info(`Trial ending notification sent for user ${user.id}`);
   } catch (error) {
     logger.error({ error }, "Error handling trial will end");
+    trackPaymentError("webhook", {
+      handler: "handleTrialWillEnd",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -521,6 +562,10 @@ export async function handlePaymentActionRequired(invoice: Invoice) {
     );
   } catch (error) {
     logger.error({ error }, "Error handling payment action required");
+    trackPaymentError("webhook", {
+      handler: "handlePaymentActionRequired",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -558,6 +603,10 @@ export async function handleUpcomingInvoice(invoice: Invoice) {
     logger.info(`Upcoming invoice notification sent for user ${user.id}`);
   } catch (error) {
     logger.error({ error }, "Error handling upcoming invoice");
+    trackPaymentError("webhook", {
+      handler: "handleUpcomingInvoice",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -590,8 +639,21 @@ export async function handlePaymentIntentFailed(paymentIntent: PaymentIntent) {
     });
 
     logger.info(`Payment failed notification sent for user ${user.id}`);
+
+    // Track payment error metric
+    trackPaymentError("payment_intent_failed", {
+      user_id: user.id,
+      payment_intent_id: paymentIntent.id,
+      amount: String(paymentIntent.amount),
+      currency: paymentIntent.currency || "unknown",
+      failure_code: paymentIntent.last_payment_error?.code || "unknown",
+    });
   } catch (error) {
     logger.error({ error }, "Error handling payment intent failed");
+    trackPaymentError("webhook", {
+      handler: "handlePaymentIntentFailed",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -639,6 +701,10 @@ export async function handlePaymentIntentSucceeded(
     logger.info(`Payment intent ${paymentIntent.id} processed successfully`);
   } catch (error) {
     logger.error({ error }, "Error handling payment intent succeeded");
+    trackPaymentError("webhook", {
+      handler: "handlePaymentIntentSucceeded",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -673,6 +739,10 @@ export async function handleCustomerUpdated(customer: Customer) {
     logger.info(`Customer updated event processed for user ${user.id}`);
   } catch (error) {
     logger.error({ error }, "Error handling customer updated");
+    trackPaymentError("webhook", {
+      handler: "handleCustomerUpdated",
+      error_message: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }

@@ -4,7 +4,7 @@ import { OAuth2Client } from "google-auth-library";
 import { z } from "zod/v4";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
-import { setSentryUser } from "@/core/sentry";
+import { setSentryUser, trackSignUpError } from "@/services/sentry";
 import { generateToken, SafeUser } from "@/core/auth";
 import { googleConfig } from "@/config";
 import { UserRole } from "@prisma/client";
@@ -36,6 +36,7 @@ googleController.post(
 
       const payload = ticket.getPayload();
       if (!payload) {
+        trackSignUpError("invalid_token", { reason: "invalid_google_token" });
         return c.json({ error: "Invalid Google token" }, 401);
       }
 
@@ -204,6 +205,9 @@ googleController.post(
       return c.json({ user: safeUser, token });
     } catch (error) {
       logger.error({ error }, "Google OAuth login error");
+      trackSignUpError("google_oauth", {
+        error_message: error instanceof Error ? error.message : "Unknown error",
+      });
       return c.json({ error: "Failed to authenticate with Google" }, 500);
     }
   }

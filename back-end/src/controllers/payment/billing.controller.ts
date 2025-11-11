@@ -3,7 +3,10 @@ import { authenticate } from "@/core/auth";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
 import { StripeService } from "@/services/stripe/stripe.service";
-import { strictRateLimiter, billingRateLimiter } from "@/middlewares/security";
+import {
+  strictRateLimiter,
+  billingRateLimiter,
+} from "@/middlewares/rateLimiter";
 import { getUserResourceCounts } from "@/services/plan/plan.service";
 import { config } from "@/config";
 import { mapStripeStatusToSubscriptionStatus } from "./webhook-handlers";

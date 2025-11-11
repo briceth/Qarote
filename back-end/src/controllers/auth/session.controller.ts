@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
-import { setSentryUser } from "@/core/sentry";
+import { setSentryUser } from "@/services/sentry";
 import {
   comparePassword,
   generateToken,

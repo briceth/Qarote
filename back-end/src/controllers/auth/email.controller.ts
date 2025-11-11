@@ -6,7 +6,7 @@ import { comparePassword, authenticate } from "@/core/auth";
 import { EmailChangeRequestSchema } from "@/schemas/auth";
 import { EmailVerificationService } from "@/services/email/email-verification.service";
 import { auditService } from "@/services/audit.service";
-import { strictRateLimiter } from "@/middlewares/security";
+import { strictRateLimiter } from "@/middlewares/rateLimiter";
 
 const emailController = new Hono();
 

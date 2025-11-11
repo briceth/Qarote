@@ -7,6 +7,7 @@ import { hashPassword } from "@/core/auth";
 import { RegisterUserSchema } from "@/schemas/auth";
 import { EmailVerificationService } from "@/services/email/email-verification.service";
 import { notionService } from "@/services/integrations/notion.service";
+import { trackSignUpError } from "@/services/sentry";
 
 const registrationController = new Hono();
 
@@ -25,6 +26,7 @@ registrationController.post(
       });
 
       if (existingUser) {
+        trackSignUpError("email_exists", { email });
         return c.json({ error: "Email already in use" }, 400);
       }
 
@@ -131,6 +133,9 @@ registrationController.post(
       );
     } catch (error) {
       logger.error({ error }, "Registration error");
+      trackSignUpError("registration", {
+        error_message: error instanceof Error ? error.message : "Unknown error",
+      });
       return c.json({ error: "Failed to register user" }, 500);
     }
   }

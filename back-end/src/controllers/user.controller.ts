@@ -9,7 +9,7 @@ import { UserRole } from "@prisma/client";
 import { logger } from "@/core/logger";
 import { planValidationMiddleware } from "@/middlewares/plan-validation";
 import { EmailVerificationService } from "@/services/email/email-verification.service";
-import { strictRateLimiter } from "@/middlewares/security";
+import { strictRateLimiter } from "@/middlewares/rateLimiter";
 import { UpdateWorkspaceSchema } from "@/schemas/workspace";
 
 const userController = new Hono();

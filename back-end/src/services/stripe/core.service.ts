@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { UserPlan } from "@prisma/client";
 import { logger } from "@/core/logger";
-import { Sentry, setSentryContext } from "@/core/sentry";
+import { Sentry, setSentryContext, trackPaymentError } from "@/services/sentry";
 import { stripeConfig } from "@/config";
 
 // Export types for use in controllers
@@ -139,6 +139,18 @@ export class CoreStripeService {
         ...context,
       });
       Sentry.captureException(error);
+    });
+
+    // Track payment error metric
+    trackPaymentError("stripe_operation", {
+      operation,
+      error_message: error instanceof Error ? error.message : "Unknown error",
+      ...Object.fromEntries(
+        Object.entries(context).map(([k, v]) => [
+          k,
+          typeof v === "string" ? v : String(v),
+        ])
+      ),
     });
   }
 }

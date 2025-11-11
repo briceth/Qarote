@@ -3,7 +3,7 @@ import { UserRole } from "@prisma/client";
 import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
 import { authorize, checkWorkspaceAccess } from "@/core/auth";
-import { strictRateLimiter } from "@/middlewares/security";
+import { strictRateLimiter } from "@/middlewares/rateLimiter";
 
 const dataRoutes = new Hono();
 

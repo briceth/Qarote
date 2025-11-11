@@ -1,7 +1,7 @@
 import { Agent } from "undici";
 import type { RabbitMQCredentials } from "@/types/rabbitmq";
 import { logger } from "../logger";
-import { captureRabbitMQError } from "../sentry";
+import { captureRabbitMQError } from "../../services/sentry";
 import { normalizeTunnelCredentials } from "./tunnel";
 
 // Define extended RequestInit type to include dispatcher

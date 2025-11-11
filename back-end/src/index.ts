@@ -1,4 +1,4 @@
-import { initSentry } from "@/core/sentry";
+import { initSentry } from "@/services/sentry";
 initSentry();
 
 import { serve } from "@hono/node-server";
@@ -26,8 +26,8 @@ import { corsMiddleware } from "@/middlewares/cors";
 import {
   requestIdMiddleware,
   performanceMonitoring,
-  standardRateLimiter,
-} from "@/middlewares/security";
+} from "@/middlewares/request";
+import { standardRateLimiter } from "./middlewares/rateLimiter";
 // import { alertService } from "./services/alert.service";
 // import { TemporaryStorage } from "./core/privacy";
 

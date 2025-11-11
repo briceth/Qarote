@@ -6,7 +6,7 @@ import { logger } from "@/core/logger";
 import { authenticate } from "@/core/auth";
 import { StripeService } from "@/services/stripe/stripe.service";
 import { createCheckoutSessionSchema } from "@/schemas/payment";
-import { strictRateLimiter } from "@/middlewares/security";
+import { strictRateLimiter } from "@/middlewares/rateLimiter";
 import { emailConfig } from "@/config";
 import { getUserDisplayName } from "../shared";
 

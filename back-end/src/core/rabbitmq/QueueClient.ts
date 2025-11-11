@@ -1,6 +1,9 @@
 import { RabbitMQBaseClient } from "./BaseClient";
 import { logger } from "../logger";
-import { captureRabbitMQError, captureMessageProcessingError } from "../sentry";
+import {
+  captureRabbitMQError,
+  captureMessageProcessingError,
+} from "../../services/sentry";
 import type {
   RabbitMQMessage,
   MessageProperties,
