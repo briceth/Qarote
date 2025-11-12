@@ -11,7 +11,6 @@ import {
   Shield,
   Star,
   TrendingUp,
-  Twitter,
   X,
   Zap,
 } from "lucide-react";
@@ -269,7 +268,7 @@ const Index = () => {
           },
           description:
             "The modern RabbitMQ management interface your team deserves. Cleaner than Management Plugin. Simpler than Prometheus. Cheaper than Cloud Solutions.",
-          screenshot: "https://rabbithq.io/social-card.png",
+          screenshot: "https://rabbithq.io/new_social_card.png",
           softwareVersion: "1.0",
           aggregateRating: {
             "@type": "AggregateRating",
@@ -1225,12 +1224,6 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-6">
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
               <a
                 href="/privacy-policy"
                 className="text-muted-foreground hover:text-foreground transition-colors text-sm"
