@@ -28,7 +28,7 @@ export const getLogsFeatureStatus = () => {
     enabled,
     statusText: enabled ? "Available" : "Coming Soon",
     description: enabled
-      ? "Track user actions and system events in real-time"
+      ? "Track user actions and system events in live"
       : "Advanced logging and audit trail functionality is coming soon to production environments",
   };
 };

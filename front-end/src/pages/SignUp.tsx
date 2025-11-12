@@ -60,6 +60,18 @@ const SignUp: React.FC = () => {
     }
   }, [isAuthenticated, navigate, from]);
 
+  // Track sign up event with Google Analytics
+  useEffect(() => {
+    if (registerMutation.isSuccess && registerMutation.data) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "sign_up",
+        method: "email",
+        email: registerMutation.data.email,
+      });
+    }
+  }, [registerMutation.isSuccess, registerMutation.data]);
+
   const onSubmit = (data: SignUpFormData) => {
     const userData = {
       email: data.email,

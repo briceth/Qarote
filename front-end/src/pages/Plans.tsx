@@ -347,10 +347,10 @@ export const PlansPage: React.FC<PlansPageProps> = ({ onUpgrade }) => {
                         <Zap className="w-6 h-6 text-blue-600" />
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-1">
-                        Real-time Monitoring
+                        Live Monitoring
                       </h3>
                       <p className="text-sm text-gray-600 text-center">
-                        Monitor your RabbitMQ servers with millisecond precision
+                        Monitor your RabbitMQ servers with second precision
                       </p>
                     </div>
                     <div className="flex flex-col items-center p-4">
@@ -361,7 +361,7 @@ export const PlansPage: React.FC<PlansPageProps> = ({ onUpgrade }) => {
                         Smart Analytics
                       </h3>
                       <p className="text-sm text-gray-600 text-center">
-                        AI-powered insights and memory optimization tips
+                        Insights and memory optimization tips
                       </p>
                     </div>
                     <div className="flex flex-col items-center p-4">

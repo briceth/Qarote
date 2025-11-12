@@ -107,7 +107,7 @@ export const VisualizationControls: React.FC<VisualizationControlsProps> = ({
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Real-time Metrics */}
+        {/* Live Metrics */}
         <Card className="m-4 mb-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">

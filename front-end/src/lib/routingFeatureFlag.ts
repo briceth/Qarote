@@ -28,7 +28,7 @@ export const getRoutingFeatureStatus = () => {
     enabled,
     statusText: enabled ? "Available" : "Coming Soon",
     description: enabled
-      ? "Interactive diagrams showing real-time message flows across exchanges"
+      ? "Interactive diagrams showing live message flows across exchanges"
       : "Advanced routing visualization with interactive diagrams is coming soon to production environments",
   };
 };

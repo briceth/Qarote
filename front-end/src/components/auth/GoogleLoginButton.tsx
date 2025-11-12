@@ -31,6 +31,16 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       // Set authentication state
       login(data.token, data.user);
 
+      // Track sign up event with Google Analytics if in signup mode
+      if (mode === "signup") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "sign_up",
+          method: "google",
+          user_id: data.user.id,
+        });
+      }
+
       onSuccess?.();
     },
     onError: (error: Error) => {

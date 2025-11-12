@@ -15,6 +15,7 @@ import { PageLoader } from "@/components/PageLoader";
 import { Layout } from "@/components/Layout";
 import { SentryErrorBoundary, withSentryProfiling } from "@/lib/sentry";
 import { queryClient } from "@/lib/queryClient";
+import TawkTo from "@/components/TawkTo";
 
 // Lazy load all pages
 const Index = lazy(() => import("./pages/Index"));
@@ -62,6 +63,7 @@ const AppCore = () => (
                     v7_relativeSplatPath: true,
                   }}
                 >
+                  <TawkTo />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       {/* Public authentication routes */}

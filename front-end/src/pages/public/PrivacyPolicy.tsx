@@ -79,7 +79,7 @@ export default function PrivacyPolicy() {
               <li>Server performance metrics</li>
             </ul>
             <p>
-              By default, we operate in real-time mode with no persistent data
+              By default, we operate in live mode with no persistent data
               storage. However, based on your selected retention settings, we
               may store message data temporarily.
             </p>
@@ -129,7 +129,7 @@ export default function PrivacyPolicy() {
                 for analytics
               </li>
               <li>
-                By default, we operate in real-time mode with no persistent data
+                By default, we operate in live mode with no persistent data
                 storage
               </li>
             </ul>

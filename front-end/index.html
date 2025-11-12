@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/icon_rabbit.svg" />
+    <link rel="icon" type="image/svg+xml" href="/new_icon_rabbit.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>rabbithq</title>
     <meta name="description" content="Rabbit Generated Project" />
@@ -11,11 +11,11 @@
     <meta property="og:title" content="rabbithq" />
     <meta property="og:description" content="rabbit Generated Project" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="icon_rabbit.svg" />
+    <meta property="og:image" content="new_icon_rabbit.svg" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@rabbit_dev" />
-    <meta name="twitter:image" content="icon_rabbit.svg" />
+    <meta name="twitter:image" content="new_icon_rabbit.svg" />
 
     <!-- Google Tag Manager -->
     <script>
@@ -47,37 +47,5 @@
 
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-
-    <!-- Production-only scripts -->
-    <script type="module">
-      // Only load analytics in production
-      if (import.meta.env.PROD) {
-        // Load Umami Analytics
-        const umamiScript = document.createElement("script");
-        umamiScript.defer = true;
-        umamiScript.src = "https://cloud.umami.is/script.js";
-        umamiScript.setAttribute(
-          "data-website-id",
-          "8b4a4371-41e7-4f8d-a3f8-90b5ff31b945"
-        );
-        document.head.appendChild(umamiScript);
-      }
-    </script>
-
-    <!--Start of Tawk.to Script-->
-    <script type="text/javascript">
-      var Tawk_API = Tawk_API || {},
-        Tawk_LoadStart = new Date();
-      (function () {
-        var s1 = document.createElement("script"),
-          s0 = document.getElementsByTagName("script")[0];
-        s1.async = true;
-        s1.src = "https://embed.tawk.to/68b6ac54065fda19279ca7e6/1j44p2ar4";
-        s1.charset = "UTF-8";
-        s1.setAttribute("crossorigin", "*");
-        s0.parentNode.insertBefore(s1, s0);
-      })();
-    </script>
-    <!--End of Tawk.to Script-->
   </body>
 </html>

@@ -94,7 +94,11 @@ const Workspace = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-                <img src="/icon_rabbit.svg" alt="Rabbit" className="w-4 h-4" />
+                <img
+                  src="/new_icon_rabbit.svg"
+                  alt="Rabbit"
+                  className="w-4 h-4"
+                />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">

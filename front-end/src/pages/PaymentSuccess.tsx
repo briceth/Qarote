@@ -1,21 +1,22 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, ArrowRight, CreditCard } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api";
 import logger from "@/lib/logger";
 
 const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { refetch, refetchPlan, planData } = useUser();
+  const { refetchPlan, planData } = useUser();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     // Refresh workspace data to get updated plan
     const refreshData = async () => {
       try {
-        await refetch();
+        // await refetch();
         await refetchPlan();
         // Invalidate all plan-related queries
         await queryClient.invalidateQueries({ queryKey: ["plans"] });
@@ -27,9 +28,10 @@ const PaymentSuccess: React.FC = () => {
     };
 
     refreshData();
-  }, [refetch, refetchPlan, queryClient]);
+  }, [refetchPlan, queryClient]);
 
   const sessionId = searchParams.get("session_id");
+  const [purchaseTracked, setPurchaseTracked] = useState(false);
 
   // Log session ID for debugging but don't display it
   useEffect(() => {
@@ -37,6 +39,67 @@ const PaymentSuccess: React.FC = () => {
       logger.info("Payment completed successfully", { sessionId });
     }
   }, [sessionId]);
+
+  // Track purchase event with Google Analytics
+  useEffect(() => {
+    const trackPurchase = async () => {
+      if (!sessionId || purchaseTracked) return;
+
+      try {
+        // Get payment history to find the latest payment
+        const paymentHistory = await apiClient.getPaymentHistory(1, 0);
+
+        if (paymentHistory.payments && paymentHistory.payments.length > 0) {
+          const latestPayment = paymentHistory.payments[0];
+
+          // Track purchase event
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "purchase",
+            transaction_id: sessionId,
+            value: latestPayment.amount / 100, // Convert from cents to currency unit
+            currency: latestPayment.currency.toUpperCase(),
+          });
+
+          setPurchaseTracked(true);
+          logger.info("Purchase event tracked", {
+            transaction_id: sessionId,
+            value: latestPayment.amount / 100,
+            currency: latestPayment.currency,
+          });
+        } else {
+          // Fallback: use sessionId as transaction_id with default values
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "purchase",
+            transaction_id: sessionId,
+            value: 0, // Will need to be updated if payment details are not available
+            currency: "EUR",
+          });
+
+          setPurchaseTracked(true);
+          logger.warn("Purchase event tracked with fallback values", {
+            transaction_id: sessionId,
+          });
+        }
+      } catch (error) {
+        logger.error("Failed to track purchase event:", error);
+        // Still track with sessionId as fallback
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "purchase",
+          transaction_id: sessionId,
+          value: 0,
+          currency: "EUR",
+        });
+        setPurchaseTracked(true);
+      }
+    };
+
+    if (sessionId) {
+      trackPurchase();
+    }
+  }, [sessionId, purchaseTracked]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-600 via-red-600 to-orange-700 flex items-center justify-center p-4">
@@ -58,7 +121,7 @@ const PaymentSuccess: React.FC = () => {
             <div className="flex items-center justify-center mb-2">
               <CreditCard className="w-5 h-5 text-green-600 mr-2" />
               <span className="font-medium text-green-800">
-                {planData.workspace.plan} Plan Activated
+                {planData.user.plan} Plan Activated
               </span>
             </div>
             <p className="text-sm text-green-600">

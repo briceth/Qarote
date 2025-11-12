@@ -43,8 +43,7 @@ const faqs = [
   },
   {
     question: "What data does the dashboard store?",
-    answer:
-      "The dashboard operates in real-time mode with no persistent storage.",
+    answer: "The dashboard operates in live mode with no persistent storage.",
   },
   {
     question: "How do I set up alerts?",

@@ -397,7 +397,7 @@ const Logs = () => {
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Sparkles className="h-4 w-4" />
-                    <span>Real-time updates</span>
+                    <span>Live updates</span>
                   </div>
                 </div>
               </CardHeader>

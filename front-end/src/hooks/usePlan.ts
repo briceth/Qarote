@@ -7,7 +7,7 @@ import { useUser } from "@/hooks/useUser";
 
 /**
  * Hook to get current user's plan data with usage information
- * This provides real-time plan features and usage limits
+ * This provides live plan features and usage limits
  */
 export function usePlanData() {
   const { user, planData, isLoading, planError, refetchPlan } = useUser();

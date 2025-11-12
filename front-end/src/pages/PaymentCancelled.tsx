@@ -8,7 +8,7 @@ import { UserPlan } from "@/types/plans";
 const PaymentCancelled: React.FC = () => {
   const navigate = useNavigate();
   const { handleUpgrade, isUpgrading } = usePlanUpgrade();
-  const { workspacePlan } = useUser();
+  const { userPlan } = useUser();
 
   // Helper function to get next plan
   const getNextPlan = (plan: UserPlan): UserPlan | null => {
@@ -22,7 +22,7 @@ const PaymentCancelled: React.FC = () => {
     }
   };
 
-  const nextPlan = getNextPlan(workspacePlan);
+  const nextPlan = getNextPlan(userPlan);
 
   const handleTryAgain = () => {
     if (nextPlan) {

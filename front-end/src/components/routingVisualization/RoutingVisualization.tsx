@@ -466,8 +466,8 @@ export const RoutingVisualization: React.FC = () => {
                       </Badge>
                     </h1>
                     <p className="text-blue-100 mt-1">
-                      Interactive diagrams showing real-time message flows
-                      across exchanges
+                      Interactive diagrams showing live message flows across
+                      exchanges
                     </p>
                   </div>
                 </div>
