@@ -16,7 +16,6 @@ interface UserContextType {
   canAddExchange: boolean;
   canAddVirtualHost: boolean;
   canAddRabbitMQUser: boolean;
-  canManageQueues: boolean;
   canConfigureAlerts: boolean;
   canCreateWorkspace: boolean;
   approachingLimits: boolean;

@@ -493,7 +493,6 @@ export default function UsersPage() {
                     <div>
                       <AddUserButton
                         serverId={currentServerId}
-                        onUpgradeClick={() => setShowUpgradeModal(true)}
                         onSuccess={() => {
                           setNewUserName("");
                           setNewUserPassword("");

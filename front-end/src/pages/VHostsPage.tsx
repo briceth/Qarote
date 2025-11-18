@@ -358,7 +358,6 @@ export default function VHostsPage() {
                   </div>
                   <AddVirtualHostButton
                     serverId={currentServerId}
-                    onUpgradeClick={() => setShowUpgradeModal(true)}
                     onSuccess={() => setNewVHostName("")}
                     initialName={newVHostName}
                   />

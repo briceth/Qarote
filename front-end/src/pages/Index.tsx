@@ -142,9 +142,7 @@ const Index = () => {
               </div>
               <div className="flex gap-3">
                 <PlanBadge />
-                <AddServerButton
-                  onUpgradeClick={() => setShowUpgradeModal(true)}
-                />
+                <AddServerButton />
               </div>
             </div>
 

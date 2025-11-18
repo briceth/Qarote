@@ -241,7 +241,6 @@ const Exchanges = () => {
               <div className="flex items-center gap-4">
                 <PlanBadge />
                 <AddExchangeButton
-                  onUpgradeClick={() => setShowUpgradeModal(true)}
                   onAddClick={() => setShowCreateExchangeModal(true)}
                 />
               </div>

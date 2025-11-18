@@ -40,11 +40,11 @@ export const PLAN_FEATURES: Record<UserPlan, PlanFeatures> = {
   [UserPlan.FREE]: {
     // Core permissions
     canAddServer: true,
-    canAddQueue: false,
-    canSendMessages: false,
-    canAddExchange: false,
-    canAddVirtualHost: false,
-    canAddRabbitMQUser: false,
+    canAddQueue: true,
+    canSendMessages: true,
+    canAddExchange: true,
+    canAddVirtualHost: true,
+    canAddRabbitMQUser: true,
     canInviteUsers: false,
 
     // Limits
@@ -73,6 +73,10 @@ export const PLAN_FEATURES: Record<UserPlan, PlanFeatures> = {
       "1 RabbitMQ server",
       "1 workspace",
       "1 user",
+      "Queue management",
+      "Exchange management",
+      "Virtual host management",
+      "RabbitMQ user management",
       "Mail support",
       "Community support",
     ],

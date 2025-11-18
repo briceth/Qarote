@@ -5,11 +5,7 @@ import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
 import { useNavigate } from "react-router-dom";
 
-interface AddServerButtonProps {
-  onUpgradeClick: () => void;
-}
-
-export const AddServerButton = ({ onUpgradeClick }: AddServerButtonProps) => {
+export const AddServerButton = () => {
   const {
     userPlan,
     canAddServer,

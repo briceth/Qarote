@@ -11,11 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
-import { MessageSquare, Users, Trash2, Lock } from "lucide-react";
+import { MessageSquare, Users } from "lucide-react";
 import { Queue } from "@/lib/api";
-import { useUser } from "@/hooks/useUser";
-import { UserPlan } from "@/types/plans";
-import { useNavigate } from "react-router-dom";
 
 interface QueueTableProps {
   queues: Queue[];
@@ -32,14 +29,6 @@ export function QueueTable({
   onNavigateToQueue,
   onRefetch,
 }: QueueTableProps) {
-  const navigate = useNavigate();
-  const { canManageQueues, userPlan } = useUser();
-
-  const handleQueueManagementClick = () => {
-    if (!canManageQueues) {
-      navigate("/plans");
-    }
-  };
 
   const getStatusBadge = (queue: Queue) => {
     if (queue.consumers > 0) {
@@ -154,31 +143,11 @@ export function QueueTable({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {canManageQueues ? (
-                        <PurgeQueueDialog
-                          queueName={queue.name}
-                          messageCount={queue.messages}
-                          onSuccess={() => onRefetch()}
-                        />
-                      ) : (
-                        <Button
-                          onClick={handleQueueManagementClick}
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700 opacity-60 cursor-pointer"
-                          title={
-                            userPlan === UserPlan.FREE
-                              ? "Upgrade to Developer or Enterprise plan to purge queues"
-                              : "Upgrade to purge queues"
-                          }
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Purge
-                          <span className="ml-1 px-1.5 py-0.5 text-white text-[10px] rounded-full font-semibold bg-orange-500">
-                            Upgrade
-                          </span>
-                        </Button>
-                      )}
+                      <PurgeQueueDialog
+                        queueName={queue.name}
+                        messageCount={queue.messages}
+                        onSuccess={() => onRefetch()}
+                      />
                     </TableCell>
                   </TableRow>
                 );

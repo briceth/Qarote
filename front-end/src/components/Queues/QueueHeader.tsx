@@ -8,32 +8,19 @@ interface QueueHeaderProps {
   workspaceLoading: boolean;
   canAddQueue: boolean;
   canSendMessages: boolean;
-  onAddQueueClick: () => void;
-  onSendMessageClick: () => void;
+  onAddQueueClick?: () => void;
+  onSendMessageClick?: () => void;
   onRefetch?: () => void; // Callback to refresh queue data
 }
 
-export function QueueHeader({
-  selectedServerId,
-  onAddQueueClick,
-  onSendMessageClick,
-  onRefetch,
-}: QueueHeaderProps) {
+export function QueueHeader({ selectedServerId, onRefetch }: QueueHeaderProps) {
   const actions = (
     <>
-      {/* Send Message Button with plan restrictions */}
-      <AddSendMessageButton
-        serverId={selectedServerId}
-        onUpgradeClick={onSendMessageClick}
-        onSuccess={onRefetch}
-      />
+      {/* Send Message Button */}
+      <AddSendMessageButton serverId={selectedServerId} onSuccess={onRefetch} />
 
-      {/* Add Queue Button with plan restrictions */}
-      <AddQueueButton
-        serverId={selectedServerId}
-        onUpgradeClick={onAddQueueClick}
-        onSuccess={onRefetch}
-      />
+      {/* Add Queue Button */}
+      <AddQueueButton serverId={selectedServerId} onSuccess={onRefetch} />
     </>
   );
 

@@ -1,13 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ArrowLeft, Send, Trash2, Lock, Pause, Play } from "lucide-react";
+import { ArrowLeft, Send, Trash2, Pause, Play } from "lucide-react";
 import { PurgeQueueDialog } from "@/components/PurgeQueueDialog";
 import { PauseQueueDialog } from "@/components/PauseQueueDialog";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
-import { useUser } from "@/hooks/useUser";
 import { useQueuePauseStatus } from "@/hooks/useApi";
-import { useNavigate } from "react-router-dom";
-import { UserPlan } from "@/types/plans";
 
 interface QueueHeaderProps {
   queueName: string;
@@ -28,24 +25,9 @@ export function QueueHeader({
   onRefetch,
   onDeleteQueue,
 }: QueueHeaderProps) {
-  const navigate = useNavigate();
-  const { canSendMessages, canManageQueues, userPlan } = useUser();
-
   // Get the actual pause status from the backend
   const { data: pauseStatus, refetch: refetchPauseStatus } =
     useQueuePauseStatus(selectedServerId, queueName);
-
-  const handleSendMessageClick = () => {
-    if (!canSendMessages) {
-      navigate("/plans");
-    }
-  };
-
-  const handleQueueManagementClick = () => {
-    if (!canManageQueues) {
-      navigate("/plans");
-    }
-  };
 
   const isPaused = pauseStatus?.pauseState?.isPaused ?? false;
 
@@ -66,125 +48,68 @@ export function QueueHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Send Message Button with plan restrictions */}
-          {canSendMessages ? (
-            <SendMessageDialog
-              queueName={queueName}
-              serverId={selectedServerId}
-              onSuccess={onRefetch}
-              trigger={
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
-                >
-                  <Send className="w-4 h-4" />
-                  Send Message
-                </Button>
-              }
-            />
-          ) : (
-            <Button
-              onClick={handleSendMessageClick}
-              variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
-              title={
-                userPlan === UserPlan.FREE
-                  ? "Upgrade to Developer or Enterprise plan to send messages"
-                  : "Upgrade to send messages"
-              }
-            >
-              <Lock className="w-4 h-4" />
-              Send Message
-              <span className="ml-1 px-1.5 py-0.5 text-white text-[10px] rounded-full font-semibold bg-orange-500">
-                Upgrade
-              </span>
-            </Button>
-          )}
+          {/* Send Message Button */}
+          <SendMessageDialog
+            queueName={queueName}
+            serverId={selectedServerId}
+            onSuccess={onRefetch}
+            trigger={
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+              >
+                <Send className="w-4 h-4" />
+                Send Message
+              </Button>
+            }
+          />
 
-          {/* Purge Queue Button with plan restrictions */}
-          {canManageQueues ? (
-            <PurgeQueueDialog
-              queueName={queueName}
-              messageCount={messageCount}
-              onSuccess={onRefetch}
-              trigger={
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Purge Queue
-                </Button>
-              }
-            />
-          ) : (
-            <Button
-              onClick={handleQueueManagementClick}
-              variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
-              title={
-                userPlan === UserPlan.FREE
-                  ? "Upgrade to Developer or Enterprise plan to manage queues"
-                  : "Upgrade to manage queues"
-              }
-            >
-              <Lock className="w-4 h-4" />
-              Purge Queue
-              <span className="ml-1 px-1.5 py-0.5 text-white text-[10px] rounded-full font-semibold bg-orange-500">
-                Upgrade
-              </span>
-            </Button>
-          )}
+          {/* Purge Queue Button */}
+          <PurgeQueueDialog
+            queueName={queueName}
+            messageCount={messageCount}
+            onSuccess={onRefetch}
+            trigger={
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+                Purge Queue
+              </Button>
+            }
+          />
 
-          {/* Pause/Resume Queue Button with plan restrictions */}
-          {canManageQueues ? (
-            <PauseQueueDialog
-              queueName={queueName}
-              consumerCount={consumerCount}
-              isPaused={isPaused}
-              onSuccess={() => {
-                onRefetch();
-                refetchPauseStatus();
-              }}
-              trigger={
-                <Button
-                  variant="outline"
-                  className={`flex items-center gap-2 ${
-                    isPaused
-                      ? "text-green-600 hover:text-green-700"
-                      : "text-yellow-600 hover:text-yellow-700"
-                  }`}
-                >
-                  {isPaused ? (
-                    <Play className="w-4 h-4" />
-                  ) : (
-                    <Pause className="w-4 h-4" />
-                  )}
-                  {isPaused ? "Resume Queue" : "Pause Queue"}
-                </Button>
-              }
-            />
-          ) : (
-            <Button
-              onClick={handleQueueManagementClick}
-              variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
-              title={
-                userPlan === UserPlan.FREE
-                  ? "Upgrade to Developer or Enterprise plan to pause/resume queues"
-                  : "Upgrade to pause/resume queues"
-              }
-            >
-              <Lock className="w-4 h-4" />
-              {isPaused ? "Resume Queue" : "Pause Queue"}
-              <span className="ml-1 px-1.5 py-0.5 text-white text-[10px] rounded-full font-semibold bg-orange-500">
-                Upgrade
-              </span>
-            </Button>
-          )}
+          {/* Pause/Resume Queue Button */}
+          <PauseQueueDialog
+            queueName={queueName}
+            consumerCount={consumerCount}
+            isPaused={isPaused}
+            onSuccess={() => {
+              onRefetch();
+              refetchPauseStatus();
+            }}
+            trigger={
+              <Button
+                variant="outline"
+                className={`flex items-center gap-2 ${
+                  isPaused
+                    ? "text-green-600 hover:text-green-700"
+                    : "text-yellow-600 hover:text-yellow-700"
+                }`}
+              >
+                {isPaused ? (
+                  <Play className="w-4 h-4" />
+                ) : (
+                  <Pause className="w-4 h-4" />
+                )}
+                {isPaused ? "Resume Queue" : "Pause Queue"}
+              </Button>
+            }
+          />
 
-          {/* Delete Queue Button with plan restrictions */}
-          {canManageQueues && onDeleteQueue ? (
+          {/* Delete Queue Button */}
+          {onDeleteQueue && (
             <Button
               onClick={onDeleteQueue}
               variant="outline"
@@ -193,24 +118,7 @@ export function QueueHeader({
               <Trash2 className="w-4 h-4" />
               Delete Queue
             </Button>
-          ) : onDeleteQueue ? (
-            <Button
-              onClick={handleQueueManagementClick}
-              variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
-              title={
-                userPlan === UserPlan.FREE
-                  ? "Upgrade to Developer or Enterprise plan to delete queues"
-                  : "Upgrade to delete queues"
-              }
-            >
-              <Lock className="w-4 h-4" />
-              Delete Queue
-              <span className="ml-1 px-1.5 py-0.5 text-white text-[10px] rounded-full font-semibold bg-orange-500">
-                Upgrade
-              </span>
-            </Button>
-          ) : null}
+          )}
         </div>
       </div>
     </div>

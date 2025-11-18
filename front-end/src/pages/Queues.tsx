@@ -14,12 +14,7 @@ import logger from "@/lib/logger";
 
 const Queues = () => {
   const navigate = useNavigate();
-
-  const {
-    canAddQueue,
-    canSendMessages,
-    isLoading: workspaceLoading,
-  } = useUser();
+  const { isLoading: workspaceLoading } = useUser();
   const [filterRegex, setFilterRegex] = useState("");
   const { selectedServerId, hasServers } = useServerContext();
   const { data: queuesData, isLoading, refetch } = useQueues(selectedServerId);
@@ -27,22 +22,6 @@ const Queues = () => {
   const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
   const queueCount = queues.length;
 
-  const handleAddQueueClick = () => {
-    if (canAddQueue) {
-      // Original add queue logic - AddQueueForm will handle this
-      return;
-    } else {
-      // Navigate to plans page for Free plan users
-      navigate("/plans");
-    }
-  };
-
-  const handleSendMessageClick = () => {
-    if (!canSendMessages) {
-      navigate("/plans");
-    }
-    // If canSendMessages is true, the SendMessageDialog will handle it
-  };
 
   // Wrapper for refetch with logging to debug refresh issues
   const handleRefetch = async () => {
@@ -129,10 +108,8 @@ const Queues = () => {
                   selectedServerId={selectedServerId}
                   queueCount={queueCount}
                   workspaceLoading={workspaceLoading}
-                  canAddQueue={canAddQueue}
-                  canSendMessages={canSendMessages}
-                  onAddQueueClick={handleAddQueueClick}
-                  onSendMessageClick={handleSendMessageClick}
+                  canAddQueue={true}
+                  canSendMessages={true}
                   onRefetch={handleRefetch}
                 />
               </div>

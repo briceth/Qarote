@@ -56,7 +56,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const canAddRabbitMQUser = planData?.planFeatures.canAddRabbitMQUser ?? false;
   const canCreateWorkspace =
     planData?.usage.workspaces?.canAdd ?? userPlan !== UserPlan.FREE;
-  const canManageQueues = userPlan !== UserPlan.FREE;
   const canConfigureAlerts = userPlan !== UserPlan.FREE;
   const approachingLimits = planData?.approachingLimits ?? false;
 
@@ -74,7 +73,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     canAddVirtualHost,
     canAddRabbitMQUser,
     canCreateWorkspace,
-    canManageQueues,
     canConfigureAlerts,
     approachingLimits,
   };
