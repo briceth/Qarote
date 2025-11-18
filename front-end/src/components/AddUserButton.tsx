@@ -4,6 +4,7 @@ import { CreateUserModal } from "@/components/users/CreateUserModal";
 import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface AddUserButtonProps {
   serverId: string;
@@ -19,6 +20,7 @@ export const AddUserButton = ({
   initialName = "",
 }: AddUserButtonProps) => {
   const { userPlan, isLoading: userLoading, planData } = useUser();
+  const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Since we removed user usage tracking, check permission from plan features
@@ -69,7 +71,7 @@ export const AddUserButton = ({
 
   const handleAddUserClick = () => {
     if (!canAddUser) {
-      onUpgradeClick();
+      navigate("/plans");
     } else {
       setShowCreateModal(true);
     }
@@ -106,8 +108,7 @@ export const AddUserButton = ({
   return (
     <Button
       onClick={handleAddUserClick}
-      disabled={true}
-      className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+      className="bg-gray-200 text-gray-400 cursor-pointer opacity-60 flex items-center gap-2 hover:bg-gray-300"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

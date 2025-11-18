@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AddServerForm } from "@/components/AddServerFormComponent";
 import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
+import { useNavigate } from "react-router-dom";
 
 interface AddServerButtonProps {
   onUpgradeClick: () => void;
@@ -15,6 +16,7 @@ export const AddServerButton = ({ onUpgradeClick }: AddServerButtonProps) => {
     isLoading: userLoading,
     planData,
   } = useUser();
+  const navigate = useNavigate();
 
   // Keep server usage since we still track servers
   const serverUsage = planData?.usage?.servers || {
@@ -63,7 +65,7 @@ export const AddServerButton = ({ onUpgradeClick }: AddServerButtonProps) => {
 
   const handleAddServerClick = () => {
     if (!canAddServer) {
-      onUpgradeClick();
+      navigate("/plans");
     }
   };
 
@@ -77,9 +79,8 @@ export const AddServerButton = ({ onUpgradeClick }: AddServerButtonProps) => {
   return (
     <Button
       onClick={handleAddServerClick}
-      disabled={true}
       variant="outline"
-      className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+      className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useNavigate } from "react-router-dom";
 
 interface AddUserButtonProps {
   serverId: string;
@@ -29,6 +30,7 @@ export function AddUserButton({
   const { userPlan, isLoading: userLoading } = useUser();
   const { workspace } = useWorkspace();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // For Free plan users, user creation is restricted
   const canAddUser = userPlan !== UserPlan.FREE;
@@ -88,7 +90,7 @@ export function AddUserButton({
 
   const handleAddUserClick = () => {
     if (!canAddUser) {
-      onUpgradeClick();
+      navigate("/plans");
     } else {
       // Validate required fields
       if (!initialName.trim()) {
@@ -119,8 +121,7 @@ export function AddUserButton({
   return (
     <Button
       onClick={handleAddUserClick}
-      disabled={true}
-      className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+      className="bg-gray-200 text-gray-400 cursor-pointer opacity-60 flex items-center gap-2 hover:bg-gray-300"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

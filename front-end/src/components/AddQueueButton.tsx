@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AddQueueForm } from "@/components/AddQueueForm";
 import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
+import { useNavigate } from "react-router-dom";
 
 interface AddQueueButtonProps {
   serverId: string;
@@ -16,6 +17,7 @@ export const AddQueueButton = ({
   onSuccess,
 }: AddQueueButtonProps) => {
   const { userPlan, canAddQueue, isLoading: userLoading } = useUser();
+  const navigate = useNavigate();
 
   const getQueueButtonConfig = () => {
     if (userLoading || canAddQueue) return null;
@@ -54,7 +56,7 @@ export const AddQueueButton = ({
 
   const handleAddQueueClick = () => {
     if (!canAddQueue) {
-      onUpgradeClick();
+      navigate("/plans");
     }
   };
 
@@ -79,8 +81,7 @@ export const AddQueueButton = ({
   return (
     <Button
       onClick={handleAddQueueClick}
-      disabled={true}
-      className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+      className="bg-gray-200 text-gray-400 cursor-pointer opacity-60 flex items-center gap-2 hover:bg-gray-300"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

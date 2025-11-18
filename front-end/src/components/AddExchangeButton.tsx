@@ -2,6 +2,7 @@ import { Lock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
+import { useNavigate } from "react-router-dom";
 
 interface AddExchangeButtonProps {
   onUpgradeClick: () => void;
@@ -13,6 +14,7 @@ export const AddExchangeButton = ({
   onAddClick,
 }: AddExchangeButtonProps) => {
   const { userPlan, isLoading: userLoading } = useUser();
+  const navigate = useNavigate();
 
   // For Free plan users, exchange creation is restricted
   const canAddExchange = userPlan !== UserPlan.FREE;
@@ -30,7 +32,7 @@ export const AddExchangeButton = ({
 
   const handleAddExchangeClick = () => {
     if (!canAddExchange) {
-      onUpgradeClick();
+      navigate("/plans");
     } else {
       onAddClick?.();
     }
@@ -54,8 +56,7 @@ export const AddExchangeButton = ({
   return (
     <Button
       onClick={handleAddExchangeClick}
-      disabled={true}
-      className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+      className="bg-gray-200 text-gray-400 cursor-pointer opacity-60 flex items-center gap-2 hover:bg-gray-300"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

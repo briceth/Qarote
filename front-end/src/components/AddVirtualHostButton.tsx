@@ -4,6 +4,7 @@ import { CreateVHostModal } from "@/components/vhosts/CreateVHostModal";
 import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface AddVirtualHostButtonProps {
   serverId: string;
@@ -19,6 +20,7 @@ export const AddVirtualHostButton = ({
   initialName = "",
 }: AddVirtualHostButtonProps) => {
   const { userPlan, isLoading: workspaceLoading } = useUser();
+  const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // For Free plan users, virtual host creation is restricted
@@ -37,7 +39,7 @@ export const AddVirtualHostButton = ({
 
   const handleAddVirtualHostClick = () => {
     if (!canAddVirtualHost) {
-      onUpgradeClick();
+      navigate("/plans");
     } else {
       setShowCreateModal(true);
     }
@@ -74,8 +76,7 @@ export const AddVirtualHostButton = ({
   return (
     <Button
       onClick={handleAddVirtualHostClick}
-      disabled={true}
-      className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+      className="bg-gray-200 text-gray-400 cursor-pointer opacity-60 flex items-center gap-2 hover:bg-gray-300"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

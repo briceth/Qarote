@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { UserPlan } from "@/types/plans";
 import { useUser } from "@/hooks/useUser";
+import { useNavigate } from "react-router-dom";
 
 interface AddSendMessageButtonProps {
   serverId: string;
@@ -16,6 +17,7 @@ export const AddSendMessageButton = ({
   onSuccess,
 }: AddSendMessageButtonProps) => {
   const { userPlan, canSendMessages, isLoading: userLoading } = useUser();
+  const navigate = useNavigate();
 
   const getMessageButtonConfig = () => {
     if (userLoading || canSendMessages) return null;
@@ -54,7 +56,7 @@ export const AddSendMessageButton = ({
 
   const handleSendMessageClick = () => {
     if (!canSendMessages) {
-      onUpgradeClick();
+      navigate("/plans");
     }
   };
 
@@ -80,9 +82,8 @@ export const AddSendMessageButton = ({
   return (
     <Button
       onClick={handleSendMessageClick}
-      disabled={true}
       variant="outline"
-      className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+      className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
       title={buttonConfig.title}
     >
       <Lock className="w-4 h-4" />

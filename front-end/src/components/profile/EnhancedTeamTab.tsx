@@ -27,6 +27,7 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { InviteFormState, formatDate, getRoleColor } from "./profileUtils";
 import { InviteUserDialog } from "./InviteUserDialogEnhanced";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface EnhancedTeamTabProps {
   isAdmin: boolean;
@@ -67,6 +68,7 @@ export const EnhancedTeamTab = ({
   userPlan,
   canInviteMoreUsers,
 }: EnhancedTeamTabProps) => {
+  const navigate = useNavigate();
   const { planData, user } = useUser();
   const { workspace } = useWorkspace();
   const planFeatures = planData?.planFeatures;
@@ -205,10 +207,9 @@ export const EnhancedTeamTab = ({
               </Button>
             ) : (
               <Button
-                onClick={() => setInviteDialogOpen(true)}
-                disabled={true}
+                onClick={() => navigate("/plans")}
                 size="sm"
-                className="bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 flex items-center gap-2"
+                className="bg-gray-200 text-gray-400 cursor-pointer opacity-60 flex items-center gap-2 hover:bg-gray-300"
                 title="Upgrade to invite more users"
               >
                 <Lock className="w-4 h-4" />

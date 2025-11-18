@@ -15,8 +15,7 @@ import { MessageSquare, Users, Trash2, Lock } from "lucide-react";
 import { Queue } from "@/lib/api";
 import { useUser } from "@/hooks/useUser";
 import { UserPlan } from "@/types/plans";
-import { useState } from "react";
-import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
+import { useNavigate } from "react-router-dom";
 
 interface QueueTableProps {
   queues: Queue[];
@@ -33,12 +32,12 @@ export function QueueTable({
   onNavigateToQueue,
   onRefetch,
 }: QueueTableProps) {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const navigate = useNavigate();
   const { canManageQueues, userPlan } = useUser();
 
   const handleQueueManagementClick = () => {
     if (!canManageQueues) {
-      setShowUpgradeModal(true);
+      navigate("/plans");
     }
   };
 
@@ -164,10 +163,9 @@ export function QueueTable({
                       ) : (
                         <Button
                           onClick={handleQueueManagementClick}
-                          disabled={true}
                           size="sm"
                           variant="outline"
-                          className="text-red-600 hover:text-red-700 opacity-60 cursor-not-allowed"
+                          className="text-red-600 hover:text-red-700 opacity-60 cursor-pointer"
                           title={
                             userPlan === UserPlan.FREE
                               ? "Upgrade to Developer or Enterprise plan to purge queues"
@@ -198,14 +196,6 @@ export function QueueTable({
           </div>
         )}
       </CardContent>
-
-      {showUpgradeModal && (
-        <PlanUpgradeModal
-          isOpen={showUpgradeModal}
-          onClose={() => setShowUpgradeModal(false)}
-          feature="queue-management"
-        />
-      )}
     </Card>
   );
 }

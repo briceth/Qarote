@@ -6,8 +6,7 @@ import { PauseQueueDialog } from "@/components/PauseQueueDialog";
 import { SendMessageDialog } from "@/components/SendMessageDialog";
 import { useUser } from "@/hooks/useUser";
 import { useQueuePauseStatus } from "@/hooks/useApi";
-import { useState } from "react";
-import { PlanUpgradeModal } from "@/components/plans/PlanUpgradeModal";
+import { useNavigate } from "react-router-dom";
 import { UserPlan } from "@/types/plans";
 
 interface QueueHeaderProps {
@@ -29,7 +28,7 @@ export function QueueHeader({
   onRefetch,
   onDeleteQueue,
 }: QueueHeaderProps) {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const navigate = useNavigate();
   const { canSendMessages, canManageQueues, userPlan } = useUser();
 
   // Get the actual pause status from the backend
@@ -38,13 +37,13 @@ export function QueueHeader({
 
   const handleSendMessageClick = () => {
     if (!canSendMessages) {
-      setShowUpgradeModal(true);
+      navigate("/plans");
     }
   };
 
   const handleQueueManagementClick = () => {
     if (!canManageQueues) {
-      setShowUpgradeModal(true);
+      navigate("/plans");
     }
   };
 
@@ -86,9 +85,8 @@ export function QueueHeader({
           ) : (
             <Button
               onClick={handleSendMessageClick}
-              disabled={true}
               variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
               title={
                 userPlan === UserPlan.FREE
                   ? "Upgrade to Developer or Enterprise plan to send messages"
@@ -122,9 +120,8 @@ export function QueueHeader({
           ) : (
             <Button
               onClick={handleQueueManagementClick}
-              disabled={true}
               variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
               title={
                 userPlan === UserPlan.FREE
                   ? "Upgrade to Developer or Enterprise plan to manage queues"
@@ -170,9 +167,8 @@ export function QueueHeader({
           ) : (
             <Button
               onClick={handleQueueManagementClick}
-              disabled={true}
               variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
               title={
                 userPlan === UserPlan.FREE
                   ? "Upgrade to Developer or Enterprise plan to pause/resume queues"
@@ -200,9 +196,8 @@ export function QueueHeader({
           ) : onDeleteQueue ? (
             <Button
               onClick={handleQueueManagementClick}
-              disabled={true}
               variant="outline"
-              className="flex items-center gap-2 opacity-60 cursor-not-allowed"
+              className="flex items-center gap-2 opacity-60 cursor-pointer hover:bg-gray-100"
               title={
                 userPlan === UserPlan.FREE
                   ? "Upgrade to Developer or Enterprise plan to delete queues"
@@ -218,14 +213,6 @@ export function QueueHeader({
           ) : null}
         </div>
       </div>
-
-      {showUpgradeModal && (
-        <PlanUpgradeModal
-          isOpen={showUpgradeModal}
-          onClose={() => setShowUpgradeModal(false)}
-          feature="queue-management"
-        />
-      )}
     </div>
   );
 }
