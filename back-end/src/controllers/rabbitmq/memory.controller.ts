@@ -30,7 +30,6 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
 
     // Verify the server belongs to the user's workspace
     const server = await verifyServerAccess(id, workspaceId, true);
-
     if (!server) {
       return c.json({ error: "Server not found or access denied" }, 404);
     }

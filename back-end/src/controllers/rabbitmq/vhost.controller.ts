@@ -33,7 +33,10 @@ vhostController.get("/servers/:serverId/vhosts", async (c) => {
 
   try {
     // Verify server access
-    await verifyServerAccess(serverId, workspaceId);
+    const result = await verifyServerAccess(serverId, workspaceId);
+    if (!result) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
 
     const client = await createRabbitMQClient(serverId, workspaceId);
     const [vhosts, allQueues] = await Promise.all([

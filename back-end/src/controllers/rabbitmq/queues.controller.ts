@@ -308,19 +308,11 @@ queuesController.post(
     }
 
     try {
-      // Get server to check workspace ownership and over-limit status
-      const server = await prisma.rabbitMQServer.findUnique({
-        where: { id: serverId, workspaceId },
-        select: {
-          workspaceId: true,
-          isOverQueueLimit: true,
-          name: true,
-          vhost: true, // Add vhost to the select
-        },
-      });
+      // Verify server access and get server details
+      const server = await verifyServerAccess(serverId, workspaceId);
 
       if (!server) {
-        return c.json({ error: "Server not found" }, 404);
+        return c.json({ error: "Server not found or access denied" }, 404);
       }
 
       // Validate plan restrictions for queue creation
@@ -426,6 +418,12 @@ queuesController.delete(
     }
 
     try {
+      // Verify server access
+      const server = await verifyServerAccess(serverId, workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, workspaceId);
       await client.purgeQueue(queueName);
 
@@ -464,6 +462,12 @@ queuesController.delete(
     }
 
     try {
+      // Verify server access
+      const server = await verifyServerAccess(serverId, workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const url = new URL(c.req.url);
       const ifUnused = url.searchParams.get("if_unused") === "true";
       const ifEmpty = url.searchParams.get("if_empty") === "true";

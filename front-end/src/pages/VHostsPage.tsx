@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
+import { useServers, useVHosts, useDeleteVHost } from "@/hooks/useApi";
 import {
   Database,
   AlertCircle,
@@ -30,9 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useServerContext } from "@/contexts/ServerContext";
-import { useUser } from "@/hooks/useUser";
 import { useAuth } from "@/contexts/AuthContextDefinition";
-import { apiClient } from "@/lib/api";
 import { VHost } from "@/lib/api/vhostTypes";
 import { CreateVHostModal } from "@/components/vhosts/CreateVHostModal";
 import { DeleteVHostModal } from "@/components/vhosts/DeleteVHostModal";
@@ -41,10 +39,10 @@ import { toast } from "sonner";
 export default function VHostsPage() {
   const { serverId } = useParams<{ serverId: string }>();
   const { selectedServerId, hasServers } = useServerContext();
-  const { workspacePlan, workspace } = useUser();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { data: serversData } = useServers();
+  const servers = serversData?.servers || [];
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteVHost, setDeleteVHost] = useState<VHost | null>(null);
@@ -53,38 +51,18 @@ export default function VHostsPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const currentServerId = serverId || selectedServerId;
+  // Validate that the server actually exists
+  const serverExists = currentServerId
+    ? servers.some((s) => s.id === currentServerId)
+    : false;
 
   const {
     data: vhostsData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["vhosts", currentServerId],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getVHosts(currentServerId!, workspace.id);
-    },
-    enabled: !!currentServerId && !!workspace?.id,
-  });
+  } = useVHosts(currentServerId, serverExists);
 
-  const deleteVHostMutation = useMutation({
-    mutationFn: (vhostName: string) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.deleteVHost(currentServerId!, vhostName, workspace.id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vhosts", currentServerId] });
-      toast.success("Virtual host deleted successfully");
-      setDeleteVHost(null);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete virtual host");
-    },
-  });
+  const deleteVHostMutation = useDeleteVHost();
 
   // Redirect non-admin users
   if (user?.role !== "ADMIN") {
@@ -219,13 +197,6 @@ export default function VHostsPage() {
     }
   });
 
-  const handleCreateVHost = () => {
-    if (!newVHostName.trim()) return;
-
-    // Use the create modal for proper validation
-    setShowCreateModal(true);
-  };
-
   return (
     <SidebarProvider>
       <div className="page-layout">
@@ -247,7 +218,7 @@ export default function VHostsPage() {
                 </Badge>
               </div>
               <div className="flex items-center gap-3">
-                <PlanBadge workspacePlan={workspacePlan} />
+                <PlanBadge />
               </div>
             </div>
 
@@ -409,7 +380,22 @@ export default function VHostsPage() {
                 isOpen={true}
                 onClose={() => setDeleteVHost(null)}
                 vhost={deleteVHost}
-                onConfirm={() => deleteVHostMutation.mutate(deleteVHost.name)}
+                onConfirm={async () => {
+                  try {
+                    await deleteVHostMutation.mutateAsync({
+                      serverId: currentServerId!,
+                      vhostName: deleteVHost.name,
+                    });
+                    toast.success("Virtual host deleted successfully");
+                    setDeleteVHost(null);
+                  } catch (error) {
+                    toast.error(
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to delete virtual host"
+                    );
+                  }
+                }}
                 isLoading={deleteVHostMutation.isPending}
               />
             )}
@@ -418,7 +404,6 @@ export default function VHostsPage() {
             <PlanUpgradeModal
               isOpen={showUpgradeModal}
               onClose={() => setShowUpgradeModal(false)}
-              currentPlan={workspacePlan}
               feature="virtual host creation"
             />
           </div>

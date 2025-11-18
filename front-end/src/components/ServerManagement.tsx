@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logger from "@/lib/logger";
 import {
@@ -19,7 +20,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alertDialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Settings,
   Edit,
@@ -110,6 +110,8 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { selectedServerId, setSelectedServerId } = useServerContext();
   const deleteServerMutation = useDeleteServer();
+  const navigate = useNavigate();
+  const params = useParams<{ serverId?: string }>();
 
   const handleDeleteServer = async () => {
     try {
@@ -118,6 +120,11 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
       // If the deleted server was selected, clear the selection
       if (selectedServerId === server.id) {
         setSelectedServerId(null);
+      }
+
+      // If the current page has the deleted serverId in the URL, navigate away
+      if (params.serverId === server.id) {
+        navigate("/");
       }
 
       toast.success(`Server "${server.name}" has been deleted successfully`);
@@ -191,11 +198,11 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
               <Trash2 className="h-5 w-5 text-red-500" />
               Delete Server
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Are you sure you want to delete the server{" "}
-                <strong>"{server.name}"</strong>?
-              </p>
+            <AlertDialogDescription>
+              Are you sure you want to delete the server{" "}
+              <strong>"{server.name}"</strong>?
+            </AlertDialogDescription>
+            <div className="space-y-2 mt-4">
               <div className="bg-gray-50 p-3 rounded-lg text-sm">
                 <div className="flex items-center gap-2 text-gray-600">
                   <ServerIcon className="h-4 w-4" />
@@ -204,11 +211,11 @@ function ServerCard({ server, onServerUpdated }: ServerCardProps) {
                   </span>
                 </div>
               </div>
-              <p className="text-red-600 font-medium">
+              <p className="text-red-600 font-medium text-sm">
                 This action cannot be undone. All associated data and
                 configurations will be permanently removed.
               </p>
-            </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

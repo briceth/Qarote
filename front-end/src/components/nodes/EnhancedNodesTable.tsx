@@ -39,7 +39,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { RabbitMQNode } from "@/lib/api";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { RabbitMQPermissionError } from "@/components/RabbitMQPermissionError";
 import { isRabbitMQAuthError } from "@/types/apiErrors";
 
@@ -309,9 +309,8 @@ export const EnhancedNodesTable = ({
                 const isExpanded = expandedNodes.has(node.name);
 
                 return (
-                  <>
+                  <Fragment key={node.name}>
                     <TableRow
-                      key={node.name}
                       className="hover:bg-accent/50 cursor-pointer"
                       onClick={() => toggleNodeExpansion(node.name)}
                     >
@@ -1198,7 +1197,7 @@ export const EnhancedNodesTable = ({
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </TableBody>

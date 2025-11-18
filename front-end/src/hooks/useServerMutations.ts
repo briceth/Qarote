@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { queryKeys } from "@/hooks/useApi";
-import { Server, SSLConfig } from "@/lib/api/types";
+import { Server } from "@/lib/api/types";
 
 // Update server mutation
 export function useUpdateServer() {
@@ -49,7 +49,54 @@ export function useDeleteServer() {
       await apiClient.deleteServer(serverId);
       return serverId;
     },
-    onSuccess: () => {
+    onSuccess: (deletedServerId) => {
+      // First, cancel any in-flight queries for the deleted server
+      queryClient.cancelQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          if (!Array.isArray(queryKey)) return false;
+
+          // Check if the query key array contains the deleted serverId
+          // Also check stringified version for nested objects or different formats
+          const keyString = JSON.stringify(queryKey);
+          return (
+            queryKey.includes(deletedServerId) ||
+            keyString.includes(deletedServerId)
+          );
+        },
+      });
+
+      // Remove all queries related to the deleted server to prevent 500 errors
+      // This includes queries with refetchInterval that would continue fetching
+      // We use a comprehensive predicate that checks multiple ways the serverId might appear
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          if (!Array.isArray(queryKey)) return false;
+
+          // Direct check if serverId is in the array
+          if (queryKey.includes(deletedServerId)) return true;
+
+          // Check stringified version for nested objects or different formats
+          const keyString = JSON.stringify(queryKey);
+          if (keyString.includes(deletedServerId)) return true;
+
+          // Check if any key in the array is a string containing the serverId
+          return queryKey.some(
+            (key) => typeof key === "string" && key.includes(deletedServerId)
+          );
+        },
+      });
+
+      // Clear selectedServerId from localStorage immediately to prevent any new queries
+      if (typeof window !== "undefined") {
+        const currentSelectedId = localStorage.getItem("selectedServerId");
+        if (currentSelectedId === deletedServerId) {
+          localStorage.removeItem("selectedServerId");
+        }
+      }
+
+      // Invalidate servers list to refresh the UI
       queryClient.invalidateQueries({ queryKey: queryKeys.servers });
     },
   });
@@ -64,7 +111,8 @@ export function useTestConnection() {
       username: string;
       password: string;
       vhost: string;
-      sslConfig?: SSLConfig;
+      useHttps: boolean;
+      amqpPort: number;
     }) => {
       return await apiClient.testConnection(credentials);
     },

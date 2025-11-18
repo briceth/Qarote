@@ -69,14 +69,14 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
 
   // Clear selection if selected server no longer exists
   useEffect(() => {
-    if (
-      selectedServerId &&
-      hasServers &&
-      !servers.find((s) => s.id === selectedServerId)
-    ) {
-      handleSetSelectedServerId(servers.length > 0 ? servers[0].id : null);
+    if (selectedServerId) {
+      const serverExists = servers.find((s) => s.id === selectedServerId);
+      if (!serverExists) {
+        // Server was deleted - clear selection
+        handleSetSelectedServerId(servers.length > 0 ? servers[0].id : null);
+      }
     }
-  }, [selectedServerId, servers, hasServers]);
+  }, [selectedServerId, servers]);
 
   const value: ServerContextType = {
     selectedServerId,

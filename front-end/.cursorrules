@@ -1,0 +1,42 @@
+# Front-end Cursor Rules
+
+## React Query Hooks
+
+- **All `useQuery` hooks MUST be located in `src/hooks/useApi.ts`**
+  - Do not create inline `useQuery` calls in components or pages
+  - Create custom hooks in `useApi.ts` for all data fetching operations
+  - Export hooks from `useApi.ts` and import them in components
+
+- **All `useMutation` hooks SHOULD be located in `src/hooks/useApi.ts`**
+  - Prefer creating mutation hooks in `useApi.ts` for consistency
+  - Exceptions: Simple, component-specific mutations that don't need reuse can remain in components
+  - All server-related mutations (users, vhosts, queues, etc.) must be in `useApi.ts`
+
+- **Query hooks should:**
+  - Accept `serverId: string | null` when applicable
+  - Include `serverExists: boolean = true` parameter to prevent queries for deleted servers
+  - Handle query invalidation in `onSuccess` callbacks for mutations
+  - Use consistent query keys defined in `queryKeys` object
+
+- **Components should:**
+  - Import hooks from `@/hooks/useApi`
+  - Handle UI-specific concerns (toast notifications, navigation, state updates) in components
+  - Pass `serverExists` validation to hooks when checking if server exists
+
+## Example
+
+```typescript
+// ✅ CORRECT - In useApi.ts
+export const useUsers = (
+  serverId: string | null,
+  serverExists: boolean = true
+) => {
+  // ... hook implementation
+};
+
+// ❌ WRONG - In component
+const { data } = useQuery({
+  queryKey: ["users", serverId],
+  queryFn: () => apiClient.getUsers(serverId, workspace.id),
+});
+```

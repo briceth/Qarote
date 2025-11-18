@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -21,11 +20,18 @@ import { PageLoader } from "@/components/PageLoader";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContextDefinition";
-import { apiClient } from "@/lib/api";
 import { DeleteVHostModal } from "@/components/vhosts/DeleteVHostModal";
 import { EditVHostModal } from "@/components/vhosts/EditVHostModal";
 import { toast } from "sonner";
-import { useWorkspace } from "@/hooks/useWorkspace";
+import {
+  useServers,
+  useVHost,
+  useUsers,
+  useDeleteVHost,
+  useSetVHostPermissions,
+  useDeleteVHostPermissions,
+  useSetVHostLimit,
+} from "@/hooks/useApi";
 
 export default function VHostDetailsPage() {
   const { serverId, vhostName } = useParams<{
@@ -33,10 +39,8 @@ export default function VHostDetailsPage() {
     vhostName: string;
   }>();
   const { selectedServerId } = useServerContext();
-  const { workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -49,165 +53,29 @@ export default function VHostDetailsPage() {
   const [maxConnections, setMaxConnections] = useState("");
   const [maxQueues, setMaxQueues] = useState("");
 
+  const { data: serversData } = useServers();
+  const servers = serversData?.servers || [];
+
   const currentServerId = serverId || selectedServerId;
   const decodedVHostName = decodeURIComponent(vhostName || "");
+  // Validate that the server actually exists
+  const serverExists = currentServerId
+    ? servers.some((s) => s.id === currentServerId)
+    : false;
 
   const {
     data: vhostData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["vhost", currentServerId, decodedVHostName],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getVHost(
-        currentServerId!,
-        decodedVHostName,
-        workspace.id
-      );
-    },
-    enabled: !!currentServerId && !!decodedVHostName && !!workspace?.id,
-  });
-
-  const deleteVHostMutation = useMutation({
-    mutationFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.deleteVHost(
-        currentServerId!,
-        decodedVHostName,
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      toast.success("Virtual host deleted successfully");
-      navigate("/vhosts");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete virtual host");
-    },
-  });
+  } = useVHost(currentServerId, decodedVHostName, serverExists);
 
   // Fetch users for the permission form
-  const { data: usersData } = useQuery({
-    queryKey: ["users", currentServerId],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getUsers(currentServerId!, workspace.id);
-    },
-    enabled: !!currentServerId && !!workspace?.id,
-  });
+  const { data: usersData } = useUsers(currentServerId, serverExists);
 
-  // Set permissions mutation
-  const setPermissionsMutation = useMutation({
-    mutationFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.setVHostPermissions(
-        currentServerId!,
-        decodedVHostName,
-        selectedUser,
-        {
-          username: selectedUser,
-          configure: configureRegexp,
-          write: writeRegexp,
-          read: readRegexp,
-        },
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      toast.success("Permissions set successfully");
-      // Refetch vhost data to update permissions list
-      queryClient.invalidateQueries({
-        queryKey: ["vhost", currentServerId, decodedVHostName],
-      });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to set permissions");
-    },
-  });
-
-  // Set limits mutation
-  const setLimitsMutation = useMutation({
-    mutationFn: async () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      const promises = [];
-      if (maxConnections) {
-        promises.push(
-          apiClient.setVHostLimit(
-            currentServerId!,
-            decodedVHostName,
-            "max-connections",
-            {
-              value: parseInt(maxConnections),
-              limitType: "max-connections" as const,
-            },
-            workspace.id
-          )
-        );
-      }
-      if (maxQueues) {
-        promises.push(
-          apiClient.setVHostLimit(
-            currentServerId!,
-            decodedVHostName,
-            "max-queues",
-            {
-              value: parseInt(maxQueues),
-              limitType: "max-queues" as const,
-            },
-            workspace.id
-          )
-        );
-      }
-      await Promise.all(promises);
-    },
-    onSuccess: () => {
-      toast.success("Limits set successfully");
-      setMaxConnections("");
-      setMaxQueues("");
-      // Refetch vhost data to update limits
-      queryClient.invalidateQueries({
-        queryKey: ["vhost", currentServerId, decodedVHostName],
-      });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to set limits");
-    },
-  });
-
-  // Clear permissions mutation
-  const clearPermissionsMutation = useMutation({
-    mutationFn: (username: string) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.deleteVHostPermissions(
-        currentServerId!,
-        decodedVHostName,
-        username,
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      toast.success("Permissions cleared successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["vhost", currentServerId, decodedVHostName],
-      });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to clear permissions");
-    },
-  });
+  const deleteVHostMutation = useDeleteVHost();
+  const setPermissionsMutation = useSetVHostPermissions();
+  const setLimitsMutation = useSetVHostLimit();
+  const clearPermissionsMutation = useDeleteVHostPermissions();
 
   // Set default user when users are loaded
   useEffect(() => {
@@ -217,24 +85,88 @@ export default function VHostDetailsPage() {
   }, [usersData, selectedUser]);
 
   // Handle form submissions
-  const handleSetPermissions = () => {
+  const handleSetPermissions = async () => {
     if (!selectedUser || !configureRegexp || !writeRegexp || !readRegexp) {
       toast.error("Please fill in all permission fields");
       return;
     }
-    setPermissionsMutation.mutate();
+    try {
+      await setPermissionsMutation.mutateAsync({
+        serverId: currentServerId!,
+        vhostName: decodedVHostName,
+        username: selectedUser,
+        permissions: {
+          username: selectedUser,
+          configure: configureRegexp,
+          write: writeRegexp,
+          read: readRegexp,
+        },
+      });
+      toast.success("Permissions set successfully");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to set permissions"
+      );
+    }
   };
 
-  const handleSetLimits = () => {
+  const handleSetLimits = async () => {
     if (!maxConnections && !maxQueues) {
       toast.error("Please set at least one limit");
       return;
     }
-    setLimitsMutation.mutate();
+    try {
+      const promises = [];
+      if (maxConnections) {
+        promises.push(
+          setLimitsMutation.mutateAsync({
+            serverId: currentServerId!,
+            vhostName: decodedVHostName,
+            limitType: "max-connections",
+            data: {
+              value: parseInt(maxConnections),
+              limitType: "max-connections" as const,
+            },
+          })
+        );
+      }
+      if (maxQueues) {
+        promises.push(
+          setLimitsMutation.mutateAsync({
+            serverId: currentServerId!,
+            vhostName: decodedVHostName,
+            limitType: "max-queues",
+            data: {
+              value: parseInt(maxQueues),
+              limitType: "max-queues" as const,
+            },
+          })
+        );
+      }
+      await Promise.all(promises);
+      toast.success("Limits set successfully");
+      setMaxConnections("");
+      setMaxQueues("");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to set limits"
+      );
+    }
   };
 
-  const handleClearPermissions = (username: string) => {
-    clearPermissionsMutation.mutate(username);
+  const handleClearPermissions = async (username: string) => {
+    try {
+      await clearPermissionsMutation.mutateAsync({
+        serverId: currentServerId!,
+        vhostName: decodedVHostName,
+        username,
+      });
+      toast.success("Permissions cleared successfully");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to clear permissions"
+      );
+    }
   };
 
   // Redirect non-admin users
@@ -639,7 +571,22 @@ export default function VHostDetailsPage() {
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
                 vhost={vhost}
-                onConfirm={() => deleteVHostMutation.mutate()}
+                onConfirm={async () => {
+                  try {
+                    await deleteVHostMutation.mutateAsync({
+                      serverId: currentServerId!,
+                      vhostName: decodedVHostName,
+                    });
+                    toast.success("Virtual host deleted successfully");
+                    navigate("/vhosts");
+                  } catch (error) {
+                    toast.error(
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to delete virtual host"
+                    );
+                  }
+                }}
                 isLoading={deleteVHostMutation.isPending}
               />
             )}

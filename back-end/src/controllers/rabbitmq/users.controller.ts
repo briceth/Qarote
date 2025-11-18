@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { authenticate, authorize } from "@/core/auth";
 import { UserRole } from "@prisma/client";
-import { createRabbitMQClient } from "./shared";
+import { createRabbitMQClient, verifyServerAccess } from "./shared";
 import { ServerParamSchema } from "@/schemas/alerts";
 import {
   CreateUserSchema,
@@ -10,6 +10,7 @@ import {
   UpdateUserSchema,
 } from "@/schemas/rabbitmq";
 import { logger } from "@/core/logger";
+import { createErrorResponse } from "../shared";
 
 const usersController = new Hono();
 
@@ -30,13 +31,19 @@ usersController.get(
         return c.json({ error: "No workspace assigned" }, 400);
       }
 
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       const users = await client.getUsers();
 
       return c.json({ users });
     } catch (error: any) {
       logger.error("Error fetching users:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to fetch users");
     }
   }
 );
@@ -55,6 +62,12 @@ usersController.get(
         return c.json({ error: "No workspace assigned" }, 400);
       }
 
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       const userDetails = await client.getUser(username);
       const permissions = await client.getUserPermissions(username);
@@ -65,7 +78,7 @@ usersController.get(
       });
     } catch (error: any) {
       logger.error("Error fetching user details:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to fetch user details");
     }
   }
 );
@@ -85,6 +98,12 @@ usersController.post(
         return c.json({ error: "No workspace assigned" }, 400);
       }
 
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       await client.createUser(userData.username, {
         password: userData.password,
@@ -94,7 +113,7 @@ usersController.post(
       return c.json({ message: "User created successfully" });
     } catch (error: any) {
       logger.error("Error creating user:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to create user");
     }
   }
 );
@@ -112,6 +131,12 @@ usersController.put(
 
       if (!user.workspaceId) {
         return c.json({ error: "No workspace assigned" }, 400);
+      }
+
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
       }
 
       const client = await createRabbitMQClient(serverId, user.workspaceId);
@@ -132,7 +157,7 @@ usersController.put(
       return c.json({ message: "User updated successfully" });
     } catch (error: any) {
       logger.error("Error updating user:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to update user");
     }
   }
 );
@@ -150,13 +175,19 @@ usersController.delete(
         return c.json({ error: "No workspace assigned" }, 400);
       }
 
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       await client.deleteUser(username);
 
       return c.json({ message: "User deleted successfully" });
     } catch (error: any) {
       logger.error("Error deleting user:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to delete user");
     }
   }
 );
@@ -176,6 +207,12 @@ usersController.put(
         return c.json({ error: "No workspace assigned" }, 400);
       }
 
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       await client.setUserPermissions(permissionData.vhost, username, {
         user: username,
@@ -187,7 +224,7 @@ usersController.put(
       return c.json({ message: "Permissions set successfully" });
     } catch (error: any) {
       logger.error("Error setting permissions:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to set permissions");
     }
   }
 );
@@ -206,13 +243,19 @@ usersController.delete(
         return c.json({ error: "No workspace assigned" }, 400);
       }
 
+      // Verify server access
+      const server = await verifyServerAccess(serverId, user.workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       await client.deleteUserPermissions(vhost, username);
 
       return c.json({ message: "Permissions deleted successfully" });
     } catch (error: any) {
       logger.error("Error deleting permissions:", error);
-      return c.json({ error: error.message }, 500);
+      return createErrorResponse(c, error, 500, "Failed to delete permissions");
     }
   }
 );

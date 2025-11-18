@@ -26,7 +26,10 @@ infrastructureController.get(
 
     try {
       // Verify server access
-      await verifyServerAccess(id, workspaceId);
+      const server = await verifyServerAccess(id, workspaceId);
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
 
       const client = await createRabbitMQClient(id, workspaceId);
       const nodes = await client.getNodes();

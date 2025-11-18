@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, HelpCircle } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -27,11 +26,18 @@ import { PageLoader } from "@/components/PageLoader";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContextDefinition";
-import { apiClient } from "@/lib/api";
 import { formatTagsDisplay } from "@/lib/formatTags";
 import { DeleteUserModal } from "@/components/users/DeleteUserModal";
 import { toast } from "sonner";
-import { useWorkspace } from "@/hooks/useWorkspace";
+import {
+  useServers,
+  useUser,
+  useVHosts,
+  useDeleteUser,
+  useUpdateUser,
+  useSetUserPermissions,
+  useDeleteUserPermissions,
+} from "@/hooks/useApi";
 
 export default function UserDetailsPage() {
   const { serverId, username } = useParams<{
@@ -39,10 +45,8 @@ export default function UserDetailsPage() {
     username: string;
   }>();
   const { selectedServerId } = useServerContext();
-  const { workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -57,35 +61,27 @@ export default function UserDetailsPage() {
   const [writeRegexp, setWriteRegexp] = useState(".*");
   const [readRegexp, setReadRegexp] = useState(".*");
 
+  const { data: serversData } = useServers();
+  const servers = serversData?.servers || [];
+
   const currentServerId = serverId || selectedServerId;
   const decodedUsername = decodeURIComponent(username || "");
+  // Validate that the server actually exists
+  const serverExists = currentServerId
+    ? servers.some((s) => s.id === currentServerId)
+    : false;
 
   const {
     data: userData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["user", currentServerId, decodedUsername],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getUser(currentServerId!, decodedUsername, workspace.id);
-    },
-    enabled: !!currentServerId && !!decodedUsername && !!workspace?.id,
-  });
+  } = useUser(currentServerId, decodedUsername, serverExists);
 
   // Fetch available virtual hosts for the dropdown
-  const { data: vhostsData, isLoading: vhostsLoading } = useQuery({
-    queryKey: ["vhosts", currentServerId],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getVHosts(currentServerId!, workspace.id);
-    },
-    enabled: !!currentServerId && !!workspace?.id,
-  });
+  const { data: vhostsData, isLoading: vhostsLoading } = useVHosts(
+    currentServerId,
+    serverExists
+  );
 
   // Update selected vhost when vhosts data is loaded
   useEffect(() => {
@@ -107,112 +103,10 @@ export default function UserDetailsPage() {
     }
   }, [vhostsData, userData?.permissions, selectedVHost]);
 
-  const deleteUserMutation = useMutation({
-    mutationFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.deleteUser(
-        currentServerId!,
-        decodedUsername,
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      toast.success("User deleted successfully");
-      navigate("/users");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete user");
-    },
-  });
-
-  const updateUserMutation = useMutation({
-    mutationFn: (data: {
-      password?: string;
-      tags?: string;
-      removePassword?: boolean;
-    }) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.updateUser(
-        currentServerId!,
-        decodedUsername,
-        data,
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["user", currentServerId, decodedUsername],
-      });
-      toast.success("User updated successfully");
-      setNewPassword("");
-      setNewTags("");
-      setRemovePassword(false);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update user");
-    },
-  });
-
-  const setPermissionsMutation = useMutation({
-    mutationFn: (data: {
-      vhost: string;
-      configure: string;
-      write: string;
-      read: string;
-    }) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.setUserPermissions(
-        currentServerId!,
-        decodedUsername,
-        data,
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["user", currentServerId, decodedUsername],
-      });
-      toast.success("Permissions set successfully");
-
-      // Clear the form fields
-      setSelectedVHost("/");
-      setConfigureRegexp(".*");
-      setWriteRegexp(".*");
-      setReadRegexp(".*");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to set permissions");
-    },
-  });
-
-  const clearPermissionsMutation = useMutation({
-    mutationFn: (vhost: string) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.deleteUserPermissions(
-        currentServerId!,
-        decodedUsername,
-        vhost,
-        workspace.id
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["user", currentServerId, decodedUsername],
-      });
-      toast.success("Permissions cleared successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to clear permissions");
-    },
-  });
+  const deleteUserMutation = useDeleteUser();
+  const updateUserMutation = useUpdateUser();
+  const setPermissionsMutation = useSetUserPermissions();
+  const clearPermissionsMutation = useDeleteUserPermissions();
 
   // Redirect non-admin users
   if (user?.role !== "ADMIN") {
@@ -328,17 +222,47 @@ export default function UserDetailsPage() {
     }
 
     if (Object.keys(updateData).length > 0) {
-      updateUserMutation.mutate(updateData);
+      updateUserMutation
+        .mutateAsync({
+          serverId: currentServerId!,
+          username: decodedUsername,
+          data: updateData,
+        })
+        .then(() => {
+          toast.success("User updated successfully");
+          setNewPassword("");
+          setNewTags("");
+          setRemovePassword(false);
+        })
+        .catch((error: Error) => {
+          toast.error(error.message || "Failed to update user");
+        });
     }
   };
 
-  const handleSetPermissions = () => {
-    setPermissionsMutation.mutate({
-      vhost: selectedVHost,
-      configure: configureRegexp,
-      write: writeRegexp,
-      read: readRegexp,
-    });
+  const handleSetPermissions = async () => {
+    try {
+      await setPermissionsMutation.mutateAsync({
+        serverId: currentServerId!,
+        username: decodedUsername,
+        data: {
+          vhost: selectedVHost,
+          configure: configureRegexp,
+          write: writeRegexp,
+          read: readRegexp,
+        },
+      });
+      toast.success("Permissions set successfully");
+      // Clear the form fields
+      setSelectedVHost("/");
+      setConfigureRegexp(".*");
+      setWriteRegexp(".*");
+      setReadRegexp(".*");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to set permissions"
+      );
+    }
   };
 
   return (
@@ -430,11 +354,24 @@ export default function UserDetailsPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() =>
-                                  clearPermissionsMutation.mutate(
-                                    permission.vhost
-                                  )
-                                }
+                                onClick={async () => {
+                                  try {
+                                    await clearPermissionsMutation.mutateAsync({
+                                      serverId: currentServerId!,
+                                      username: decodedUsername,
+                                      vhost: permission.vhost,
+                                    });
+                                    toast.success(
+                                      "Permissions cleared successfully"
+                                    );
+                                  } catch (error) {
+                                    toast.error(
+                                      error instanceof Error
+                                        ? error.message
+                                        : "Failed to clear permissions"
+                                    );
+                                  }
+                                }}
                                 disabled={clearPermissionsMutation.isPending}
                               >
                                 {clearPermissionsMutation.isPending
@@ -753,7 +690,22 @@ export default function UserDetailsPage() {
                   isOpen={showDeleteModal}
                   onClose={() => setShowDeleteModal(false)}
                   user={userDetails}
-                  onConfirm={() => deleteUserMutation.mutate()}
+                  onConfirm={async () => {
+                    try {
+                      await deleteUserMutation.mutateAsync({
+                        serverId: currentServerId!,
+                        username: decodedUsername,
+                      });
+                      toast.success("User deleted successfully");
+                      navigate("/users");
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error
+                          ? error.message
+                          : "Failed to delete user"
+                      );
+                    }
+                  }}
                   isLoading={deleteUserMutation.isPending}
                 />
               )}

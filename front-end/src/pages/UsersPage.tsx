@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
+import { useServers, useUsers, useVHosts, useDeleteUser } from "@/hooks/useApi";
 import {
   User,
   AlertCircle,
@@ -32,20 +32,18 @@ import {
 } from "@/components/ui/table";
 import { useServerContext } from "@/contexts/ServerContext";
 import { useAuth } from "@/contexts/AuthContextDefinition";
-import { apiClient } from "@/lib/api";
 import { formatTagsDisplay, formatVhostsDisplay } from "@/lib/formatTags";
 import { RabbitMQUser } from "@/lib/api/userTypes";
 import { DeleteUserModal } from "@/components/users/DeleteUserModal";
 import { toast } from "sonner";
-import { useWorkspace } from "@/hooks/useWorkspace";
 
 export default function UsersPage() {
   const { serverId } = useParams<{ serverId: string }>();
   const { selectedServerId, hasServers } = useServerContext();
-  const { workspace } = useWorkspace();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { data: serversData } = useServers();
+  const servers = serversData?.servers || [];
 
   const [deleteUser, setDeleteUser] = useState<RabbitMQUser | null>(null);
   const [filterRegex, setFilterRegex] = useState("");
@@ -56,49 +54,20 @@ export default function UsersPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const currentServerId = serverId || selectedServerId;
+  // Validate that the server actually exists
+  const serverExists = currentServerId
+    ? servers.some((s) => s.id === currentServerId)
+    : false;
 
   const {
     data: usersData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["users", currentServerId],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getUsers(currentServerId!, workspace.id);
-    },
-    enabled: !!currentServerId && !!workspace?.id,
-  });
+  } = useUsers(currentServerId, serverExists);
 
-  const { data: vhostsData } = useQuery({
-    queryKey: ["vhosts", currentServerId],
-    queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.getVHosts(currentServerId!, workspace.id);
-    },
-    enabled: !!currentServerId && !!workspace?.id,
-  });
+  const { data: vhostsData } = useVHosts(currentServerId, serverExists);
 
-  const deleteUserMutation = useMutation({
-    mutationFn: (username: string) => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
-      }
-      return apiClient.deleteUser(currentServerId!, username, workspace.id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users", currentServerId] });
-      toast.success("User deleted successfully");
-      setDeleteUser(null);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete user");
-    },
-  });
+  const deleteUserMutation = useDeleteUser();
 
   // Redirect non-admin users
   if (user?.role !== "ADMIN") {
@@ -548,7 +517,22 @@ export default function UsersPage() {
                   isOpen={true}
                   onClose={() => setDeleteUser(null)}
                   user={deleteUser}
-                  onConfirm={() => deleteUserMutation.mutate(deleteUser.name)}
+                  onConfirm={async () => {
+                    try {
+                      await deleteUserMutation.mutateAsync({
+                        serverId: currentServerId!,
+                        username: deleteUser.name,
+                      });
+                      toast.success("User deleted successfully");
+                      setDeleteUser(null);
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error
+                          ? error.message
+                          : "Failed to delete user"
+                      );
+                    }
+                  }}
                   isLoading={deleteUserMutation.isPending}
                 />
               )}

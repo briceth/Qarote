@@ -1,13 +1,12 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
-import { prisma } from "@/core/prisma";
 import { authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { getUserPlan } from "@/services/plan/plan.service";
 import { publishMessageToQueueSchema } from "@/schemas/rabbitmq";
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient } from "./shared";
+import { createRabbitMQClient, verifyServerAccess } from "./shared";
 
 const messagesController = new Hono();
 
@@ -32,14 +31,8 @@ messagesController.post(
     }
 
     try {
-      // Get server to check workspace ownership
-      const server = await prisma.rabbitMQServer.findUnique({
-        where: {
-          id: serverId,
-          workspaceId,
-        },
-        select: { workspaceId: true },
-      });
+      // Verify server access
+      const server = await verifyServerAccess(serverId, workspaceId);
 
       if (!server) {
         return createErrorResponse(

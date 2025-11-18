@@ -1,8 +1,7 @@
 import { Hono } from "hono";
-import { prisma } from "@/core/prisma";
 import { logger } from "@/core/logger";
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient } from "./shared";
+import { createRabbitMQClient, verifyServerAccess } from "./shared";
 import { RabbitMQMetricsCalculator } from "@/core/rabbitmq/MetricsCalculator";
 import { RabbitMQOverview, RabbitMQQueue } from "@/types/rabbitmq";
 
@@ -36,6 +35,12 @@ metricsController.get("/servers/:id/metrics", async (c) => {
   }
 
   try {
+    // Verify server access
+    const server = await verifyServerAccess(id, workspaceId);
+    if (!server) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
     // Create RabbitMQ client to fetch enhanced metrics
     const client = await createRabbitMQClient(id, workspaceId);
 
@@ -85,13 +90,8 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
   }
 
   try {
-    // Verify the server belongs to the user's workspace
-    const server = await prisma.rabbitMQServer.findFirst({
-      where: {
-        id,
-        workspaceId,
-      },
-    });
+    // Verify server access
+    const server = await verifyServerAccess(id, workspaceId);
 
     if (!server) {
       return c.json({ error: "Server not found or access denied" }, 404);
@@ -185,13 +185,8 @@ metricsController.get(
     }
 
     try {
-      // Verify the server belongs to the user's workspace
-      const server = await prisma.rabbitMQServer.findFirst({
-        where: {
-          id,
-          workspaceId,
-        },
-      });
+      // Verify server access
+      const server = await verifyServerAccess(id, workspaceId);
 
       if (!server) {
         return c.json({ error: "Server not found or access denied" }, 404);

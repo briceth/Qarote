@@ -65,57 +65,60 @@ export const useTestConnection = () => {
 };
 
 // RabbitMQ data hooks
-export const useOverview = (serverId: string) => {
+export const useOverview = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: queryKeys.overview(serverId),
+    queryKey: queryKeys.overview(serverId || ""),
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getOverview(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchInterval: isEnabled ? 10000 : false, // Only refetch if enabled
   });
 };
 
-export const useQueues = (serverId: string) => {
+export const useQueues = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: queryKeys.queues(serverId),
+    queryKey: queryKeys.queues(serverId || ""),
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getQueues(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 5000, // Refetch every 5 seconds for live data
+    refetchInterval: isEnabled ? 5000 : false, // Only refetch if enabled
   });
 };
 
-export const useNodes = (serverId: string) => {
+export const useNodes = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
     queryKey: queryKeys.nodes(serverId),
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getNodes(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 10000, // 10 seconds
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
   });
 };
 
@@ -160,82 +163,85 @@ export const useQueue = (serverId: string, queueName: string) => {
   });
 };
 
-export const useMetrics = (serverId: string) => {
+export const useMetrics = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: [...queryKeys.overview(serverId), "metrics"],
+    queryKey: [...queryKeys.overview(serverId || ""), "metrics"],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getMetrics(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 15000, // Refetch every 15 seconds
+    refetchInterval: isEnabled ? 15000 : false, // Only refetch if enabled
   });
 };
 
 // Connections and Channels hooks
-export const useConnections = (serverId: string) => {
+export const useConnections = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: ["connections", serverId],
+    queryKey: ["connections", serverId || ""],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getConnections(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 5000, // Refetch every 5 seconds for live data
+    refetchInterval: isEnabled ? 5000 : false, // Only refetch if enabled
   });
 };
 
-export const useChannels = (serverId: string) => {
+export const useChannels = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: ["channels", serverId],
+    queryKey: ["channels", serverId || ""],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getChannels(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 15000, // Refetch every 15 seconds
+    refetchInterval: isEnabled ? 15000 : false, // Only refetch if enabled
   });
 };
 
-export const useExchanges = (serverId: string) => {
+export const useExchanges = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: queryKeys.exchanges(serverId),
+    queryKey: queryKeys.exchanges(serverId || ""),
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getExchanges(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 0, // Always consider data stale for immediate updates
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
   });
 };
 
 export const useCreateExchange = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   const { workspace } = useWorkspace();
 
   return useMutation({
@@ -267,7 +273,6 @@ export const useCreateExchange = () => {
 
 export const useDeleteExchange = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   const { workspace } = useWorkspace();
 
   return useMutation({
@@ -304,21 +309,22 @@ export const useDeleteExchange = () => {
   });
 };
 
-export const useBindings = (serverId: string) => {
+export const useBindings = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
     queryKey: ["bindings", serverId],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getBindings(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 10000, // 10 seconds
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
   });
 };
 
@@ -384,23 +390,24 @@ export const useRecentAlerts = () => {
 };
 
 export const useLiveRatesMetrics = (
-  serverId: string,
+  serverId: string | null,
   timeRange: TimeRange = "1d"
 ) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
     queryKey: ["liveRates", serverId, timeRange],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getLiveRatesMetrics(serverId, workspace.id, timeRange);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 5000, // Refresh every 5 seconds for live data
+    refetchInterval: isEnabled ? 5000 : false, // Only refetch if enabled
   });
 };
 
@@ -792,59 +799,62 @@ export const useRemoveUserFromWorkspace = () => {
 
 // RabbitMQ Alert hooks
 export const useRabbitMQAlerts = (
-  serverId: string,
+  serverId: string | null,
   thresholds?: AlertThresholds
 ) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: ["rabbitmqAlerts", serverId, thresholds],
+    queryKey: ["rabbitmqAlerts", serverId || "", thresholds],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getRabbitMQAlerts(serverId, workspace.id, thresholds);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
   });
 };
 
-export const useRabbitMQAlertsSummary = (serverId: string) => {
+export const useRabbitMQAlertsSummary = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
     queryKey: ["rabbitmqAlertsSummary", serverId],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getRabbitMQAlertsSummary(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
   });
 };
 
-export const useRabbitMQHealth = (serverId: string) => {
+export const useRabbitMQHealth = (serverId: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
     queryKey: ["rabbitmqHealth", serverId],
     queryFn: () => {
-      if (!workspace?.id) {
-        throw new Error("Workspace ID is required");
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
       }
       return apiClient.getRabbitMQHealth(serverId, workspace.id);
     },
-    enabled: !!serverId && !!workspace?.id && isAuthenticated,
+    enabled: isEnabled,
     staleTime: 5000, // 5 seconds
-    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchInterval: isEnabled ? 10000 : false, // Only refetch if enabled
   });
 };
 
@@ -885,6 +895,381 @@ export const useUpdateWorkspaceThresholds = () => {
       // Also invalidate alerts since thresholds affect alert calculations
       queryClient.invalidateQueries({
         queryKey: ["rabbitmqAlerts"],
+      });
+    },
+  });
+};
+
+// RabbitMQ Users hooks
+export const useUsers = (
+  serverId: string | null,
+  serverExists: boolean = true
+) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+  const isEnabled =
+    !!serverId && !!workspace?.id && isAuthenticated && serverExists;
+
+  return useQuery({
+    queryKey: ["users", serverId || ""],
+    queryFn: () => {
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
+      }
+      return apiClient.getUsers(serverId, workspace.id);
+    },
+    enabled: isEnabled,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
+  });
+};
+
+export const useUser = (
+  serverId: string | null,
+  username: string,
+  serverExists: boolean = true
+) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+  const isEnabled =
+    !!serverId &&
+    !!username &&
+    !!workspace?.id &&
+    isAuthenticated &&
+    serverExists;
+
+  return useQuery({
+    queryKey: ["user", serverId || "", username],
+    queryFn: () => {
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
+      }
+      return apiClient.getUser(serverId, username, workspace.id);
+    },
+    enabled: isEnabled,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
+  });
+};
+
+// RabbitMQ VHosts hooks
+export const useVHosts = (
+  serverId: string | null,
+  serverExists: boolean = true
+) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+  const isEnabled =
+    !!serverId && !!workspace?.id && isAuthenticated && serverExists;
+
+  return useQuery({
+    queryKey: ["vhosts", serverId || ""],
+    queryFn: () => {
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
+      }
+      return apiClient.getVHosts(serverId, workspace.id);
+    },
+    enabled: isEnabled,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
+  });
+};
+
+export const useVHost = (
+  serverId: string | null,
+  vhostName: string,
+  serverExists: boolean = true
+) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+  const isEnabled =
+    !!serverId &&
+    !!vhostName &&
+    !!workspace?.id &&
+    isAuthenticated &&
+    serverExists;
+
+  return useQuery({
+    queryKey: ["vhost", serverId || "", vhostName],
+    queryFn: () => {
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
+      }
+      return apiClient.getVHost(serverId, vhostName, workspace.id);
+    },
+    enabled: isEnabled,
+    staleTime: 10000, // 10 seconds
+    refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
+  });
+};
+
+// RabbitMQ User mutations
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      username,
+    }: {
+      serverId: string;
+      username: string;
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteUser(serverId, username, workspace.id);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["users", variables.serverId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["user", variables.serverId, variables.username],
+      });
+    },
+  });
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      username,
+      data,
+    }: {
+      serverId: string;
+      username: string;
+      data: {
+        password?: string;
+        tags?: string;
+        removePassword?: boolean;
+      };
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.updateUser(serverId, username, data, workspace.id);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["user", variables.serverId, variables.username],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["users", variables.serverId],
+      });
+    },
+  });
+};
+
+export const useSetUserPermissions = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      username,
+      data,
+    }: {
+      serverId: string;
+      username: string;
+      data: {
+        vhost: string;
+        configure: string;
+        write: string;
+        read: string;
+      };
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.setUserPermissions(
+        serverId,
+        username,
+        data,
+        workspace.id
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["user", variables.serverId, variables.username],
+      });
+    },
+  });
+};
+
+export const useDeleteUserPermissions = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      username,
+      vhost,
+    }: {
+      serverId: string;
+      username: string;
+      vhost: string;
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteUserPermissions(
+        serverId,
+        username,
+        vhost,
+        workspace.id
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["user", variables.serverId, variables.username],
+      });
+    },
+  });
+};
+
+// RabbitMQ VHost mutations
+export const useDeleteVHost = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      vhostName,
+    }: {
+      serverId: string;
+      vhostName: string;
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteVHost(serverId, vhostName, workspace.id);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["vhosts", variables.serverId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["vhost", variables.serverId, variables.vhostName],
+      });
+    },
+  });
+};
+
+export const useSetVHostPermissions = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      vhostName,
+      username,
+      permissions,
+    }: {
+      serverId: string;
+      vhostName: string;
+      username: string;
+      permissions: {
+        username: string;
+        configure: string;
+        write: string;
+        read: string;
+      };
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.setVHostPermissions(
+        serverId,
+        vhostName,
+        username,
+        permissions,
+        workspace.id
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["vhost", variables.serverId, variables.vhostName],
+      });
+    },
+  });
+};
+
+export const useDeleteVHostPermissions = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      vhostName,
+      username,
+    }: {
+      serverId: string;
+      vhostName: string;
+      username: string;
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteVHostPermissions(
+        serverId,
+        vhostName,
+        username,
+        workspace.id
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["vhost", variables.serverId, variables.vhostName],
+      });
+    },
+  });
+};
+
+export const useSetVHostLimit = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      serverId,
+      vhostName,
+      limitType,
+      data,
+    }: {
+      serverId: string;
+      vhostName: string;
+      limitType: "max-connections" | "max-queues";
+      data: {
+        value: number;
+        limitType: "max-connections" | "max-queues";
+      };
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.setVHostLimit(
+        serverId,
+        vhostName,
+        limitType,
+        data,
+        workspace.id
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["vhost", variables.serverId, variables.vhostName],
       });
     },
   });
