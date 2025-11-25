@@ -134,6 +134,7 @@ model Workspace {
   alertThresholds          WorkspaceAlertThresholds?
   seenAlerts               SeenAlert[]
   webhooks                 Webhook[]
+  slackConfigs             SlackConfig[]
   
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
@@ -461,6 +462,21 @@ model Webhook {
   @@index([workspaceId])
   @@index([enabled])
   @@map("webhooks")
+}
+
+model SlackConfig {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  webhookUrl  String    // Slack incoming webhook URL
+  customValue String?   // Optional custom text to add to each notification
+  enabled     Boolean   @default(true) // Enable/disable Slack notifications
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId])
+  @@index([enabled])
+  @@map("slack_configs")
 }
 
 model Subscription {

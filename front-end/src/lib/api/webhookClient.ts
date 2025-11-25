@@ -20,19 +20,17 @@ export interface CreateWebhookRequest {
   url: string;
   enabled?: boolean;
   secret?: string | null;
-  version?: string;
 }
 
 export interface UpdateWebhookRequest {
   url?: string;
   enabled?: boolean;
   secret?: string | null;
-  version?: string;
 }
 
 export class WebhookApiClient extends BaseApiClient {
   async getWebhooks(workspaceId: string): Promise<{ webhooks: Webhook[] }> {
-    return this.request(`/webhooks/v1/workspaces/${workspaceId}/webhooks`);
+    return this.request(`/webhooks/workspaces/${workspaceId}/webhooks`);
   }
 
   async getWebhook(
@@ -40,7 +38,7 @@ export class WebhookApiClient extends BaseApiClient {
     webhookId: string
   ): Promise<{ webhook: Webhook }> {
     return this.request(
-      `/webhooks/v1/workspaces/${workspaceId}/webhooks/${webhookId}`
+      `/webhooks/workspaces/${workspaceId}/webhooks/${webhookId}`
     );
   }
 
@@ -48,7 +46,7 @@ export class WebhookApiClient extends BaseApiClient {
     workspaceId: string,
     data: CreateWebhookRequest
   ): Promise<{ webhook: Webhook }> {
-    return this.request(`/webhooks/v1/workspaces/${workspaceId}/webhooks`, {
+    return this.request(`/webhooks/workspaces/${workspaceId}/webhooks`, {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -60,7 +58,7 @@ export class WebhookApiClient extends BaseApiClient {
     data: UpdateWebhookRequest
   ): Promise<{ webhook: Webhook }> {
     return this.request(
-      `/webhooks/v1/workspaces/${workspaceId}/webhooks/${webhookId}`,
+      `/webhooks/workspaces/${workspaceId}/webhooks/${webhookId}`,
       {
         method: "PUT",
         body: JSON.stringify(data),
@@ -73,7 +71,7 @@ export class WebhookApiClient extends BaseApiClient {
     webhookId: string
   ): Promise<{ message: string }> {
     return this.request(
-      `/webhooks/v1/workspaces/${workspaceId}/webhooks/${webhookId}`,
+      `/webhooks/workspaces/${workspaceId}/webhooks/${webhookId}`,
       {
         method: "DELETE",
       }

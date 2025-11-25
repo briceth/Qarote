@@ -1,23 +1,43 @@
 import { z } from "zod";
 
 /**
+ * Validate that the URL is not a Slack webhook URL
+ * Slack webhooks should be configured through the Slack integration, not general webhooks
+ */
+const webhookUrlSchema = z
+  .string()
+  .url("Invalid webhook URL")
+  .refine(
+    (url) => {
+      try {
+        const urlObj = new URL(url);
+        return urlObj.hostname !== "hooks.slack.com";
+      } catch {
+        return false;
+      }
+    },
+    {
+      message:
+        "Slack webhook URLs should be added in the Slack Notifications section, not here.",
+    }
+  );
+
+/**
  * Schema for creating a webhook
  */
 export const CreateWebhookSchema = z.object({
-  url: z.string().url("Invalid webhook URL"),
+  url: webhookUrlSchema,
   enabled: z.boolean().optional().default(true),
   secret: z.string().optional().nullable(),
-  version: z.string().optional().default("v1"),
 });
 
 /**
  * Schema for updating a webhook
  */
 export const UpdateWebhookSchema = z.object({
-  url: z.string().url("Invalid webhook URL").optional(),
+  url: webhookUrlSchema.optional(),
   enabled: z.boolean().optional(),
   secret: z.string().optional().nullable(),
-  version: z.string().optional(),
 });
 
 /**

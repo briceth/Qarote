@@ -15,6 +15,7 @@ import { PaymentApiClient } from "./paymentClient";
 import { PasswordApiClient } from "./passwordClient";
 import { DiscourseApiClient } from "./discourseClient";
 import { WebhookApiClient } from "./webhookClient";
+import { SlackApiClient } from "./slackClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 import type { FeedbackRequest } from "@/types/feedback";
 import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
@@ -29,6 +30,10 @@ import type {
   CreateWebhookRequest,
   UpdateWebhookRequest,
 } from "./webhookClient";
+import type {
+  CreateSlackConfigRequest,
+  UpdateSlackConfigRequest,
+} from "./slackClient";
 
 class ApiClient {
   private serverClient: ServerApiClient;
@@ -43,6 +48,7 @@ class ApiClient {
   private passwordClient: PasswordApiClient;
   private discourseClient: DiscourseApiClient;
   private webhookClient: WebhookApiClient;
+  private slackClient: SlackApiClient;
 
   constructor(baseUrl?: string) {
     this.serverClient = new ServerApiClient(baseUrl);
@@ -57,6 +63,7 @@ class ApiClient {
     this.passwordClient = new PasswordApiClient(baseUrl);
     this.discourseClient = new DiscourseApiClient(baseUrl);
     this.webhookClient = new WebhookApiClient(baseUrl);
+    this.slackClient = new SlackApiClient(baseUrl);
   }
 
   // Server methods
@@ -841,6 +848,31 @@ class ApiClient {
 
   async deleteWebhook(workspaceId: string, webhookId: string) {
     return this.webhookClient.deleteWebhook(workspaceId, webhookId);
+  }
+
+  // Slack methods
+  async getSlackConfigs(workspaceId: string) {
+    return this.slackClient.getSlackConfigs(workspaceId);
+  }
+
+  async getSlackConfig(workspaceId: string, slackConfigId: string) {
+    return this.slackClient.getSlackConfig(workspaceId, slackConfigId);
+  }
+
+  async createSlackConfig(workspaceId: string, data: CreateSlackConfigRequest) {
+    return this.slackClient.createSlackConfig(workspaceId, data);
+  }
+
+  async updateSlackConfig(
+    workspaceId: string,
+    slackConfigId: string,
+    data: UpdateSlackConfigRequest
+  ) {
+    return this.slackClient.updateSlackConfig(workspaceId, slackConfigId, data);
+  }
+
+  async deleteSlackConfig(workspaceId: string, slackConfigId: string) {
+    return this.slackClient.deleteSlackConfig(workspaceId, slackConfigId);
   }
 
   // Discourse methods
