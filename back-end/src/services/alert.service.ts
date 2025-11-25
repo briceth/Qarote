@@ -14,6 +14,7 @@ import {
 import { RabbitMQNode, RabbitMQQueue } from "@/types/rabbitmq";
 import { NotificationEmailService } from "@/services/email/notification-email.service";
 import { WebhookService } from "@/services/webhook/webhook.service";
+import { SlackService } from "@/services/slack/slack.service";
 
 const DEFAULT_THRESHOLDS: AlertThresholds = {
   memory: { warning: 80, critical: 95 },
@@ -700,7 +701,7 @@ export class AlertService {
         }
       }
     } catch (error) {
-      logger.warn(`Failed to get nodes for server ${serverId}:`, error);
+      logger.warn({ error }, `Failed to get nodes for server ${serverId}`);
     }
 
     try {
@@ -718,7 +719,7 @@ export class AlertService {
         }
       }
     } catch (error) {
-      logger.warn(`Failed to get queues for server ${serverId}:`, error);
+      logger.warn({ error }, `Failed to get queues for server ${serverId}`);
     }
 
     // Sort alerts by severity and timestamp
@@ -876,8 +877,6 @@ export class AlertService {
           lastSeenAt: true,
         },
       });
-
-      const seenFingerprints = new Set(seenAlerts.map((a) => a.fingerprint));
 
       // Create set of currently active alert fingerprints
       const activeFingerprints = new Set<string>();
@@ -1049,9 +1048,9 @@ export class AlertService {
             }
           }
 
-          // Send webhook notifications
+          // Send webhook notifications (only first webhook)
           try {
-            const webhooks = await prisma.webhook.findMany({
+            const webhook = await prisma.webhook.findFirst({
               where: {
                 workspaceId,
                 enabled: true,
@@ -1064,33 +1063,37 @@ export class AlertService {
               },
             });
 
-            if (webhooks.length > 0) {
-              const webhookResults =
-                await WebhookService.sendAlertNotification(
-                  webhooks,
-                  workspaceId,
-                  workspace.name,
-                  serverId,
-                  serverName,
-                  alertsToNotify
-                );
+            if (webhook) {
+              const webhookResults = await WebhookService.sendAlertNotification(
+                [webhook],
+                workspaceId,
+                workspace.name,
+                serverId,
+                serverName,
+                alertsToNotify
+              );
 
               // Log webhook results
               const successful = webhookResults.filter(
                 (r) => r.result.success
               ).length;
-              const failed = webhookResults.filter((r) => !r.result.success)
-                .length;
+              const failed = webhookResults.filter(
+                (r) => !r.result.success
+              ).length;
 
               if (successful > 0) {
                 logger.info(
-                  `Sent alert notification to ${successful} webhook(s) for ${alertsToNotify.length} alerts`
+                  {
+                    successful,
+                    failed,
+                    alertsToNotifyLength: alertsToNotify.length,
+                  },
+                  "Sent alert notification to webhook(s)"
                 );
               }
 
               if (failed > 0) {
                 logger.warn(
-                  `Failed to send alert notification to ${failed} webhook(s)`,
                   {
                     failures: webhookResults
                       .filter((r) => !r.result.success)
@@ -1098,12 +1101,67 @@ export class AlertService {
                         webhookId: r.webhookId,
                         error: r.result.error,
                       })),
-                  }
+                  },
+                  "Failed to send alert notification to webhook(s)"
                 );
               }
             }
           } catch (error) {
             logger.error({ error }, "Failed to send webhook notifications");
+          }
+
+          // Send Slack notifications (only first Slack config)
+          try {
+            const slackConfig = await prisma.slackConfig.findFirst({
+              where: {
+                workspaceId,
+                enabled: true,
+              },
+              select: {
+                id: true,
+                webhookUrl: true,
+                customValue: true,
+              },
+            });
+
+            if (slackConfig) {
+              const slackResults = await SlackService.sendAlertNotifications(
+                [slackConfig],
+                alertsToNotify,
+                workspace.name,
+                serverName
+              );
+
+              // Log Slack results
+              const successful = slackResults.filter(
+                (r) => r.result.success
+              ).length;
+              const failed = slackResults.filter(
+                (r) => !r.result.success
+              ).length;
+
+              if (successful > 0) {
+                logger.info(
+                  `Sent alert notification to ${successful} Slack channel(s) for ${alertsToNotify.length} alerts`
+                );
+              }
+
+              if (failed > 0) {
+                logger.warn(
+                  {
+                    failures: slackResults
+                      .filter((r) => !r.result.success)
+                      .map((r) => ({
+                        slackConfigId: r.slackConfigId,
+                        error: r.result.error,
+                      })),
+                  },
+                  `Failed to send alert notification to ${failed} Slack channel(s)`
+                );
+              }
+            }
+          } catch (error) {
+            logger.error({ error }, "Failed to send Slack notifications");
           }
         }
       }
@@ -1204,7 +1262,7 @@ export class AlertService {
         }
       }
     } catch (error) {
-      logger.warn(`Failed to get queues for cluster health summary:`, error);
+      logger.warn({ error }, `Failed to get queues for cluster health summary`);
     }
 
     return {
@@ -1442,8 +1500,8 @@ export class AlertService {
       return allowedPlans.includes(plan);
     } catch (error) {
       logger.error(
-        "Failed to check threshold modification permissions:",
-        error
+        { error },
+        "Failed to check threshold modification permissions"
       );
       return false;
     }

@@ -1041,6 +1041,95 @@ export const useDeleteWebhook = () => {
   });
 };
 
+// Slack hooks
+export const useSlackConfigs = (enabled: boolean = true) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+
+  return useQuery({
+    queryKey: ["slackConfigs", workspace?.id],
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getSlackConfigs(workspace.id);
+    },
+    enabled: !!workspace?.id && isAuthenticated && enabled,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCreateSlackConfig = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: (data: {
+      webhookUrl: string;
+      customValue?: string | null;
+      enabled?: boolean;
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.createSlackConfig(workspace.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["slackConfigs"],
+      });
+    },
+  });
+};
+
+export const useUpdateSlackConfig = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      slackConfigId,
+      data,
+    }: {
+      slackConfigId: string;
+      data: {
+        webhookUrl?: string;
+        customValue?: string | null;
+        enabled?: boolean;
+      };
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.updateSlackConfig(workspace.id, slackConfigId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["slackConfigs"],
+      });
+    },
+  });
+};
+
+export const useDeleteSlackConfig = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: (slackConfigId: string) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteSlackConfig(workspace.id, slackConfigId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["slackConfigs"],
+      });
+    },
+  });
+};
+
 // RabbitMQ Users hooks
 export const useUsers = (
   serverId: string | null,

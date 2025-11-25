@@ -1,34 +1,7 @@
 import { createHmac } from "node:crypto";
 import { logger } from "@/core/logger";
 import { RabbitMQAlert } from "@/types/alert";
-
-export interface WebhookPayload {
-  version: string;
-  event: "alert.notification";
-  timestamp: string;
-  workspace: {
-    id: string;
-    name: string;
-  };
-  server: {
-    id: string;
-    name: string;
-  };
-  alerts: RabbitMQAlert[];
-  summary: {
-    total: number;
-    critical: number;
-    warning: number;
-    info: number;
-  };
-}
-
-export interface WebhookResult {
-  success: boolean;
-  statusCode?: number;
-  error?: string;
-  retries?: number;
-}
+import { WebhookPayload, WebhookResult } from "./webhook.interfaces";
 
 /**
  * Webhook service for sending alert notifications to user-defined webhook endpoints
@@ -94,13 +67,16 @@ export class WebhookService {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => "Unknown error");
-        logger.warn("Webhook request failed", {
-          url,
-          statusCode: response.status,
-          statusText: response.statusText,
-          error: errorText,
-          retries,
-        });
+        logger.warn(
+          {
+            url,
+            statusCode: response.status,
+            statusText: response.statusText,
+            error: errorText,
+            retries,
+          },
+          "Webhook request failed"
+        );
 
         // Retry on 5xx errors or rate limiting
         if (
@@ -121,11 +97,14 @@ export class WebhookService {
         };
       }
 
-      logger.info("Webhook sent successfully", {
-        url,
-        statusCode: response.status,
-        retries,
-      });
+      logger.info(
+        {
+          url,
+          statusCode: response.status,
+          retries,
+        },
+        "Webhook sent successfully"
+      );
 
       return {
         success: true,
@@ -133,10 +112,7 @@ export class WebhookService {
         retries,
       };
     } catch (error) {
-      logger.error({ error }, "Error sending webhook", {
-        url,
-        retries,
-      });
+      logger.error({ error, url, retries }, "Error sending webhook");
 
       // Retry on network errors
       if (retries < this.MAX_RETRIES) {
