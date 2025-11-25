@@ -19,6 +19,7 @@ import publicInvitationController from "@/controllers/public-invitation.controll
 import feedbackController from "@/controllers/feedback.controller";
 import paymentController from "@/controllers/payment.controller";
 import webhookController from "@/controllers/payment/webhook.controller";
+import alertWebhookController from "@/controllers/webhook.controller";
 import healthcheckController from "@/controllers/healthcheck.controller";
 import discourseController from "@/controllers/discourse.controller";
 
@@ -69,6 +70,7 @@ app.route("/api/workspaces", workspaceController);
 app.route("/api/invitations", publicInvitationController);
 app.route("/api/feedback", feedbackController);
 app.route("/api/payments", paymentController);
+app.route("/api/webhooks", alertWebhookController);
 app.route("/api/discourse", discourseController);
 app.route("/", healthcheckController);
 

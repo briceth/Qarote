@@ -133,6 +133,7 @@ model Workspace {
   // Alert preferences
   alertThresholds          WorkspaceAlertThresholds?
   seenAlerts               SeenAlert[]
+  webhooks                 Webhook[]
   
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
@@ -444,6 +445,22 @@ model SeenAlert {
   @@index([serverId])
   @@index([resolvedAt]) // For querying resolved alerts
   @@map("seen_alerts")
+}
+
+model Webhook {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  url         String    // Webhook endpoint URL
+  enabled     Boolean   @default(true) // Enable/disable webhook
+  secret      String?   // Optional secret for webhook signature verification
+  version     String    @default("v1") // API version (v1, v2, etc.)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId])
+  @@index([enabled])
+  @@map("webhooks")
 }
 
 model Subscription {

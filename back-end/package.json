@@ -37,6 +37,7 @@
     "email:export": "cd scripts/resend && email export",
     "email:test": "tsx scripts/resend/test-email-rendering.ts",
     "email:test-cid": "tsx scripts/test-email-cid.ts",
+    "webhook:test": "tsx scripts/webhook/test-webhook.ts",
     "stripe:set-up": "tsx scripts/stripe/setup-stripe.ts",
     "stripe:create": "tsx scripts/stripe/setup-stripe.ts create",
     "stripe:migrate": "tsx scripts/stripe/setup-stripe.ts migrate",

@@ -14,18 +14,21 @@ import { PlanApiClient } from "./planClient";
 import { PaymentApiClient } from "./paymentClient";
 import { PasswordApiClient } from "./passwordClient";
 import { DiscourseApiClient } from "./discourseClient";
+import { WebhookApiClient } from "./webhookClient";
 import type { LogQuery, CreateLogRequest, LogExportRequest } from "./logTypes";
 import type { FeedbackRequest } from "@/types/feedback";
 import type { FeedbackFilters, UpdateFeedbackRequest } from "./feedbackClient";
 import { AlertThresholds } from "@/types/alerts";
 import type {
-  DiscourseUser,
-  DiscourseSSOResponse,
   DiscourseEmbedResponse,
   DiscourseInfoResponse,
   DiscourseStatsResponse,
   DiscourseTopicsResponse,
 } from "./discourseClient";
+import type {
+  CreateWebhookRequest,
+  UpdateWebhookRequest,
+} from "./webhookClient";
 
 class ApiClient {
   private serverClient: ServerApiClient;
@@ -39,6 +42,7 @@ class ApiClient {
   private paymentClient: PaymentApiClient;
   private passwordClient: PasswordApiClient;
   private discourseClient: DiscourseApiClient;
+  private webhookClient: WebhookApiClient;
 
   constructor(baseUrl?: string) {
     this.serverClient = new ServerApiClient(baseUrl);
@@ -52,6 +56,7 @@ class ApiClient {
     this.paymentClient = new PaymentApiClient(baseUrl);
     this.passwordClient = new PasswordApiClient(baseUrl);
     this.discourseClient = new DiscourseApiClient(baseUrl);
+    this.webhookClient = new WebhookApiClient(baseUrl);
   }
 
   // Server methods
@@ -811,6 +816,31 @@ class ApiClient {
       workspaceId,
       settings
     );
+  }
+
+  // Webhook methods
+  async getWebhooks(workspaceId: string) {
+    return this.webhookClient.getWebhooks(workspaceId);
+  }
+
+  async getWebhook(workspaceId: string, webhookId: string) {
+    return this.webhookClient.getWebhook(workspaceId, webhookId);
+  }
+
+  async createWebhook(workspaceId: string, data: CreateWebhookRequest) {
+    return this.webhookClient.createWebhook(workspaceId, data);
+  }
+
+  async updateWebhook(
+    workspaceId: string,
+    webhookId: string,
+    data: UpdateWebhookRequest
+  ) {
+    return this.webhookClient.updateWebhook(workspaceId, webhookId, data);
+  }
+
+  async deleteWebhook(workspaceId: string, webhookId: string) {
+    return this.webhookClient.deleteWebhook(workspaceId, webhookId);
   }
 
   // Discourse methods

@@ -6,6 +6,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alertDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,11 +24,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { ApiError } from "@/lib/api/types";
-import { Loader2, Mail, BellOff } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  BellOff,
+  Webhook,
+  Plus,
+  Trash2,
+  Edit2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   useAlertNotificationSettings,
   useUpdateAlertNotificationSettings,
+  useWebhooks,
+  useCreateWebhook,
+  useUpdateWebhook,
+  useDeleteWebhook,
 } from "@/hooks/useApi";
 
 interface AlertNotificationSettingsModalProps {
@@ -63,6 +87,20 @@ export function AlertNotificationSettingsModal({
 
   // Mutation for updating settings
   const updateSettingsMutation = useUpdateAlertNotificationSettings();
+
+  // Webhook hooks (must be called before any early returns)
+  const { data: webhooksData } = useWebhooks(isOpen);
+  const createWebhookMutation = useCreateWebhook();
+  const updateWebhookMutation = useUpdateWebhook();
+  const deleteWebhookMutation = useDeleteWebhook();
+
+  const [showAddWebhook, setShowAddWebhook] = useState(false);
+  const [editingWebhook, setEditingWebhook] = useState<string | null>(null);
+  const [webhookToDelete, setWebhookToDelete] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
+  const [webhookEnabled, setWebhookEnabled] = useState(true);
+  const [showSecret, setShowSecret] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,17 +163,144 @@ export function AlertNotificationSettingsModal({
     );
   }
 
+  const webhooks = webhooksData?.webhooks || [];
+
+  const handleAddWebhook = () => {
+    if (!webhookUrl.trim()) {
+      toast.error("Please provide a webhook URL");
+      return;
+    }
+
+    try {
+      new URL(webhookUrl);
+    } catch {
+      toast.error("Please provide a valid webhook URL");
+      return;
+    }
+
+    createWebhookMutation.mutate(
+      {
+        url: webhookUrl.trim(),
+        enabled: webhookEnabled,
+        secret: webhookSecret.trim() || null,
+        version: "v1",
+      },
+      {
+        onSuccess: () => {
+          toast.success("Webhook created successfully");
+          setShowAddWebhook(false);
+          setWebhookUrl("");
+          setWebhookSecret("");
+          setWebhookEnabled(true);
+        },
+        onError: (error: ApiError) => {
+          toast.error(error.message || "Failed to create webhook");
+        },
+      }
+    );
+  };
+
+  const handleUpdateWebhook = (webhookId: string) => {
+    if (!webhookUrl.trim()) {
+      toast.error("Please provide a webhook URL");
+      return;
+    }
+
+    try {
+      new URL(webhookUrl);
+    } catch {
+      toast.error("Please provide a valid webhook URL");
+      return;
+    }
+
+    updateWebhookMutation.mutate(
+      {
+        webhookId,
+        data: {
+          url: webhookUrl.trim(),
+          enabled: webhookEnabled,
+          secret: webhookSecret.trim() || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Webhook updated successfully");
+          setEditingWebhook(null);
+          setWebhookUrl("");
+          setWebhookSecret("");
+          setWebhookEnabled(true);
+        },
+        onError: (error: ApiError) => {
+          toast.error(error.message || "Failed to update webhook");
+        },
+      }
+    );
+  };
+
+  const handleDeleteWebhook = (webhookId: string) => {
+    setWebhookToDelete(webhookId);
+  };
+
+  const confirmDeleteWebhook = () => {
+    if (!webhookToDelete) return;
+
+    deleteWebhookMutation.mutate(webhookToDelete, {
+      onSuccess: () => {
+        toast.success("Webhook deleted successfully");
+        setWebhookToDelete(null);
+      },
+      onError: (error: ApiError) => {
+        toast.error(error.message || "Failed to delete webhook");
+        setWebhookToDelete(null);
+      },
+    });
+  };
+
+  const handleToggleWebhook = (webhookId: string, enabled: boolean) => {
+    updateWebhookMutation.mutate(
+      {
+        webhookId,
+        data: { enabled },
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Webhook ${enabled ? "enabled" : "disabled"}`);
+        },
+        onError: (error: ApiError) => {
+          toast.error(error.message || "Failed to update webhook");
+        },
+      }
+    );
+  };
+
+  const startEditWebhook = (webhook: (typeof webhooks)[0]) => {
+    setEditingWebhook(webhook.id);
+    setWebhookUrl(webhook.url);
+    setWebhookSecret(webhook.secret || "");
+    setWebhookEnabled(webhook.enabled);
+    setShowSecret(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingWebhook(null);
+    setShowAddWebhook(false);
+    setWebhookUrl("");
+    setWebhookSecret("");
+    setWebhookEnabled(true);
+    setShowSecret(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
             Alert Notification Settings
           </DialogTitle>
           <DialogDescription>
-            Configure email notifications for new alerts. Select which alert
-            severities you want to receive notifications for.
+            Configure email and webhook notifications for new alerts. Select
+            which alert severities you want to receive notifications for.
           </DialogDescription>
         </DialogHeader>
 
@@ -298,6 +463,229 @@ export function AlertNotificationSettingsModal({
             </Alert>
           )}
 
+          {/* Webhooks Section */}
+          <div className="space-y-4 pt-6 border-t">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Webhook className="h-5 w-5" />
+                <Label className="text-base">Webhook Notifications</Label>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowAddWebhook(true);
+                  setEditingWebhook(null);
+                  setWebhookUrl("");
+                  setWebhookSecret("");
+                  setWebhookEnabled(true);
+                  setShowSecret(false);
+                }}
+                disabled={
+                  showAddWebhook ||
+                  editingWebhook !== null ||
+                  createWebhookMutation.isPending
+                }
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Webhook
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Configure webhook endpoints to receive alert notifications via
+              POST requests.
+            </p>
+
+            {/* Add/Edit Webhook Form */}
+            {(showAddWebhook || editingWebhook) && (
+              <div className="p-4 border rounded-lg space-y-3 bg-muted/50">
+                <div className="space-y-2">
+                  <Label htmlFor="webhook-url">
+                    Webhook URL
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <Input
+                    id="webhook-url"
+                    type="url"
+                    placeholder="https://your-endpoint.com/webhook"
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    disabled={
+                      createWebhookMutation.isPending ||
+                      updateWebhookMutation.isPending
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="webhook-secret">Secret (Optional)</Label>
+                  <div className="relative">
+                    <Input
+                      id="webhook-secret"
+                      type={showSecret ? "text" : "password"}
+                      placeholder="Secret for HMAC signature"
+                      value={webhookSecret}
+                      onChange={(e) => setWebhookSecret(e.target.value)}
+                      disabled={
+                        createWebhookMutation.isPending ||
+                        updateWebhookMutation.isPending
+                      }
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowSecret(!showSecret)}
+                      disabled={
+                        createWebhookMutation.isPending ||
+                        updateWebhookMutation.isPending
+                      }
+                    >
+                      {showSecret ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Optional secret key for webhook signature verification
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="webhook-enabled"
+                      checked={webhookEnabled}
+                      onCheckedChange={setWebhookEnabled}
+                      disabled={
+                        createWebhookMutation.isPending ||
+                        updateWebhookMutation.isPending
+                      }
+                      className="data-[state=checked]:bg-gradient-button"
+                    />
+                    <Label htmlFor="webhook-enabled">Enabled</Label>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={cancelEdit}
+                      disabled={
+                        createWebhookMutation.isPending ||
+                        updateWebhookMutation.isPending
+                      }
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        if (editingWebhook) {
+                          handleUpdateWebhook(editingWebhook);
+                        } else {
+                          handleAddWebhook();
+                        }
+                      }}
+                      disabled={
+                        createWebhookMutation.isPending ||
+                        updateWebhookMutation.isPending
+                      }
+                      className="bg-gradient-button hover:bg-gradient-button-hover text-white"
+                    >
+                      {createWebhookMutation.isPending ||
+                      updateWebhookMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {editingWebhook ? "Updating..." : "Creating..."}
+                        </>
+                      ) : editingWebhook ? (
+                        "Update"
+                      ) : (
+                        "Create"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Webhooks List */}
+            <div className="space-y-2">
+              {webhooks.length === 0 && !showAddWebhook && (
+                <div className="p-4 border rounded-lg text-center text-sm text-muted-foreground">
+                  No webhooks configured. Click "Add Webhook" to create one.
+                </div>
+              )}
+              {webhooks.map((webhook) => (
+                <div
+                  key={webhook.id}
+                  className="p-4 border rounded-lg flex items-center justify-between"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-sm truncate">
+                        {webhook.url}
+                      </p>
+                      {webhook.enabled ? (
+                        <span className="px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">
+                          Enabled
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-800 rounded">
+                          Disabled
+                        </span>
+                      )}
+                      {webhook.secret && (
+                        <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
+                          Secured
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Version: {webhook.version}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <Switch
+                      checked={webhook.enabled}
+                      onCheckedChange={(enabled) =>
+                        handleToggleWebhook(webhook.id, enabled)
+                      }
+                      disabled={updateWebhookMutation.isPending}
+                      className="data-[state=checked]:bg-gradient-button"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEditWebhook(webhook)}
+                      disabled={
+                        editingWebhook !== null ||
+                        updateWebhookMutation.isPending
+                      }
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteWebhook(webhook.id)}
+                      disabled={deleteWebhookMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 pt-4 border-t">
             <Button
@@ -325,6 +713,47 @@ export function AlertNotificationSettingsModal({
           </div>
         </form>
       </DialogContent>
+
+      {/* Delete Webhook Confirmation Dialog */}
+      <AlertDialog
+        open={webhookToDelete !== null}
+        onOpenChange={(open) => !open && setWebhookToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              Delete Webhook
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this webhook?
+              {webhookToDelete && (
+                <span className="block mt-2 font-mono text-sm bg-muted p-2 rounded">
+                  {webhooks.find((w) => w.id === webhookToDelete)?.url}
+                </span>
+              )}
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteWebhook}
+              disabled={deleteWebhookMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleteWebhookMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

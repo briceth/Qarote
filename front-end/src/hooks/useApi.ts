@@ -950,6 +950,97 @@ export const useUpdateAlertNotificationSettings = () => {
   });
 };
 
+// Webhook hooks
+export const useWebhooks = (enabled: boolean = true) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+
+  return useQuery({
+    queryKey: ["webhooks", workspace?.id],
+    queryFn: () => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.getWebhooks(workspace.id);
+    },
+    enabled: !!workspace?.id && isAuthenticated && enabled,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCreateWebhook = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: (data: {
+      url: string;
+      enabled?: boolean;
+      secret?: string | null;
+      version?: string;
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.createWebhook(workspace.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["webhooks"],
+      });
+    },
+  });
+};
+
+export const useUpdateWebhook = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: ({
+      webhookId,
+      data,
+    }: {
+      webhookId: string;
+      data: {
+        url?: string;
+        enabled?: boolean;
+        secret?: string | null;
+        version?: string;
+      };
+    }) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.updateWebhook(workspace.id, webhookId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["webhooks"],
+      });
+    },
+  });
+};
+
+export const useDeleteWebhook = () => {
+  const queryClient = useQueryClient();
+  const { workspace } = useWorkspace();
+
+  return useMutation({
+    mutationFn: (webhookId: string) => {
+      if (!workspace?.id) {
+        throw new Error("Workspace ID is required");
+      }
+      return apiClient.deleteWebhook(workspace.id, webhookId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["webhooks"],
+      });
+    },
+  });
+};
+
 // RabbitMQ Users hooks
 export const useUsers = (
   serverId: string | null,

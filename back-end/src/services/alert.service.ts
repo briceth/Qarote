@@ -13,6 +13,7 @@ import {
 } from "@/types/alert";
 import { RabbitMQNode, RabbitMQQueue } from "@/types/rabbitmq";
 import { NotificationEmailService } from "@/services/email/notification-email.service";
+import { WebhookService } from "@/services/webhook/webhook.service";
 
 const DEFAULT_THRESHOLDS: AlertThresholds = {
   memory: { warning: 80, critical: 95 },
@@ -978,10 +979,10 @@ export class AlertService {
         }
       }
 
-      // Send email for alerts that should trigger notification
+      // Send notifications (email and webhooks) for alerts that should trigger notification
       if (newAlerts.length > 0) {
-        // Filter to only alerts that should actually get an email
-        const alertsToEmail = newAlerts.filter((alert) => {
+        // Filter to only alerts that should actually get notifications
+        const alertsToNotify = newAlerts.filter((alert) => {
           const fingerprint = generateAlertFingerprint(
             serverId,
             alert.category,
@@ -992,7 +993,7 @@ export class AlertService {
             (a) => a.fingerprint === fingerprint
           );
 
-          // Send email if:
+          // Send notification if:
           // 1. Never sent email before, OR
           // 2. Alert was resolved (came back), OR
           // 3. Past cooldown period
@@ -1008,34 +1009,102 @@ export class AlertService {
           return wasResolved || isPastCooldown;
         });
 
-        if (alertsToEmail.length > 0) {
-          // Send email notification
-          await NotificationEmailService.sendAlertNotificationEmail({
-            to: workspace.contactEmail,
-            workspaceName: workspace.name,
-            workspaceId,
-            alerts: alertsToEmail,
-            serverName: alertsToEmail[0]?.serverName || "Unknown Server",
-            serverId,
-          });
+        if (alertsToNotify.length > 0) {
+          const serverName = alertsToNotify[0]?.serverName || "Unknown Server";
 
-          // Mark alerts as email sent
-          for (const alert of alertsToEmail) {
-            const fingerprint = generateAlertFingerprint(
-              serverId,
-              alert.category,
-              alert.source.type,
-              alert.source.name
-            );
-            await prisma.seenAlert.updateMany({
-              where: { fingerprint },
-              data: { emailSentAt: now },
-            });
+          // Send email notification (if enabled)
+          if (workspace.emailNotificationsEnabled && workspace.contactEmail) {
+            try {
+              await NotificationEmailService.sendAlertNotificationEmail({
+                to: workspace.contactEmail,
+                workspaceName: workspace.name,
+                workspaceId,
+                alerts: alertsToNotify,
+                serverName,
+                serverId,
+              });
+
+              // Mark alerts as email sent
+              for (const alert of alertsToNotify) {
+                const fingerprint = generateAlertFingerprint(
+                  serverId,
+                  alert.category,
+                  alert.source.type,
+                  alert.source.name
+                );
+                await prisma.seenAlert.updateMany({
+                  where: { fingerprint },
+                  data: { emailSentAt: now },
+                });
+              }
+
+              logger.info(
+                `Sent alert notification email for ${alertsToNotify.length} new/recurring alerts to ${workspace.contactEmail}`
+              );
+            } catch (error) {
+              logger.error(
+                { error },
+                "Failed to send alert notification email"
+              );
+            }
           }
 
-          logger.info(
-            `Sent alert notification email for ${alertsToEmail.length} new/recurring alerts to ${workspace.contactEmail}`
-          );
+          // Send webhook notifications
+          try {
+            const webhooks = await prisma.webhook.findMany({
+              where: {
+                workspaceId,
+                enabled: true,
+              },
+              select: {
+                id: true,
+                url: true,
+                secret: true,
+                version: true,
+              },
+            });
+
+            if (webhooks.length > 0) {
+              const webhookResults =
+                await WebhookService.sendAlertNotification(
+                  webhooks,
+                  workspaceId,
+                  workspace.name,
+                  serverId,
+                  serverName,
+                  alertsToNotify
+                );
+
+              // Log webhook results
+              const successful = webhookResults.filter(
+                (r) => r.result.success
+              ).length;
+              const failed = webhookResults.filter((r) => !r.result.success)
+                .length;
+
+              if (successful > 0) {
+                logger.info(
+                  `Sent alert notification to ${successful} webhook(s) for ${alertsToNotify.length} alerts`
+                );
+              }
+
+              if (failed > 0) {
+                logger.warn(
+                  `Failed to send alert notification to ${failed} webhook(s)`,
+                  {
+                    failures: webhookResults
+                      .filter((r) => !r.result.success)
+                      .map((r) => ({
+                        webhookId: r.webhookId,
+                        error: r.result.error,
+                      })),
+                  }
+                );
+              }
+            }
+          } catch (error) {
+            logger.error({ error }, "Failed to send webhook notifications");
+          }
         }
       }
     } catch (error) {
