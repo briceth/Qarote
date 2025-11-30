@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
-import { alertService } from "@/services/alert.service";
+import { alertService } from "@/services/alerts/alert.service";
 import { getUserPlan } from "@/services/plan/plan.service";
 
 import {

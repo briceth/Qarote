@@ -1,0 +1,159 @@
+import { logger } from "@/core/logger";
+
+import {
+  AlertSeverity,
+  AlertSummary,
+  AlertThresholds,
+  ClusterHealthSummary,
+  HealthCheck,
+  RabbitMQAlert,
+} from "@/types/alert";
+
+import { analyzeNodeHealth, analyzeQueueHealth } from "./alert.analyzer";
+import { alertHealthService } from "./alert.health";
+import { alertNotificationService } from "./alert.notification";
+import { alertThresholdsService } from "./alert.thresholds";
+
+import { createRabbitMQClient } from "@/controllers/rabbitmq/shared";
+
+/**
+ * Alert Service class
+ * Main orchestrator for alert-related operations
+ */
+export class AlertService {
+  /**
+   * Get alerts for a server
+   */
+  async getServerAlerts(
+    serverId: string,
+    serverName: string,
+    workspaceId: string
+  ): Promise<{ alerts: RabbitMQAlert[]; summary: AlertSummary }> {
+    const alerts: RabbitMQAlert[] = [];
+    const client = await createRabbitMQClient(serverId, workspaceId);
+
+    // Get workspace-specific thresholds
+    const thresholds =
+      await alertThresholdsService.getWorkspaceThresholds(workspaceId);
+
+    try {
+      // Analyze nodes
+      const nodesResponse = await client.getNodes();
+      if (nodesResponse && Array.isArray(nodesResponse)) {
+        for (const node of nodesResponse) {
+          const nodeAlerts = analyzeNodeHealth(
+            node,
+            serverId,
+            serverName,
+            thresholds
+          );
+          alerts.push(...nodeAlerts);
+        }
+      }
+    } catch (error) {
+      logger.warn({ error }, `Failed to get nodes for server ${serverId}`);
+    }
+
+    try {
+      // Analyze queues
+      const queuesResponse = await client.getQueues();
+      if (queuesResponse && Array.isArray(queuesResponse)) {
+        for (const queue of queuesResponse) {
+          const queueAlerts = analyzeQueueHealth(
+            queue,
+            serverId,
+            serverName,
+            thresholds
+          );
+          alerts.push(...queueAlerts);
+        }
+      }
+    } catch (error) {
+      logger.warn({ error }, `Failed to get queues for server ${serverId}`);
+    }
+
+    // Sort alerts by severity and timestamp
+    alerts.sort((a, b) => {
+      const severityOrder = { critical: 3, warning: 2, info: 1 };
+      const severityDiff =
+        severityOrder[b.severity] - severityOrder[a.severity];
+      if (severityDiff !== 0) return severityDiff;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+
+    const summary: AlertSummary = {
+      total: alerts.length,
+      critical: alerts.filter((a) => a.severity === AlertSeverity.CRITICAL)
+        .length,
+      warning: alerts.filter((a) => a.severity === AlertSeverity.WARNING)
+        .length,
+      info: alerts.filter((a) => a.severity === AlertSeverity.INFO).length,
+    };
+
+    // Track new alerts and send email notifications
+    await alertNotificationService.trackAndNotifyNewAlerts(
+      alerts,
+      workspaceId,
+      serverId
+    );
+
+    return { alerts, summary };
+  }
+
+  /**
+   * Get cluster health summary
+   */
+  async getClusterHealthSummary(
+    serverId: string,
+    workspaceId: string
+  ): Promise<ClusterHealthSummary> {
+    return alertHealthService.getClusterHealthSummary(serverId, workspaceId);
+  }
+
+  /**
+   * Get health check for a server
+   */
+  async getHealthCheck(
+    serverId: string,
+    workspaceId: string
+  ): Promise<HealthCheck> {
+    return alertHealthService.getHealthCheck(serverId, workspaceId);
+  }
+
+  /**
+   * Check if user can modify alert thresholds based on subscription plan
+   */
+  async canModifyThresholds(workspaceId: string): Promise<boolean> {
+    return alertThresholdsService.canModifyThresholds(workspaceId);
+  }
+
+  /**
+   * Get alert thresholds for a workspace
+   */
+  async getWorkspaceThresholds(workspaceId: string): Promise<AlertThresholds> {
+    return alertThresholdsService.getWorkspaceThresholds(workspaceId);
+  }
+
+  /**
+   * Update alert thresholds for a workspace
+   */
+  async updateWorkspaceThresholds(
+    workspaceId: string,
+    thresholds: Partial<AlertThresholds>
+  ): Promise<{ success: boolean; message: string }> {
+    return alertThresholdsService.updateWorkspaceThresholds(
+      workspaceId,
+      thresholds
+    );
+  }
+
+  /**
+   * Get default thresholds
+   */
+  getDefaultThresholds(): AlertThresholds {
+    return alertThresholdsService.getDefaultThresholds();
+  }
+}
+
+// Export a singleton instance
+export const alertService = new AlertService();
