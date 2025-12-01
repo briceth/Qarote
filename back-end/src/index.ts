@@ -27,6 +27,7 @@ import { validateDeploymentMode } from "@/config/deployment";
 
 import { standardRateLimiter } from "./middlewares/rateLimiter";
 
+import alertsController from "@/controllers/alerts.controller";
 import authController from "@/controllers/auth.controller";
 import discourseController from "@/controllers/discourse.controller";
 import feedbackController from "@/controllers/feedback.controller";
@@ -86,6 +87,7 @@ app.route("/api/slack", slackController);
 app.route("/api/discourse", discourseController);
 app.route("/api/license", licenseController);
 app.route("/api/portal/licenses", portalLicenseController);
+app.route("/api/alerts", alertsController);
 app.route("/", healthcheckController);
 
 const { port, host } = serverConfig;

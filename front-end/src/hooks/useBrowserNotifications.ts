@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import type { RabbitMQAlert } from "@/lib/api/alertTypes";
+import { RabbitMQAlertSeverity } from "@/lib/api/alertTypes";
 import { logger } from "@/lib/logger";
-
-import type { RabbitMQAlert } from "@/types/alerts";
-import { AlertSeverity } from "@/types/alerts";
 
 interface BrowserNotificationOptions {
   enabled: boolean;
@@ -69,7 +68,7 @@ export function useBrowserNotifications(
         icon,
         badge,
         tag, // Use tag to replace notifications of the same type
-        requireInteraction: alert.severity === AlertSeverity.CRITICAL, // Critical alerts require interaction
+        requireInteraction: alert.severity === RabbitMQAlertSeverity.CRITICAL, // Critical alerts require interaction
         data: {
           alertId: alert.id,
           serverId: alert.serverId,
@@ -84,7 +83,7 @@ export function useBrowserNotifications(
       };
 
       // Auto-close after 5 seconds for non-critical alerts
-      if (alert.severity !== AlertSeverity.CRITICAL) {
+      if (alert.severity !== RabbitMQAlertSeverity.CRITICAL) {
         setTimeout(() => {
           notification.close();
         }, 5000);

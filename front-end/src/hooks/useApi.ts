@@ -23,7 +23,6 @@ export const queryKeys = {
   exchanges: (serverId: string) => ["exchanges", serverId] as const,
   nodes: (serverId: string) => ["nodes", serverId] as const,
   alerts: ["alerts"] as const,
-  recentAlerts: ["alerts", "recent"] as const,
 };
 
 // Server hooks
@@ -369,28 +368,67 @@ export const useQueueBindings = (serverId: string, queueName: string) => {
   });
 };
 
-// Alerts hooks
-export const useAlerts = () => {
+// Alert Rules hooks
+export const useAlertRules = (enabled: boolean = true) => {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: queryKeys.alerts,
-    queryFn: () => apiClient.getAlerts(),
-    enabled: isAuthenticated,
+    queryKey: ["alertRules"],
+    queryFn: () => apiClient.getAlertRules(),
+    enabled: isAuthenticated && enabled,
     staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refetch every minute
   });
 };
 
-export const useRecentAlerts = () => {
+export const useAlertRule = (id: string | null, enabled: boolean = true) => {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: queryKeys.recentAlerts,
-    queryFn: () => apiClient.getRecentAlerts(),
-    enabled: isAuthenticated,
-    staleTime: 10000, // 10 seconds
-    refetchInterval: 30000, // Refetch every 30 seconds
+    queryKey: ["alertRule", id],
+    queryFn: () => apiClient.getAlertRule(id!),
+    enabled: isAuthenticated && !!id && enabled,
+    staleTime: 30000,
+  });
+};
+
+export const useCreateAlertRule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Parameters<typeof apiClient.createAlertRule>[0]) =>
+      apiClient.createAlertRule(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["alertRules"] });
+    },
+  });
+};
+
+export const useUpdateAlertRule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Parameters<typeof apiClient.updateAlertRule>[1];
+    }) => apiClient.updateAlertRule(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["alertRules"] });
+      queryClient.invalidateQueries({ queryKey: ["alertRule", variables.id] });
+    },
+  });
+};
+
+export const useDeleteAlertRule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => apiClient.deleteAlertRule(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["alertRules"] });
+    },
   });
 };
 
@@ -822,6 +860,33 @@ export const useRabbitMQAlerts = (
     enabled: isEnabled,
     staleTime: 5000, // 5 seconds
     refetchInterval: isEnabled ? 30000 : false, // Only refetch if enabled
+  });
+};
+
+export const useResolvedAlerts = (
+  serverId: string | null,
+  options?: {
+    limit?: number;
+    offset?: number;
+    severity?: string;
+    category?: string;
+  }
+) => {
+  const { isAuthenticated } = useAuth();
+  const { workspace } = useWorkspace();
+  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
+
+  return useQuery({
+    queryKey: ["resolvedAlerts", serverId || "", options],
+    queryFn: () => {
+      if (!workspace?.id || !serverId) {
+        throw new Error("Workspace ID and Server ID are required");
+      }
+      return apiClient.getResolvedAlerts(serverId, workspace.id, options);
+    },
+    enabled: isEnabled,
+    staleTime: 30000, // 30 seconds
+    refetchInterval: isEnabled ? 60000 : false, // Refetch every minute
   });
 };
 

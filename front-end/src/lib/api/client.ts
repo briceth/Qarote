@@ -570,10 +570,11 @@ class ApiClient {
   }
 
   // Alert methods
-  async getRecentAlerts() {
-    return this.alertClient.getRecentAlerts();
+  async getAlerts(query?: Parameters<AlertApiClient["getAlerts"]>[0]) {
+    return this.alertClient.getAlerts(query);
   }
 
+  // Alert Rules methods
   async getAlertRules() {
     return this.alertClient.getAlertRules();
   }
@@ -597,10 +598,6 @@ class ApiClient {
 
   async deleteAlertRule(id: string) {
     return this.alertClient.deleteAlertRule(id);
-  }
-
-  async getAlerts(query?: Parameters<AlertApiClient["getAlerts"]>[0]) {
-    return this.alertClient.getAlerts(query);
   }
 
   async getAlert(id: string) {
@@ -776,7 +773,7 @@ class ApiClient {
       resolved?: boolean;
     }
   ) {
-    return this.rabbitmqClient.getServerAlerts(
+    return this.alertClient.getServerAlerts(
       serverId,
       workspaceId,
       thresholds,
@@ -785,31 +782,41 @@ class ApiClient {
   }
 
   async getRabbitMQAlertsSummary(serverId: string, workspaceId: string) {
-    return this.rabbitmqClient.getServerAlertsSummary(serverId, workspaceId);
+    return this.alertClient.getServerAlertsSummary(serverId, workspaceId);
+  }
+
+  async getResolvedAlerts(
+    serverId: string,
+    workspaceId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      severity?: string;
+      category?: string;
+    }
+  ) {
+    return this.alertClient.getResolvedAlerts(serverId, workspaceId, options);
   }
 
   async getRabbitMQHealth(serverId: string, workspaceId: string) {
     return this.rabbitmqClient.getServerHealth(serverId, workspaceId);
   }
 
-  // RabbitMQ Threshold methods
+  // Alert Threshold methods
   async getWorkspaceThresholds(workspaceId: string) {
-    return this.rabbitmqClient.getWorkspaceThresholds(workspaceId);
+    return this.alertClient.getWorkspaceThresholds(workspaceId);
   }
 
   async updateWorkspaceThresholds(
     thresholds: AlertThresholds,
     workspaceId: string
   ) {
-    return this.rabbitmqClient.updateWorkspaceThresholds(
-      thresholds,
-      workspaceId
-    );
+    return this.alertClient.updateWorkspaceThresholds(thresholds, workspaceId);
   }
 
   // Alert Notification Settings methods
   async getAlertNotificationSettings(workspaceId: string) {
-    return this.rabbitmqClient.getAlertNotificationSettings(workspaceId);
+    return this.alertClient.getAlertNotificationSettings(workspaceId);
   }
 
   async updateAlertNotificationSettings(
@@ -818,9 +825,11 @@ class ApiClient {
       emailNotificationsEnabled?: boolean;
       contactEmail?: string | null;
       notificationSeverities?: string[];
+      browserNotificationsEnabled?: boolean;
+      browserNotificationSeverities?: string[];
     }
   ) {
-    return this.rabbitmqClient.updateAlertNotificationSettings(
+    return this.alertClient.updateAlertNotificationSettings(
       workspaceId,
       settings
     );

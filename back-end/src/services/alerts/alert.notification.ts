@@ -91,12 +91,79 @@ export class AlertNotificationService {
   private readonly COOLDOWN_PERIOD = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
   /**
+   * Get alert title based on category and source
+   */
+  private getAlertTitle(
+    category: string,
+    sourceType: string,
+    sourceName: string
+  ): string {
+    const sourceLabel =
+      sourceType === "node"
+        ? "Node"
+        : sourceType === "queue"
+          ? "Queue"
+          : "Cluster";
+
+    switch (category) {
+      case "memory":
+        return "High Memory Usage";
+      case "disk":
+        return "Low Disk Space";
+      case "connection":
+        return "Connection Issue";
+      case "queue":
+        return sourceType === "queue" ? "Queue Issue" : "Queue Problem";
+      case "node":
+        return sourceType === "node" ? "Node Issue" : "Node Problem";
+      case "performance":
+        return "Performance Issue";
+      default:
+        return `${sourceLabel} Alert: ${sourceName}`;
+    }
+  }
+
+  /**
+   * Get alert description based on category and source
+   */
+  private getAlertDescription(
+    category: string,
+    sourceType: string,
+    sourceName: string
+  ): string {
+    const sourceLabel =
+      sourceType === "node"
+        ? "node"
+        : sourceType === "queue"
+          ? "queue"
+          : "cluster";
+
+    switch (category) {
+      case "memory":
+        return `Memory issue detected on ${sourceLabel} ${sourceName}`;
+      case "disk":
+        return `Disk space issue detected on ${sourceLabel} ${sourceName}`;
+      case "connection":
+        return `Connection issue detected on ${sourceLabel} ${sourceName}`;
+      case "queue":
+        return `Queue issue detected: ${sourceName}`;
+      case "node":
+        return `Node issue detected: ${sourceName}`;
+      case "performance":
+        return `Performance issue detected on ${sourceLabel} ${sourceName}`;
+      default:
+        return `Alert detected on ${sourceLabel} ${sourceName}`;
+    }
+  }
+
+  /**
    * Track seen alerts and send email notifications for new warnings/critical alerts
    */
   async trackAndNotifyNewAlerts(
     alerts: RabbitMQAlert[],
     workspaceId: string,
-    serverId: string
+    serverId: string,
+    serverName?: string
   ): Promise<void> {
     try {
       // Get workspace to check for contact email and notification settings
@@ -233,7 +300,25 @@ export class AlertNotificationService {
           serverId,
           resolvedAt: null, // Only unresolved ones
         },
+        select: {
+          fingerprint: true,
+          severity: true,
+          category: true,
+          sourceType: true,
+          sourceName: true,
+          firstSeenAt: true,
+        },
       });
+
+      // Get server name if not provided
+      let resolvedServerName = serverName;
+      if (!resolvedServerName) {
+        const server = await prisma.rabbitMQServer.findUnique({
+          where: { id: serverId },
+          select: { name: true },
+        });
+        resolvedServerName = server?.name || "Unknown Server";
+      }
 
       for (const seenAlert of unresolvedSeenAlerts) {
         if (!activeFingerprints.has(seenAlert.fingerprint)) {
@@ -242,9 +327,55 @@ export class AlertNotificationService {
             where: { fingerprint: seenAlert.fingerprint },
             data: { resolvedAt: now },
           });
-          logger.debug(
-            `Auto-resolved alert: ${seenAlert.fingerprint} (no longer active)`
+
+          // Calculate duration
+          const duration = now.getTime() - seenAlert.firstSeenAt.getTime();
+
+          // Reconstruct alert title and description from category and source
+          const title = this.getAlertTitle(
+            seenAlert.category,
+            seenAlert.sourceType,
+            seenAlert.sourceName
           );
+          const description = this.getAlertDescription(
+            seenAlert.category,
+            seenAlert.sourceType,
+            seenAlert.sourceName
+          );
+
+          // Store resolved alert in database
+          try {
+            await prisma.resolvedAlert.create({
+              data: {
+                serverId,
+                serverName: resolvedServerName,
+                severity: seenAlert.severity,
+                category: seenAlert.category,
+                title,
+                description,
+                details: {
+                  sourceType: seenAlert.sourceType,
+                  sourceName: seenAlert.sourceName,
+                  category: seenAlert.category,
+                },
+                sourceType: seenAlert.sourceType,
+                sourceName: seenAlert.sourceName,
+                fingerprint: seenAlert.fingerprint,
+                firstSeenAt: seenAlert.firstSeenAt,
+                resolvedAt: now,
+                duration,
+                workspaceId,
+              },
+            });
+            logger.debug(
+              `Saved resolved alert: ${seenAlert.fingerprint} (resolved after ${Math.round(duration / 1000 / 60)} minutes)`
+            );
+          } catch (error) {
+            logger.error(
+              { error, fingerprint: seenAlert.fingerprint },
+              "Failed to save resolved alert"
+            );
+          }
         }
       }
 

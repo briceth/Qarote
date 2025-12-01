@@ -126,6 +126,61 @@ alertsController.get(
 );
 
 /**
+ * Get resolved alerts for a server
+ * GET /workspaces/:workspaceId/servers/:id/alerts/resolved
+ */
+alertsController.get(
+  "/servers/:id/alerts/resolved",
+  zValidator("param", ServerParamSchema),
+  zValidator("query", AlertsQuerySchema),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const workspaceId = c.req.param("workspaceId");
+    const query = c.req.valid("query");
+    const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
+    try {
+      const server = await verifyServerAccess(id, workspaceId);
+
+      if (!server) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
+      const { alerts, total } = await alertService.getResolvedAlerts(
+        id,
+        workspaceId,
+        {
+          limit: query.limit,
+          offset: query.offset,
+          severity: query.severity,
+          category: query.category,
+        }
+      );
+
+      return c.json({
+        success: true,
+        alerts,
+        total,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error({ error }, "Error getting resolved alerts");
+      return createErrorResponse(
+        c,
+        error,
+        500,
+        "Failed to get resolved alerts"
+      );
+    }
+  }
+);
+
+/**
  * Get health check for a server
  * GET /workspaces/:workspaceId/servers/:id/health
  */

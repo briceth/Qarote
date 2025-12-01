@@ -367,3 +367,191 @@ export type UpdateThresholdsResponse = z.infer<
 >;
 export type AlertErrorResponse = z.infer<typeof AlertErrorResponseSchema>;
 export type ServerParam = z.infer<typeof ServerParamSchema>;
+
+// ============================================================================
+// Alert Rule Schemas (Legacy Custom Alert Rules)
+// ============================================================================
+
+export const AlertTypeSchema = z.enum([
+  "QUEUE_DEPTH",
+  "MESSAGE_RATE",
+  "CONSUMER_COUNT",
+  "MEMORY_USAGE",
+  "DISK_USAGE",
+  "CONNECTION_COUNT",
+  "CHANNEL_COUNT",
+  "NODE_DOWN",
+  "EXCHANGE_ERROR",
+]);
+
+export const LegacyAlertSeveritySchema = z.enum([
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "CRITICAL",
+]);
+
+export const AlertStatusSchema = z.enum(["ACTIVE", "ACKNOWLEDGED", "RESOLVED"]);
+
+export const ComparisonOperatorSchema = z.enum([
+  "GREATER_THAN",
+  "LESS_THAN",
+  "EQUALS",
+  "NOT_EQUALS",
+]);
+
+// Create Alert Rule Request
+export const CreateAlertRuleRequestSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.union([z.string().max(500), z.literal("")]).optional(),
+  type: AlertTypeSchema,
+  threshold: z.number().min(0),
+  operator: ComparisonOperatorSchema,
+  severity: LegacyAlertSeveritySchema,
+  enabled: z.boolean().optional().default(true),
+  serverId: z.string().uuid(),
+});
+
+// Update Alert Rule Request
+export const UpdateAlertRuleRequestSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional().nullable(),
+  type: AlertTypeSchema.optional(),
+  threshold: z.number().min(0).optional(),
+  operator: ComparisonOperatorSchema.optional(),
+  severity: LegacyAlertSeveritySchema.optional(),
+  enabled: z.boolean().optional(),
+  serverId: z.string().uuid().optional(),
+});
+
+// Alert Rule Response
+export const AlertRuleResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  type: AlertTypeSchema,
+  threshold: z.number(),
+  operator: ComparisonOperatorSchema,
+  severity: LegacyAlertSeveritySchema,
+  enabled: z.boolean(),
+  serverId: z.string(),
+  workspaceId: z.string(),
+  createdById: z.string(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  server: z.object({
+    id: z.string(),
+    name: z.string(),
+    host: z.string(),
+  }),
+  createdBy: z.object({
+    id: z.string(),
+    firstName: z.string().nullable(),
+    lastName: z.string().nullable(),
+    email: z.string(),
+  }),
+  _count: z
+    .object({
+      alerts: z.number(),
+    })
+    .optional(),
+});
+
+// Alert Instance Response
+export const AlertInstanceResponseSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  severity: LegacyAlertSeveritySchema,
+  status: AlertStatusSchema,
+  value: z.number().nullable(),
+  threshold: z.number().nullable(),
+  alertRuleId: z.string().nullable(),
+  workspaceId: z.string(),
+  createdById: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  resolvedAt: z.string().datetime().nullable(),
+  acknowledgedAt: z.string().datetime().nullable(),
+  alertRule: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      server: z.object({
+        id: z.string(),
+        name: z.string(),
+        host: z.string(),
+      }),
+    })
+    .optional(),
+  createdBy: z
+    .object({
+      id: z.string(),
+      firstName: z.string().nullable(),
+      lastName: z.string().nullable(),
+      email: z.string(),
+    })
+    .optional(),
+});
+
+// Alert Query Schema (for listing alerts)
+export const LegacyAlertsQuerySchema = z.object({
+  status: z.union([AlertStatusSchema, z.array(AlertStatusSchema)]).optional(),
+  severity: z
+    .union([LegacyAlertSeveritySchema, z.array(LegacyAlertSeveritySchema)])
+    .optional(),
+  serverId: z.string().uuid().optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
+  offset: z.string().regex(/^\d+$/).transform(Number).optional(),
+});
+
+// Alerts Response (list of alert instances)
+export const LegacyAlertsResponseSchema = z.object({
+  alerts: z.array(AlertInstanceResponseSchema),
+  pagination: z.object({
+    total: z.number(),
+    limit: z.number(),
+    offset: z.number(),
+    hasMore: z.boolean(),
+  }),
+});
+
+// Alert Stats Response
+export const AlertStatsResponseSchema = z.object({
+  total: z.number(),
+  active: z.number(),
+  acknowledged: z.number(),
+  resolved: z.number(),
+  critical: z.number(),
+  recent: z.array(AlertInstanceResponseSchema),
+});
+
+// Acknowledge/Resolve Alert Request
+export const AcknowledgeAlertRequestSchema = z.object({
+  note: z.string().max(500).optional(),
+});
+
+export const ResolveAlertRequestSchema = z.object({
+  note: z.string().max(500).optional(),
+});
+
+// Type exports
+export type AlertType = z.infer<typeof AlertTypeSchema>;
+export type LegacyAlertSeverity = z.infer<typeof LegacyAlertSeveritySchema>;
+export type AlertStatus = z.infer<typeof AlertStatusSchema>;
+export type ComparisonOperator = z.infer<typeof ComparisonOperatorSchema>;
+export type CreateAlertRuleRequest = z.infer<
+  typeof CreateAlertRuleRequestSchema
+>;
+export type UpdateAlertRuleRequest = z.infer<
+  typeof UpdateAlertRuleRequestSchema
+>;
+export type AlertRuleResponse = z.infer<typeof AlertRuleResponseSchema>;
+export type AlertInstanceResponse = z.infer<typeof AlertInstanceResponseSchema>;
+export type LegacyAlertsQuery = z.infer<typeof LegacyAlertsQuerySchema>;
+export type LegacyAlertsResponse = z.infer<typeof LegacyAlertsResponseSchema>;
+export type AlertStatsResponse = z.infer<typeof AlertStatsResponseSchema>;
+export type AcknowledgeAlertRequest = z.infer<
+  typeof AcknowledgeAlertRequestSchema
+>;
+export type ResolveAlertRequest = z.infer<typeof ResolveAlertRequestSchema>;

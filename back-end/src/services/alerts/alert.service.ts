@@ -1,4 +1,5 @@
 import { logger } from "@/core/logger";
+import { prisma } from "@/core/prisma";
 
 import {
   AlertSeverity,
@@ -94,7 +95,8 @@ export class AlertService {
     await alertNotificationService.trackAndNotifyNewAlerts(
       alerts,
       workspaceId,
-      serverId
+      serverId,
+      serverName
     );
 
     return { alerts, summary };
@@ -152,6 +154,100 @@ export class AlertService {
    */
   getDefaultThresholds(): AlertThresholds {
     return alertThresholdsService.getDefaultThresholds();
+  }
+
+  /**
+   * Get resolved alerts for a server
+   */
+  async getResolvedAlerts(
+    serverId: string,
+    workspaceId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      severity?: string;
+      category?: string;
+    }
+  ): Promise<{
+    alerts: Array<{
+      id: string;
+      serverId: string;
+      serverName: string;
+      severity: string;
+      category: string;
+      title: string;
+      description: string;
+      details: Record<string, unknown>;
+      source: { type: string; name: string };
+      firstSeenAt: string;
+      resolvedAt: string;
+      duration: number | null;
+    }>;
+    total: number;
+  }> {
+    const where: {
+      serverId: string;
+      workspaceId: string;
+      severity?: string;
+      category?: string;
+    } = {
+      serverId,
+      workspaceId,
+    };
+
+    if (options?.severity) {
+      where.severity = options.severity;
+    }
+
+    if (options?.category) {
+      where.category = options.category;
+    }
+
+    const [resolvedAlerts, total] = await Promise.all([
+      prisma.resolvedAlert.findMany({
+        where,
+        orderBy: { resolvedAt: "desc" },
+        take: options?.limit,
+        skip: options?.offset,
+        select: {
+          id: true,
+          serverId: true,
+          serverName: true,
+          severity: true,
+          category: true,
+          title: true,
+          description: true,
+          details: true,
+          sourceType: true,
+          sourceName: true,
+          firstSeenAt: true,
+          resolvedAt: true,
+          duration: true,
+        },
+      }),
+      prisma.resolvedAlert.count({ where }),
+    ]);
+
+    return {
+      alerts: resolvedAlerts.map((alert) => ({
+        id: alert.id,
+        serverId: alert.serverId,
+        serverName: alert.serverName,
+        severity: alert.severity,
+        category: alert.category,
+        title: alert.title,
+        description: alert.description,
+        details: alert.details as Record<string, unknown>,
+        source: {
+          type: alert.sourceType,
+          name: alert.sourceName,
+        },
+        firstSeenAt: alert.firstSeenAt.toISOString(),
+        resolvedAt: alert.resolvedAt.toISOString(),
+        duration: alert.duration,
+      })),
+      total,
+    };
   }
 }
 

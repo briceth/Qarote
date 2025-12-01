@@ -1,18 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  Clock,
-  Info,
-  XCircle,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 
 import { apiClient } from "@/lib/api";
 
+import {
+  formatRelativeTime,
+  getCategoryIcon,
+  getSeverityBadgeVariant,
+  getSeverityIcon,
+} from "@/components/alerts/alertUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,10 +20,8 @@ import { useServerContext } from "@/contexts/ServerContext";
 import { useUser } from "@/hooks/useUser";
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { AlertCategory, AlertSeverity, AlertThresholds } from "@/types/alerts";
+import { AlertThresholds } from "@/types/alerts";
 import { UserPlan } from "@/types/plans";
-
-type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
 export const RecentAlerts = () => {
   const navigate = useNavigate();
@@ -62,67 +58,6 @@ export const RecentAlerts = () => {
     enabled: !!selectedServerId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
-  // Get severity icon
-  const getSeverityIcon = (severity: AlertSeverity) => {
-    switch (severity) {
-      case AlertSeverity.CRITICAL:
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case AlertSeverity.WARNING:
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case AlertSeverity.INFO:
-        return <Info className="h-4 w-4 text-blue-500" />;
-      default:
-        return <Activity className="h-4 w-4" />;
-    }
-  };
-
-  // Get severity badge variant
-  const getSeverityBadgeVariant = (severity: AlertSeverity): BadgeVariant => {
-    switch (severity) {
-      case AlertSeverity.CRITICAL:
-        return "destructive";
-      case AlertSeverity.WARNING:
-        return "default";
-      case AlertSeverity.INFO:
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
-
-  // Format timestamp to relative time
-  const formatRelativeTime = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-
-      if (diffMins < 1) return "Just now";
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      return `${diffDays}d ago`;
-    } catch {
-      return "Unknown";
-    }
-  };
-
-  // Get category icon
-  const getCategoryIcon = (category: AlertCategory) => {
-    switch (category) {
-      case AlertCategory.MEMORY:
-        return <Activity className="h-3 w-3" />;
-      case AlertCategory.DISK:
-        return <Activity className="h-3 w-3" />;
-      case AlertCategory.QUEUE:
-        return <Clock className="h-3 w-3" />;
-      default:
-        return <Activity className="h-3 w-3" />;
-    }
-  };
 
   const alerts = alertsData?.alerts || [];
   const summary = alertsData?.summary || {
@@ -243,7 +178,9 @@ export const RecentAlerts = () => {
                 }
               >
                 <div className="flex-shrink-0 mt-0.5">
-                  {getSeverityIcon(alert.severity)}
+                  {getSeverityIcon(alert.severity, {
+                    showColors: true,
+                  })}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -261,7 +198,7 @@ export const RecentAlerts = () => {
                         variant="outline"
                         className="text-xs flex items-center gap-1"
                       >
-                        {getCategoryIcon(alert.category)}
+                        {getCategoryIcon(alert.category, "h-3 w-3")}
                         {alert.category}
                       </Badge>
                     )}

@@ -135,6 +135,7 @@ model Workspace {
   // Alert preferences
   alertThresholds          WorkspaceAlertThresholds?
   seenAlerts               SeenAlert[]
+  resolvedAlerts           ResolvedAlert[]
   webhooks                 Webhook[]
   slackConfigs             SlackConfig[]
   licenses                 License[]
@@ -265,6 +266,7 @@ model RabbitMQServer {
   Queues                  Queue[]
   alertRules              AlertRule[]
   seenAlerts              SeenAlert[]
+  resolvedAlerts          ResolvedAlert[]
 }
 
 model Queue {
@@ -449,6 +451,43 @@ model SeenAlert {
   @@index([serverId])
   @@index([resolvedAt]) // For querying resolved alerts
   @@map("seen_alerts")
+}
+
+model ResolvedAlert {
+  id          String    @id @default(uuid())
+  
+  // Alert details (full snapshot at resolution time)
+  serverId    String
+  serverName  String
+  severity    String    // "critical" | "warning" | "info"
+  category    String    // AlertCategory
+  title       String
+  description String
+  details     Json      // Full alert details as JSON
+  sourceType  String    // "node" | "queue" | "cluster"
+  sourceName  String
+  
+  // Fingerprint for reference
+  fingerprint String    // Reference to SeenAlert fingerprint
+  
+  // Timestamps
+  firstSeenAt DateTime  // When alert was first detected
+  resolvedAt  DateTime  @default(now()) // When alert was resolved
+  duration    Int?      // Duration in milliseconds (resolvedAt - firstSeenAt)
+  
+  // Relations
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  server      RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([workspaceId])
+  @@index([serverId])
+  @@index([resolvedAt])
+  @@index([fingerprint])
+  @@map("resolved_alerts")
 }
 
 model Webhook {

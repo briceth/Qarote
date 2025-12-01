@@ -5,14 +5,7 @@
 
 import { TimeRange } from "@/components/TimeRangeSelector";
 
-import {
-  AlertsResponse,
-  AlertsSummaryResponse,
-  AlertThresholds,
-  HealthResponse,
-  ThresholdsResponse,
-  UpdateThresholdsResponse,
-} from "@/types/alerts";
+import { HealthResponse } from "@/types/alerts";
 
 import { BaseApiClient } from "./baseClient";
 import { Binding, Consumer, Exchange } from "./exchangeTypes";
@@ -699,63 +692,6 @@ export class RabbitMQApiClient extends BaseApiClient {
     );
   }
 
-  // Alert Management
-  async getServerAlerts(
-    serverId: string,
-    workspaceId: string,
-    thresholds?: AlertThresholds,
-    options?: {
-      limit?: number;
-      offset?: number;
-      severity?: string;
-      category?: string;
-      resolved?: boolean;
-    }
-  ): Promise<AlertsResponse> {
-    const params = new URLSearchParams();
-
-    // Add threshold parameters
-    if (thresholds) {
-      Object.entries(thresholds).forEach(([key, value]) => {
-        if (value !== undefined) {
-          params.append(key, String(value));
-        }
-      });
-    }
-
-    // Add query options
-    if (options) {
-      if (options.limit !== undefined) {
-        params.append("limit", options.limit.toString());
-      }
-      if (options.offset !== undefined) {
-        params.append("offset", options.offset.toString());
-      }
-      if (options.severity) {
-        params.append("severity", options.severity);
-      }
-      if (options.category) {
-        params.append("category", options.category);
-      }
-      if (options.resolved !== undefined) {
-        params.append("resolved", options.resolved.toString());
-      }
-    }
-
-    const queryString = params.toString();
-    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts${queryString ? `?${queryString}` : ""}`;
-    return this.request<AlertsResponse>(url);
-  }
-
-  async getServerAlertsSummary(
-    serverId: string,
-    workspaceId: string
-  ): Promise<AlertsSummaryResponse> {
-    return this.request<AlertsSummaryResponse>(
-      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts/summary`
-    );
-  }
-
   async getServerHealth(
     serverId: string,
     workspaceId: string
@@ -763,86 +699,5 @@ export class RabbitMQApiClient extends BaseApiClient {
     return this.request<HealthResponse>(
       `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/health`
     );
-  }
-
-  // Threshold Management
-  async getWorkspaceThresholds(
-    workspaceId: string
-  ): Promise<ThresholdsResponse> {
-    return this.request<ThresholdsResponse>(
-      `/rabbitmq/workspaces/${workspaceId}/thresholds`
-    );
-  }
-
-  async updateWorkspaceThresholds(
-    thresholds: Partial<AlertThresholds>,
-    workspaceId: string
-  ): Promise<UpdateThresholdsResponse> {
-    return this.request<UpdateThresholdsResponse>(
-      `/rabbitmq/workspaces/${workspaceId}/thresholds`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ thresholds }),
-      }
-    );
-  }
-
-  // Alert Notification Settings
-  async getAlertNotificationSettings(workspaceId: string): Promise<{
-    success: boolean;
-    settings: {
-      emailNotificationsEnabled: boolean;
-      contactEmail: string | null;
-      notificationSeverities?: string[];
-      browserNotificationsEnabled: boolean;
-      browserNotificationSeverities?: string[];
-    };
-  }> {
-    const url = `/rabbitmq/workspaces/${workspaceId}/alert-settings`;
-    return this.request<{
-      success: boolean;
-      settings: {
-        emailNotificationsEnabled: boolean;
-        contactEmail: string | null;
-        notificationSeverities?: string[];
-        browserNotificationsEnabled: boolean;
-        browserNotificationSeverities?: string[];
-      };
-    }>(url);
-  }
-
-  async updateAlertNotificationSettings(
-    workspaceId: string,
-    settings: {
-      emailNotificationsEnabled?: boolean;
-      contactEmail?: string | null;
-      notificationSeverities?: string[];
-      browserNotificationsEnabled?: boolean;
-      browserNotificationSeverities?: string[];
-    }
-  ): Promise<{
-    success: boolean;
-    settings: {
-      emailNotificationsEnabled: boolean;
-      contactEmail: string | null;
-      notificationSeverities?: string[];
-      browserNotificationsEnabled: boolean;
-      browserNotificationSeverities?: string[];
-    };
-  }> {
-    const url = `/rabbitmq/workspaces/${workspaceId}/alert-settings`;
-    return this.request<{
-      success: boolean;
-      settings: {
-        emailNotificationsEnabled: boolean;
-        contactEmail: string | null;
-        notificationSeverities?: string[];
-        browserNotificationsEnabled: boolean;
-        browserNotificationSeverities?: string[];
-      };
-    }>(url, {
-      method: "PUT",
-      body: JSON.stringify(settings),
-    });
   }
 }
