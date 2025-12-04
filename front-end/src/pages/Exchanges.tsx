@@ -526,6 +526,29 @@ const Exchanges = () => {
                                       </span>{" "}
                                       {exchange.internal ? "Yes" : "No"}
                                     </div>
+                                    {exchange.policy && (
+                                      <div>
+                                        <span className="text-gray-500">
+                                          Policy:
+                                        </span>{" "}
+                                        <Badge
+                                          variant="outline"
+                                          className="ml-1"
+                                        >
+                                          {exchange.policy}
+                                        </Badge>
+                                      </div>
+                                    )}
+                                    {exchange.user_who_performed_action && (
+                                      <div>
+                                        <span className="text-gray-500">
+                                          Last Action By:
+                                        </span>{" "}
+                                        <span className="font-mono text-xs">
+                                          {exchange.user_who_performed_action}
+                                        </span>
+                                      </div>
+                                    )}
                                     {exchange.arguments &&
                                       Object.keys(exchange.arguments).length >
                                         0 && (

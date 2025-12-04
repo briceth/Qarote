@@ -33,6 +33,8 @@ export class RabbitMQBaseClient {
   protected baseUrl: string;
   protected authHeader: string;
   protected vhost: string;
+  protected version?: string; // Full RabbitMQ version (e.g., "3.12.10", "4.0.1")
+  protected versionMajorMinor?: string; // Major.Minor version (e.g., "3.12", "4.0")
 
   constructor(credentials: RabbitMQCredentials) {
     // Normalize tunnel URLs automatically
@@ -70,6 +72,8 @@ export class RabbitMQBaseClient {
     ).toString("base64")}`;
 
     this.vhost = encodeURIComponent(credentials.vhost); // not used
+    this.version = credentials.version;
+    this.versionMajorMinor = credentials.versionMajorMinor;
   }
 
   protected async request(endpoint: string, options?: RequestInit) {

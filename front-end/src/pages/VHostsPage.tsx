@@ -6,6 +6,7 @@ import {
   ChevronUp,
   Database,
   Edit,
+  Lock,
   Server,
   Trash2,
 } from "lucide-react";
@@ -293,6 +294,15 @@ export default function VHostsPage() {
                             <div className="flex items-center gap-2">
                               <Database className="h-4 w-4" />
                               {vhost.name}
+                              {vhost.protected_from_deletion && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs flex items-center gap-1"
+                                  title="Protected from deletion"
+                                >
+                                  <Lock className="w-3 h-3" />
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>{vhost.permissionCount || 0}</TableCell>

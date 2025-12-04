@@ -3,7 +3,13 @@ export interface RabbitMQUser {
   password_hash?: string;
   hashing_algorithm?: string;
   tags?: string[];
-  limits?: Record<string, unknown>;
+  /**
+   * User limits (optional, only present when limits are configured)
+   */
+  limits?: {
+    max_connections?: number;
+    max_channels?: number;
+  };
   accessibleVhosts?: string[];
 }
 

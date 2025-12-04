@@ -20,3 +20,6 @@ dist
 
 # Prisma generated client
 src/generated/
+
+# RabbitMQ discovery reports
+src/core/rabbitmq/discovery

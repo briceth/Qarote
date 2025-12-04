@@ -332,6 +332,31 @@ export default function UserDetailsPage() {
                         <span>{userDetails.password_hash ? "Yes" : "No"}</span>
                       </div>
                     </div>
+                    {userDetails.limits && (
+                      <div>
+                        <div className="text-sm text-muted-foreground mb-2">
+                          Limits
+                        </div>
+                        <div className="space-y-2">
+                          {userDetails.limits.max_connections !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm">Max Connections:</span>
+                              <Badge variant="outline">
+                                {userDetails.limits.max_connections}
+                              </Badge>
+                            </div>
+                          )}
+                          {userDetails.limits.max_channels !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm">Max Channels:</span>
+                              <Badge variant="outline">
+                                {userDetails.limits.max_channels}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

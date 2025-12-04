@@ -19,6 +19,8 @@ export function getDecryptedCredentials(server: RabbitMQServer) {
     vhost: server.vhost,
     useHttps: server.useHttps,
     amqpPort: server.amqpPort,
+    version: server.version ?? undefined,
+    versionMajorMinor: server.versionMajorMinor ?? undefined,
   };
 }
 

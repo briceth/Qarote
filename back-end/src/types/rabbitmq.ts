@@ -221,6 +221,14 @@ export interface RabbitMQExchange {
     publish_out?: number;
     publish_out_details?: RateDetail;
   };
+  /**
+   * Policy applied to the exchange
+   */
+  policy?: string | null;
+  /**
+   * User who performed the last action on this exchange (audit field)
+   */
+  user_who_performed_action?: string;
 }
 
 export interface RabbitMQBinding {
@@ -365,10 +373,38 @@ export interface RabbitMQOverview {
   cluster_name: string;
   erlang_version: string;
   erlang_full_version: string;
-  release_series_support_status: string;
+  /**
+   * @since 3.12.0
+   * @deprecated Since 4.2.0 - Field removed in RabbitMQ 4.2
+   * Indicates the support status of the release series
+   */
+  release_series_support_status?: string;
   disable_stats: boolean;
-  is_op_policy_updating_enabled: boolean;
-  enable_queue_totals: boolean;
+  /**
+   * @since 3.8.0
+   * Indicates if operator policy updating is enabled
+   */
+  is_op_policy_updating_enabled?: boolean;
+  /**
+   * @since 3.8.0
+   * Indicates if queue totals are enabled
+   */
+  enable_queue_totals?: boolean;
+  /**
+   * @since 4.0.0
+   * Cluster-level tags
+   */
+  cluster_tags?: string[];
+  /**
+   * @since 4.0.0
+   * Node-level tags
+   */
+  node_tags?: string[];
+  /**
+   * @since 4.0.0
+   * Default queue type for the cluster
+   */
+  default_queue_type?: string;
   message_stats: MessageStats;
   churn_rates: ChurnRates;
   queue_totals: QueueTotals;
@@ -387,6 +423,8 @@ export interface RabbitMQCredentials {
   password: string;
   vhost: string;
   useHttps: boolean;
+  version?: string; // Full RabbitMQ version (e.g., "3.12.10", "4.0.1")
+  versionMajorMinor?: string; // Major.Minor version (e.g., "3.12", "4.0")
 }
 
 export interface QueueArguments {
@@ -458,13 +496,35 @@ export interface RabbitMQQueue {
   auto_delete: boolean;
   durable: boolean;
   exclusive: boolean;
+  /**
+   * @since 4.2.0
+   * Indicates if the queue is internal (not accessible via AMQP)
+   */
+  internal?: boolean;
+  /**
+   * @since 4.2.0
+   * Owner of the internal queue
+   */
+  internal_owner?: string;
 
   // Consumer information
   consumers: number;
-  consumer_capacity: number;
-  consumer_utilisation: number;
+  /**
+   * @since 3.11.0
+   * Consumer capacity metric
+   */
+  consumer_capacity?: number;
+  /**
+   * @since 3.11.0
+   * Consumer utilisation metric
+   */
+  consumer_utilisation?: number;
   exclusive_consumer_tag: string | null;
-  single_active_consumer_tag: string | null;
+  /**
+   * @since 3.8.0
+   * Single active consumer tag (for single active consumer pattern)
+   */
+  single_active_consumer_tag?: string | null;
 
   // Message counts
   messages: number;
@@ -501,9 +561,21 @@ export interface RabbitMQQueue {
   policy: string | null;
   operator_policy: string | null;
   effective_policy_definition: EffectivePolicyDefinition | null;
-  slave_nodes: string[];
-  synchronised_slave_nodes: string[];
-  recoverable_slaves: string[] | null;
+  /**
+   * @deprecated Since 4.0.0 - Classic queue mirroring removed
+   * Slave nodes for classic queue mirroring (removed in RabbitMQ 4.0)
+   */
+  slave_nodes?: string[];
+  /**
+   * @deprecated Since 4.0.0 - Classic queue mirroring removed
+   * Synchronised slave nodes for classic queue mirroring (removed in RabbitMQ 4.0)
+   */
+  synchronised_slave_nodes?: string[];
+  /**
+   * @deprecated Since 4.0.0 - Classic queue mirroring removed
+   * Recoverable slaves for classic queue mirroring (removed in RabbitMQ 4.0)
+   */
+  recoverable_slaves?: string[] | null;
 
   // Message stats (optional for backwards compatibility)
   message_stats?: QueueMessageStats;
@@ -511,6 +583,11 @@ export interface RabbitMQQueue {
     mode: string;
     [key: string]: unknown;
   };
+  /**
+   * @since 4.0.0
+   * Storage version for the queue (e.g., "1" for classic queues, "2" for CQv2)
+   */
+  storage_version?: number;
 }
 
 export interface Metrics {
@@ -548,6 +625,22 @@ export interface RabbitMQVHost {
   messages_details?: RateDetail;
   messages_ready_details?: RateDetail;
   messages_unacknowledged_details?: RateDetail;
+  /**
+   * @since 4.0.0
+   * Whether the vhost is protected from deletion
+   */
+  protected_from_deletion?: boolean;
+  /**
+   * Message statistics for the vhost (optional, only present when there's activity)
+   */
+  message_stats?: {
+    publish?: number;
+    publish_details?: RateDetail;
+    deliver?: number;
+    deliver_details?: RateDetail;
+    ack?: number;
+    ack_details?: RateDetail;
+  };
 }
 
 export interface VHostPermissions {
@@ -625,6 +718,13 @@ export interface RabbitMQUser {
   password_hash?: string;
   hashing_algorithm?: string;
   tags: string;
+  /**
+   * User limits (optional, only present when limits are configured)
+   */
+  limits?: {
+    max_connections?: number;
+    max_channels?: number;
+  };
 }
 
 /**

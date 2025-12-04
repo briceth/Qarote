@@ -34,7 +34,7 @@
     "seed:clean": "tsx scripts/rabbitmq/seed-test-data.ts --type=clean",
     "seed:publish": "tsx scripts/rabbitmq/seed-publish-messages.ts",
     "seed:consume": "tsx scripts/rabbitmq/seed-consume-messages.ts",
-    "seed:rates": "tsx scripts/rabbitmq/seed-rates-activity.ts",
+    "seed:all": "tsx scripts/rabbitmq/seed-all-servers.ts",
     "seed:email:send": "tsx scripts/resend/seed-email-verification-tests.ts",
     "email:dev": "email dev --dir ./scripts/resend/emails --port 3001",
     "email:preview": "cd scripts/resend && email preview",

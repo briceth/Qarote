@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowLeft, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/AppSidebar";
@@ -287,9 +287,21 @@ export default function VHostDetailsPage() {
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <h1 className="title-page">
-                  Virtual host / {decodedVHostName}
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="title-page">
+                    Virtual host / {decodedVHostName}
+                  </h1>
+                  {vhost.protected_from_deletion && (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                      title="This vhost is protected from deletion"
+                    >
+                      <Lock className="w-3 h-3" />
+                      Protected
+                    </Badge>
+                  )}
+                </div>
               </div>
               <ConnectionStatus />
             </div>
@@ -326,6 +338,67 @@ export default function VHostDetailsPage() {
                     </div>
                   </div>
                 </div>
+                {vhost.message_stats && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="text-sm font-medium mb-4">
+                      Message Statistics
+                    </h4>
+                    <div className="grid grid-cols-3 gap-8">
+                      {vhost.message_stats.publish !== undefined && (
+                        <div>
+                          <div className="text-sm text-muted-foreground mb-1">
+                            Published
+                          </div>
+                          <div className="text-lg font-medium">
+                            {vhost.message_stats.publish.toLocaleString()}
+                          </div>
+                          {vhost.message_stats.publish_details && (
+                            <div className="text-xs text-muted-foreground">
+                              {vhost.message_stats.publish_details.rate.toFixed(
+                                2
+                              )}
+                              /s
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {vhost.message_stats.deliver !== undefined && (
+                        <div>
+                          <div className="text-sm text-muted-foreground mb-1">
+                            Delivered
+                          </div>
+                          <div className="text-lg font-medium">
+                            {vhost.message_stats.deliver.toLocaleString()}
+                          </div>
+                          {vhost.message_stats.deliver_details && (
+                            <div className="text-xs text-muted-foreground">
+                              {vhost.message_stats.deliver_details.rate.toFixed(
+                                2
+                              )}
+                              /s
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {vhost.message_stats.ack !== undefined && (
+                        <div>
+                          <div className="text-sm text-muted-foreground mb-1">
+                            Acknowledged
+                          </div>
+                          <div className="text-lg font-medium">
+                            {vhost.message_stats.ack.toLocaleString()}
+                          </div>
+                          {vhost.message_stats.ack_details && (
+                            <div className="text-xs text-muted-foreground">
+                              {vhost.message_stats.ack_details.rate.toFixed(2)}
+                              /s
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

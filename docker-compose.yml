@@ -229,6 +229,30 @@ services:
       timeout: 10s
       retries: 5
 
+  # RabbitMQ 4.2 - Latest version
+  rabbitmq-4-2:
+    image: rabbitmq:4.2-management-alpine
+    container_name: rabbit_dashboard_rabbitmq_4_2
+    hostname: rabbitmq-4-2
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5680:5672" # AMQP port
+      - "15680:15672" # Management UI port
+    volumes:
+      - rabbitmq_4_2_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/v4-definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - rabbit_dashboard_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 volumes:
   postgres_data:
     driver: local
@@ -249,6 +273,8 @@ volumes:
   rabbitmq_4_0_data:
     driver: local
   rabbitmq_4_1_data:
+    driver: local
+  rabbitmq_4_2_data:
     driver: local
 
 networks:

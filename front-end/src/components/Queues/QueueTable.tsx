@@ -1,4 +1,4 @@
-import { MessageSquare, Users } from "lucide-react";
+import { Lock, MessageSquare, Users } from "lucide-react";
 
 import { Queue } from "@/lib/api";
 
@@ -106,14 +106,26 @@ export function QueueTable({
                     className="hover:bg-accent/50"
                   >
                     <TableCell className="font-medium">
-                      <button
-                        onClick={() =>
-                          onNavigateToQueue(encodeURIComponent(queue.name))
-                        }
-                        className="text-left font-medium text-orange-600 hover:text-orange-700 hover:underline transition-colors cursor-pointer"
-                      >
-                        {queue.name}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            onNavigateToQueue(encodeURIComponent(queue.name))
+                          }
+                          className="text-left font-medium text-orange-600 hover:text-orange-700 hover:underline transition-colors cursor-pointer"
+                        >
+                          {queue.name}
+                        </button>
+                        {queue.internal && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs flex items-center gap-1"
+                            title="Internal queue (not accessible via AMQP)"
+                          >
+                            <Lock className="w-3 h-3" />
+                            Internal
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(queue)}</TableCell>
                     <TableCell className="font-mono">

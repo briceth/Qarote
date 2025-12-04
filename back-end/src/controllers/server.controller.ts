@@ -279,6 +279,8 @@ serverController.put(
           password: data.password || existingServer.password,
           vhost: data.vhost || existingServer.vhost,
           useHttps: data.useHttps ?? existingServer.useHttps,
+          version: existingServer.version ?? undefined,
+          versionMajorMinor: existingServer.versionMajorMinor ?? undefined,
         });
 
         await client.getOverview();

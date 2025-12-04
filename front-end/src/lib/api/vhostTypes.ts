@@ -34,6 +34,28 @@ export interface VHost {
   messages_unacknowledged_details?: {
     rate: number;
   };
+  /**
+   * @since 4.0.0
+   * Whether the vhost is protected from deletion
+   */
+  protected_from_deletion?: boolean;
+  /**
+   * Message statistics for the vhost (optional, only present when there's activity)
+   */
+  message_stats?: {
+    publish?: number;
+    publish_details?: {
+      rate: number;
+    };
+    deliver?: number;
+    deliver_details?: {
+      rate: number;
+    };
+    ack?: number;
+    ack_details?: {
+      rate: number;
+    };
+  };
   // Additional properties from enhanced API response
   permissions?: VHostPermission[];
   limits?: VHostLimits;

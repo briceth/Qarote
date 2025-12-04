@@ -47,7 +47,7 @@ export const ConnectionStatus = () => {
   }
 
   return (
-    <div className="flex items-center gap-2 mt-1">
+    <div className="flex items-center gap-2 mt-1 flex-wrap">
       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
       <Badge variant="secondary" className="bg-green-100 text-green-700">
         Connected to {overview.cluster_name || server.name}
@@ -58,6 +58,20 @@ export const ConnectionStatus = () => {
       <Badge variant="outline" className="text-xs">
         Erlang {overview.erlang_version}
       </Badge>
+      {overview.default_queue_type && (
+        <Badge variant="outline" className="text-xs">
+          Default: {overview.default_queue_type}
+        </Badge>
+      )}
+      {overview.cluster_tags && overview.cluster_tags.length > 0 && (
+        <div className="flex items-center gap-1">
+          {overview.cluster_tags.map((tag) => (
+            <Badge key={tag} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

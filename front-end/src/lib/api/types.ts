@@ -126,6 +126,23 @@ export interface Queue {
   synchronised_slave_nodes: string[];
   recoverable_slaves: string[] | null;
 
+  // Storage and internal queue information
+  /**
+   * @since 3.13.0
+   * Storage version (1 for classic, 2 for CQv2)
+   */
+  storage_version?: number;
+  /**
+   * @since 4.2.0
+   * Indicates if the queue is internal (not accessible via AMQP)
+   */
+  internal?: boolean;
+  /**
+   * @since 4.2.0
+   * Owner of the internal queue
+   */
+  internal_owner?: string;
+
   // Message stats (optional for backwards compatibility)
   message_stats?: QueueMessageStats;
   backing_queue_status?: {

@@ -65,6 +65,32 @@ export function QueueConfiguration({ queue }: QueueConfigurationProps) {
               <span className="text-sm text-muted-foreground">Policy</span>
               <Badge variant="outline">{queue.policy || "None"}</Badge>
             </div>
+            {queue.storage_version && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Storage Version
+                </span>
+                <Badge variant="outline">
+                  {queue.storage_version === 1 ? "Classic" : "CQv2"}
+                </Badge>
+              </div>
+            )}
+            {queue.internal && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Internal</span>
+                <Badge variant="secondary">Yes</Badge>
+              </div>
+            )}
+            {queue.internal && queue.internal_owner && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Internal Owner
+                </span>
+                <Badge variant="outline" className="font-mono">
+                  {queue.internal_owner}
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
 

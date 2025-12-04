@@ -3,7 +3,7 @@
  * Contains interfaces for exchanges, bindings, and consumers
  */
 
-import { RateDetail } from "./types";
+import { RateDetail } from "./rabbitmqTypes";
 
 export interface Exchange {
   name: string;
@@ -19,6 +19,14 @@ export interface Exchange {
     publish_out?: number;
     publish_out_details?: RateDetail;
   };
+  /**
+   * Policy applied to the exchange (optional)
+   */
+  policy?: string | null;
+  /**
+   * User who performed the last action on this exchange (audit field, optional)
+   */
+  user_who_performed_action?: string;
   bindingCount: number;
   bindings: Binding[];
 }

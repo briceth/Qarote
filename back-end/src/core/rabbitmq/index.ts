@@ -35,3 +35,6 @@ export type {
 
 // Main RabbitMQ client that combines all functionality
 export { RabbitMQClient } from "./RabbitClient";
+
+// Note: ResponseValidator is available for internal use
+// (e.g., discovery scripts) but not exported as it's not used in application code
