@@ -1,4 +1,5 @@
-import type { AddServerFormData } from "@/schemas/forms";
+import type { AddServerFormData } from "@/schemas";
+import { urlValidationSchema } from "@/schemas";
 
 export interface ParsedRabbitMQUrl {
   host: string;
@@ -25,10 +26,18 @@ export function parseRabbitMQUrl(url: string): ParsedRabbitMQUrl | null {
   }
 
   try {
-    // Add protocol if missing (default to https for modern setups)
+    // Validate URL using Zod
+    const validationResult = urlValidationSchema.safeParse(url);
+    if (!validationResult.success) {
+      return null;
+    }
+
+    // Trim and prepare URL for parsing
     let urlToParse = url.trim();
+
+    // Check if URL already has a protocol
     if (!urlToParse.match(/^https?:\/\//i)) {
-      // Try to detect if it looks like a domain
+      // No protocol separator - add protocol if it looks like a domain
       if (urlToParse.includes(".") && !urlToParse.includes("://")) {
         urlToParse = `https://${urlToParse}`;
       } else {

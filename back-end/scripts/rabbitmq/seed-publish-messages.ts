@@ -17,6 +17,15 @@ class TestMessageGenerator {
     this.config = config;
   }
 
+  private getConnectionUrl(): string {
+    // Use AMQPS URL format for encrypted connections (port 5671)
+    if (this.config.port === 5671) {
+      return `amqps://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/%2F`;
+    }
+    // Use AMQP URL format for unencrypted connections (port 5672)
+    return `amqp://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/%2F`;
+  }
+
   private async waitForRabbitMQ(): Promise<void> {
     console.log("Waiting for RabbitMQ to be ready...");
     const maxRetries = 30;
@@ -24,12 +33,8 @@ class TestMessageGenerator {
 
     while (retries < maxRetries) {
       try {
-        const connection = await amqp.connect({
-          hostname: this.config.host,
-          port: this.config.port,
-          username: this.config.username,
-          password: this.config.password,
-        });
+        const connectionUrl = this.getConnectionUrl();
+        const connection = await amqp.connect(connectionUrl);
         await connection.close();
         console.log("✅ RabbitMQ is ready!");
         return;
@@ -46,12 +51,8 @@ class TestMessageGenerator {
 
   private async connect(): Promise<void> {
     try {
-      this.connection = await amqp.connect({
-        hostname: this.config.host,
-        port: this.config.port,
-        username: this.config.username,
-        password: this.config.password,
-      });
+      const connectionUrl = this.getConnectionUrl();
+      this.connection = await amqp.connect(connectionUrl);
 
       this.channel = await this.connection.createChannel();
       console.log("✅ Connected to RabbitMQ");
@@ -89,10 +90,10 @@ class TestMessageGenerator {
 
     // Create test queues
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     for (const queueName of testQueues) {
@@ -116,10 +117,10 @@ class TestMessageGenerator {
     console.log(`🚀 Generating ${messageCount} test messages...`);
 
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     const messageTypes = [
@@ -206,10 +207,10 @@ class TestMessageGenerator {
     console.log("\n📊 Queue Statistics:");
 
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     let totalMessages = 0;

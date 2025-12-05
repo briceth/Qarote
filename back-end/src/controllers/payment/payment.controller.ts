@@ -91,7 +91,7 @@ paymentController.post("/portal", async (c) => {
   try {
     const session = await StripeService.createPortalSession(
       user.stripeCustomerId,
-      `${emailConfig.frontendUrl}/profile?tab=billing`
+      `${emailConfig.frontendUrl}/billing`
     );
 
     return c.json({ url: session.url });

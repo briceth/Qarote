@@ -21,6 +21,15 @@ class TestMessageConsumer {
     this.config = config;
   }
 
+  private getConnectionUrl(): string {
+    // Use AMQPS URL format for encrypted connections (port 5671)
+    if (this.config.port === 5671) {
+      return `amqps://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/%2F`;
+    }
+    // Use AMQP URL format for unencrypted connections (port 5672)
+    return `amqp://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/%2F`;
+  }
+
   private async waitForRabbitMQ(): Promise<void> {
     console.log("Waiting for RabbitMQ to be ready...");
     const maxRetries = 30;
@@ -28,12 +37,8 @@ class TestMessageConsumer {
 
     while (retries < maxRetries) {
       try {
-        const connection = await amqp.connect({
-          hostname: this.config.host,
-          port: this.config.port,
-          username: this.config.username,
-          password: this.config.password,
-        });
+        const connectionUrl = this.getConnectionUrl();
+        const connection = await amqp.connect(connectionUrl);
         await connection.close();
         console.log("✅ RabbitMQ is ready!");
         return;
@@ -113,10 +118,10 @@ class TestMessageConsumer {
 
     // Check test queues exist
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     for (const queueName of testQueues) {
@@ -143,10 +148,10 @@ class TestMessageConsumer {
     console.log("\n📊 Queue Statistics (Before Consumption):");
 
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     const stats: { [key: string]: number } = {};
@@ -178,10 +183,10 @@ class TestMessageConsumer {
     console.log("\n📊 Queue Statistics (After Consumption):");
 
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     let totalMessages = 0;
@@ -215,10 +220,10 @@ class TestMessageConsumer {
     );
 
     const testQueues = [
-      "test.queue.1",
-      "test.queue.2",
-      "test.queue.notifications",
-      "test.queue.analytics",
+      "email.queue",
+      "user.queue",
+      "queue.notifications",
+      "queue.analytics",
     ];
 
     this.targetCount = messageCount;

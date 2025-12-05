@@ -99,10 +99,7 @@ export const UpgradeConfirmationEmail = ({
               <Text style={styles.billingText}>
                 You can manage your subscription and view billing history in
                 your{" "}
-                <a
-                  href={`${frontendUrl}/profile?tab=billing`}
-                  style={textStyles.link}
-                >
+                <a href={`${frontendUrl}/billing`} style={textStyles.link}>
                   account settings
                 </a>
                 .
