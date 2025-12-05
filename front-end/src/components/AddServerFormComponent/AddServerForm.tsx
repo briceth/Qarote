@@ -25,7 +25,7 @@ import { useServerContext } from "@/contexts/ServerContext";
 import { queryKeys } from "@/hooks/useApi";
 import { useUser } from "@/hooks/useUser";
 
-import { type AddServerFormData, addServerSchema } from "@/schemas/forms";
+import { type AddServerFormData, addServerSchema } from "@/schemas";
 
 import { ConnectionStatusDisplay } from "./ConnectionStatusDisplay";
 import { Credentials } from "./Credentials";

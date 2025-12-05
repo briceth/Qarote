@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import type { AddServerFormData } from "@/schemas/forms";
+import type { AddServerFormData } from "@/schemas";
 
 interface CredentialsProps {
   form: UseFormReturn<AddServerFormData>;

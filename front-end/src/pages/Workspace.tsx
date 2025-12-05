@@ -24,7 +24,7 @@ import { TagsInput } from "@/components/ui/tags-input";
 
 import { useAuth } from "@/contexts/AuthContextDefinition";
 
-import { WorkspaceFormData, workspaceSchema } from "@/schemas/forms";
+import { WorkspaceFormData, workspaceSchema } from "@/schemas";
 
 const Workspace = () => {
   const navigate = useNavigate();

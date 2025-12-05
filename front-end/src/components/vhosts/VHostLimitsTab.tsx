@@ -55,8 +55,12 @@ import {
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { editLimitValueSchema, limitSchema } from "@/schemas/vhost";
-import { type EditLimitValueForm, type LimitForm } from "@/schemas/vhost";
+import {
+  type EditLimitValueForm,
+  editLimitValueSchema,
+  type LimitForm,
+  limitSchema,
+} from "@/schemas";
 
 interface VHostLimitsTabProps {
   serverId: string;

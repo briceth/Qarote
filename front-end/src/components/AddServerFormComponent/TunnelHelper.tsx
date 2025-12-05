@@ -11,7 +11,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-import type { AddServerFormData } from "@/schemas/forms";
+import type { AddServerFormData } from "@/schemas";
 
 interface TunnelHelperProps {
   form: UseFormReturn<AddServerFormData>;
@@ -79,23 +79,7 @@ export const TunnelHelper = ({ form }: TunnelHelperProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 space-y-3">
             <div className="rounded-md bg-white p-3 dark:bg-gray-900">
-              <h4 className="mb-2 font-semibold">Option 1: localtunnel</h4>
-              <div className="space-y-2 font-mono text-sm">
-                <div>
-                  <code className="rounded bg-gray-100 px-2 py-1 dark:bg-gray-800">
-                    npx localtunnel --port 15672
-                  </code>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Copy the HTTPS URL provided (e.g.,{" "}
-                  <code>https://abc123.loca.lt</code>) and paste it in the Host
-                  field above. Port will default to 443.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-md bg-white p-3 dark:bg-gray-900">
-              <h4 className="mb-2 font-semibold">Option 2: ngrok</h4>
+              <h4 className="mb-2 font-semibold">Option 1: ngrok</h4>
               <div className="space-y-2 font-mono text-sm">
                 <div>
                   <code className="rounded bg-gray-100 px-2 py-1 dark:bg-gray-800">
@@ -114,6 +98,22 @@ export const TunnelHelper = ({ form }: TunnelHelperProps) => {
                   </a>
                   . Use the HTTPS URL in the Host field. The{" "}
                   <code>--basic-auth</code> flag adds security.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-md bg-white p-3 dark:bg-gray-900">
+              <h4 className="mb-2 font-semibold">Option 2: localtunnel</h4>
+              <div className="space-y-2 font-mono text-sm">
+                <div>
+                  <code className="rounded bg-gray-100 px-2 py-1 dark:bg-gray-800">
+                    npx localtunnel --port 15672
+                  </code>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Copy the HTTPS URL provided (e.g.,{" "}
+                  <code>https://abc123.loca.lt</code>) and paste it in the Host
+                  field above. Port will default to 443.
                 </p>
               </div>
             </div>

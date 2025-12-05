@@ -55,3 +55,9 @@ variable "route53_zone_id" {
   type        = string
   default     = ""
 }
+
+variable "rabbitmq_version" {
+  description = "RabbitMQ version to install. Empty string installs latest. Set to '4' for latest 4.x, or specific version like '4.2.1'"
+  type        = string
+  default     = ""
+}

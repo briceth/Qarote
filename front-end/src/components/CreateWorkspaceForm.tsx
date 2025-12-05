@@ -30,7 +30,7 @@ import { TagsInput } from "@/components/ui/tags-input";
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { WorkspaceFormData, workspaceSchema } from "@/schemas/forms";
+import { WorkspaceFormData, workspaceSchema } from "@/schemas";
 
 interface CreateWorkspaceFormProps {
   isOpen: boolean;

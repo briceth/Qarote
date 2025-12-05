@@ -6,13 +6,13 @@ import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import {
   applyParsedUrlToForm,
   parseRabbitMQUrl,
-} from "@/lib/utils/rabbitmqUrlParser";
+} from "@/lib/rabbitmqUrlParser";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import type { AddServerFormData } from "@/schemas/forms";
+import type { AddServerFormData } from "@/schemas";
 
 interface ServerUrlInputProps {
   form: UseFormReturn<AddServerFormData>;

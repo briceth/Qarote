@@ -12,18 +12,50 @@ apt-get upgrade -y
 # Install required packages
 apt-get install -y curl gnupg apt-transport-https nginx certbot python3-certbot-nginx
 
-# Add RabbitMQ repository (using correct official repository URLs)
+# Add RabbitMQ repository (using official repository URLs)
 curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | gpg --dearmor | tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
 tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
-## RabbitMQ Erlang Repository
-deb [signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb.rabbitmq.com/rabbitmq-erlang/debian jammy main
-## RabbitMQ Server Repository
-deb [signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb.rabbitmq.com/rabbitmq-server/debian jammy main
+## Modern Erlang/OTP releases
+deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/jammy jammy main
+deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-erlang/ubuntu/jammy jammy main
+
+## Latest RabbitMQ releases
+deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
+deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
 EOF
 
-# Install RabbitMQ
-apt-get update
-apt-get install -y rabbitmq-server
+# Update package indices
+apt-get update -y
+
+# Version pinning logic
+if [ "${rabbitmq_version}" = "4" ]; then
+  # Find latest 4.x version available
+  LATEST_4X=$(apt-cache madison rabbitmq-server | grep "^rabbitmq-server.*4\." | head -1 | awk '{print $3}')
+  if [ -n "$LATEST_4X" ]; then
+    echo "Pinning RabbitMQ to latest 4.x version: $LATEST_4X"
+    tee /etc/apt/preferences.d/rabbitmq <<EOF
+Package: rabbitmq-server
+Pin: version $LATEST_4X
+Pin-Priority: 1001
+EOF
+    apt-get update -y
+  fi
+elif [ -n "${rabbitmq_version}" ]; then
+  # Pin to specific version (e.g., "4.2.1")
+  VERSION=$(apt-cache madison rabbitmq-server | grep "${rabbitmq_version}" | head -1 | awk '{print $3}')
+  if [ -n "$VERSION" ]; then
+    echo "Pinning RabbitMQ to specific version: $VERSION"
+    tee /etc/apt/preferences.d/rabbitmq <<EOF
+Package: rabbitmq-server
+Pin: version $VERSION
+Pin-Priority: 1001
+EOF
+    apt-get update -y
+  fi
+fi
+
+# Install RabbitMQ (will use pinned version if specified)
+apt-get install -y rabbitmq-server --fix-missing
 
 # Start and enable RabbitMQ
 systemctl start rabbitmq-server

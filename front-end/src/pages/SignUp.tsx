@@ -34,7 +34,7 @@ import { useAuth } from "@/contexts/AuthContextDefinition";
 
 import { useRegister } from "@/hooks/useAuth";
 
-import { type SignUpFormData, signUpSchema } from "@/schemas/forms";
+import { type SignUpFormData, signUpSchema } from "@/schemas";
 
 const SignUp: React.FC = () => {
   const { isAuthenticated } = useAuth();

@@ -66,7 +66,7 @@ import {
 } from "@/hooks/useApi";
 import { useToast } from "@/hooks/useToast";
 
-import { type SendMessageFormData, sendMessageSchema } from "@/schemas/forms";
+import { type SendMessageFormData, sendMessageSchema } from "@/schemas";
 
 interface LabelWithTooltipProps {
   htmlFor: string;

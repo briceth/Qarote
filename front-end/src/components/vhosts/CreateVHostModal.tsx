@@ -32,8 +32,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { createVHostSchema } from "@/schemas/vhost";
-import { type CreateVHostForm } from "@/schemas/vhost";
+import { type CreateVHostForm, createVHostSchema } from "@/schemas";
 
 interface CreateVHostModalProps {
   isOpen: boolean;

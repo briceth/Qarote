@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { type CreateUserFormData, createUserSchema } from "@/schemas/user";
+import { type CreateUserFormData, createUserSchema } from "@/schemas";
 
 interface CreateUserModalProps {
   isOpen: boolean;

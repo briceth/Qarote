@@ -29,7 +29,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 
 import { useLogin } from "@/hooks/useAuth";
 
-import { type SignInFormData, signInSchema } from "@/schemas/forms";
+import { type SignInFormData, signInSchema } from "@/schemas";
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();

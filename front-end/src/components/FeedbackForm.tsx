@@ -37,7 +37,7 @@ import { useAuth } from "@/contexts/AuthContextDefinition";
 
 import { useToast } from "@/hooks/useToast";
 
-import { type FeedbackFormData, feedbackSchema } from "@/schemas/forms";
+import { type FeedbackFormData, feedbackSchema } from "@/schemas";
 
 import type { FeedbackRequest } from "@/types/feedback";
 

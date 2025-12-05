@@ -119,6 +119,18 @@ variable "aws_mq_domain_name" {
   default     = ""
 }
 
+variable "enable_aws_rabbitmq_4x" {
+  description = "Enable separate AWS EC2 instance with RabbitMQ 4.x"
+  type        = bool
+  default     = false
+}
+
+variable "aws_rabbitmq_4x_domain_name" {
+  description = "Domain name for AWS RabbitMQ 4.x instance (e.g., rabbitmq-4x.aws-rabbithq.com). Leave empty to use IP address."
+  type        = string
+  default     = ""
+}
+
 variable "azure_instance_type" {
   description = "Azure VM size for RabbitMQ servers"
   type        = string
@@ -201,6 +213,23 @@ module "aws_rabbitmq" {
   ssh_public_key      = var.ssh_public_key
   domain_name         = var.aws_domain_name
   route53_zone_id     = var.aws_route53_zone_id
+  rabbitmq_version    = ""  # Latest version (3.x)
+  tags                = local.common_tags
+}
+
+# AWS Configuration - RabbitMQ 4.x Instance
+module "aws_rabbitmq_4x" {
+  count  = contains(var.cloud_providers, "aws") && var.enable_aws_rabbitmq_4x ? 1 : 0
+  source = "./modules/aws"
+
+  region              = var.aws_region
+  instance_type       = var.aws_instance_type
+  rabbitmq_admin_user = var.rabbitmq_admin_user
+  rabbitmq_admin_password = var.rabbitmq_admin_password
+  ssh_public_key      = var.ssh_public_key
+  domain_name         = var.aws_rabbitmq_4x_domain_name
+  route53_zone_id     = var.aws_route53_zone_id
+  rabbitmq_version    = "4"  # Pin to latest 4.x
   tags                = local.common_tags
 }
 
@@ -334,10 +363,27 @@ output "aws_mq_rabbitmq" {
   sensitive = true
 }
 
+output "aws_rabbitmq_4x" {
+  description = "AWS RabbitMQ 4.x instance details"
+  value = try({
+    public_ip     = module.aws_rabbitmq_4x[0].public_ip
+    private_ip    = module.aws_rabbitmq_4x[0].private_ip
+    hostname      = module.aws_rabbitmq_4x[0].hostname
+    fqdn          = module.aws_rabbitmq_4x[0].fqdn
+    management_url = module.aws_rabbitmq_4x[0].fqdn != null ? "https://${module.aws_rabbitmq_4x[0].fqdn}" : "http://${module.aws_rabbitmq_4x[0].public_ip}:15672"
+    amqp_url      = module.aws_rabbitmq_4x[0].fqdn != null ? "amqp://${var.rabbitmq_admin_user}:${var.rabbitmq_admin_password}@${module.aws_rabbitmq_4x[0].fqdn}:5672" : "amqp://${var.rabbitmq_admin_user}:${var.rabbitmq_admin_password}@${module.aws_rabbitmq_4x[0].public_ip}:5672"
+    ssh_key_path  = module.aws_rabbitmq_4x[0].ssh_key_path
+    ssh_user      = module.aws_rabbitmq_4x[0].ssh_user
+    instance_id   = module.aws_rabbitmq_4x[0].instance_id
+  }, null)
+  sensitive = true
+}
+
 output "all_instances" {
   description = "Summary of all RabbitMQ instances"
   value = {
     aws = try(module.aws_rabbitmq[0].public_ip, null)
+    aws_4x = try(module.aws_rabbitmq_4x[0].public_ip, null)
     aws_mq = try(module.aws_mq_rabbitmq[0].broker_endpoint, null)
     azure = try(module.azure_rabbitmq[0].public_ip, null)
     gcp = try(module.gcp_rabbitmq[0].public_ip, null)

@@ -47,8 +47,7 @@ import {
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { permissionSchema } from "@/schemas/vhost";
-import { type PermissionForm } from "@/schemas/vhost";
+import { type PermissionForm, permissionSchema } from "@/schemas";
 
 interface VHostPermissionsTabProps {
   serverId: string;

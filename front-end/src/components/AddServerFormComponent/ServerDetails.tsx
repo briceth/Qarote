@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
-import type { AddServerFormData } from "@/schemas/forms";
+import type { AddServerFormData } from "@/schemas";
 
 import { ServerUrlInput } from "./ServerUrlInput";
 

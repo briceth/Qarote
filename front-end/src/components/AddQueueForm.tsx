@@ -55,7 +55,7 @@ import {
 import { useCreateQueue, useExchanges } from "@/hooks/useApi";
 import { useToast } from "@/hooks/useToast";
 
-import { type AddQueueFormData, addQueueSchema } from "@/schemas/forms";
+import { type AddQueueFormData, addQueueSchema } from "@/schemas";
 
 interface AddQueueFormProps {
   trigger?: React.ReactNode;

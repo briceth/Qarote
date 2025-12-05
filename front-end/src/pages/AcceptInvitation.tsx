@@ -35,7 +35,7 @@ import { useToast } from "@/hooks/useToast";
 import {
   type AcceptInvitationFormData,
   acceptInvitationSchema,
-} from "@/schemas/forms";
+} from "@/schemas";
 
 interface InvitationDetails {
   id: string;

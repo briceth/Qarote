@@ -31,8 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { editVHostSchema } from "@/schemas/vhost";
-import { type EditVHostForm } from "@/schemas/vhost";
+import { type EditVHostForm, editVHostSchema } from "@/schemas";
 
 interface EditVHostModalProps {
   isOpen: boolean;

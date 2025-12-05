@@ -164,6 +164,7 @@ resource "aws_instance" "rabbitmq" {
     rabbitmq_admin_user     = var.rabbitmq_admin_user
     rabbitmq_admin_password = var.rabbitmq_admin_password
     domain_name             = var.domain_name
+    rabbitmq_version        = var.rabbitmq_version
   })
 
   root_block_device {
