@@ -12,6 +12,8 @@ import {
   UpdateVHostSchema,
 } from "@/schemas/vhost";
 
+import { VHostMapper } from "@/mappers/rabbitmq/VHostMapper";
+
 import { createErrorResponse } from "../shared";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
 
@@ -97,10 +99,13 @@ vhostController.get("/servers/:serverId/vhosts", async (c) => {
       })
     );
 
+    // Map vhosts to API response format (only include fields used by front-end)
+    const mappedVhosts = VHostMapper.toApiResponseArray(enhancedVHosts);
+
     return c.json({
       success: true,
-      vhosts: enhancedVHosts,
-      total: enhancedVHosts.length,
+      vhosts: mappedVhosts,
+      total: mappedVhosts.length,
     });
   } catch (error) {
     logger.error(`Error fetching vhosts for server ${serverId}:`, error);
@@ -161,14 +166,20 @@ vhostController.get("/servers/:serverId/vhosts/:vhostName", async (c) => {
       totalConsumers: queues.reduce((sum, q) => sum + (q.consumers || 0), 0),
     };
 
+    // Enhance vhost with permissions, limits, and stats
+    const enhancedVhost = {
+      ...vhost,
+      permissions: permissions || [],
+      limits: limits || {},
+      stats,
+    };
+
+    // Map vhost to API response format (only include fields used by front-end)
+    const mappedVhost = VHostMapper.toApiResponse(enhancedVhost);
+
     return c.json({
       success: true,
-      vhost: {
-        ...vhost,
-        permissions: permissions || [],
-        limits: limits || {},
-        stats,
-      },
+      vhost: mappedVhost,
     });
   } catch (error) {
     logger.error(

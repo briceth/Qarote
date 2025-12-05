@@ -9,6 +9,7 @@ import { Layout } from "@/components/Layout";
 import { PageLoader } from "@/components/PageLoader";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicRoute } from "@/components/PublicRoute";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { TawkTo } from "@/components/TawkTo";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -66,6 +67,7 @@ const AppCore = () => (
                   }}
                 >
                   <TawkTo />
+                  <ScrollToTop />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       {/* Public authentication routes */}

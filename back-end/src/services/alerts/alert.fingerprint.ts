@@ -1,4 +1,4 @@
-import { AlertCategory } from "@/types/alert";
+import { AlertCategory } from "./alert.interfaces";
 
 /**
  * Generate alert ID (includes timestamp for uniqueness)

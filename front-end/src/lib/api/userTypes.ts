@@ -1,11 +1,7 @@
 export interface RabbitMQUser {
   name: string;
-  password_hash?: string;
-  hashing_algorithm?: string;
   tags?: string[];
-  /**
-   * User limits (optional, only present when limits are configured)
-   */
+  password_hash?: string; // Only for existence check
   limits?: {
     max_connections?: number;
     max_channels?: number;

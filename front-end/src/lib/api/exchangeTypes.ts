@@ -3,8 +3,6 @@
  * Contains interfaces for exchanges, bindings, and consumers
  */
 
-import { RateDetail } from "./rabbitmqTypes";
-
 export interface Exchange {
   name: string;
   vhost: string;
@@ -13,20 +11,12 @@ export interface Exchange {
   auto_delete: boolean;
   internal: boolean;
   arguments: { [key: string]: unknown };
+  policy?: string | null;
+  user_who_performed_action?: string;
   message_stats?: {
     publish_in?: number;
-    publish_in_details?: RateDetail;
     publish_out?: number;
-    publish_out_details?: RateDetail;
   };
-  /**
-   * Policy applied to the exchange (optional)
-   */
-  policy?: string | null;
-  /**
-   * User who performed the last action on this exchange (audit field, optional)
-   */
-  user_who_performed_action?: string;
   bindingCount: number;
   bindings: Binding[];
 }

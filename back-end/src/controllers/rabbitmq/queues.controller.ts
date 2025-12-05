@@ -24,7 +24,9 @@ import {
   QueuePurgeResponse,
   QueuesResponse,
   SingleQueueResponse,
-} from "@/types/rabbitmq";
+} from "@/types/api-responses";
+
+import { BindingMapper, ConsumerMapper, QueueMapper } from "@/mappers/rabbitmq";
 
 import { createErrorResponse } from "../shared";
 import {
@@ -133,8 +135,11 @@ queuesController.get("/servers/:id/queues", async (c) => {
       return a.name.localeCompare(b.name);
     });
 
+    // Map queues to API response format (only include fields used by front-end)
+    const mappedQueues = QueueMapper.toApiResponseArray(queues);
+
     // Prepare response with over-limit warning information
-    const response: QueuesResponse = { queues };
+    const response: QueuesResponse = { queues: mappedQueues };
 
     // Add warning information if server is over the queue limit
     if (server.isOverQueueLimit && server.workspace) {
@@ -194,7 +199,9 @@ queuesController.get("/servers/:id/queues/:queueName", async (c) => {
     const client = await createRabbitMQClient(id, workspaceId);
     const queue = await client.getQueue(queueName);
 
-    const response: SingleQueueResponse = { queue };
+    // Map queue to API response format (only include fields used by front-end)
+    const mappedQueue = QueueMapper.toApiResponse(queue);
+    const response: SingleQueueResponse = { queue: mappedQueue };
 
     return c.json(response);
   } catch (error) {
@@ -231,10 +238,13 @@ queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
     const client = await createRabbitMQClient(id, workspaceId);
     const consumers = await client.getQueueConsumers(queueName);
 
+    // Map consumers to API response format
+    const mappedConsumers = ConsumerMapper.toApiResponseArray(consumers);
+
     const response: QueueConsumersResponse = {
       success: true,
-      consumers,
-      totalConsumers: consumers.length,
+      consumers: mappedConsumers,
+      totalConsumers: mappedConsumers.length,
       queueName,
     };
     return c.json(response);
@@ -277,10 +287,13 @@ queuesController.get("/servers/:id/queues/:queueName/bindings", async (c) => {
     const client = await createRabbitMQClient(id, workspaceId);
     const bindings = await client.getQueueBindings(queueName);
 
+    // Map bindings to API response format
+    const mappedBindings = BindingMapper.toApiResponseArray(bindings);
+
     const response: QueueBindingsResponse = {
       success: true,
-      bindings,
-      totalBindings: bindings.length,
+      bindings: mappedBindings,
+      totalBindings: mappedBindings.length,
       queueName,
     };
     return c.json(response);

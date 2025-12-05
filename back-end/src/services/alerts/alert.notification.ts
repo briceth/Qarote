@@ -5,9 +5,8 @@ import { NotificationEmailService } from "@/services/email/notification-email.se
 import { SlackService } from "@/services/slack/slack.service";
 import { WebhookService } from "@/services/webhook/webhook.service";
 
-import { RabbitMQAlert } from "@/types/alert";
-
 import { generateAlertFingerprint } from "./alert.fingerprint";
+import { RabbitMQAlert } from "./alert.interfaces";
 
 /**
  * Alert Tracking and Notification System Summary

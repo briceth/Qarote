@@ -5,6 +5,10 @@ import { logger } from "@/core/logger";
 
 import { ServerParamSchema } from "@/schemas/alerts";
 
+import { NodesResponse } from "@/types/api-responses";
+
+import { BindingMapper, ExchangeMapper, NodeMapper } from "@/mappers/rabbitmq";
+
 import { createErrorResponse } from "../shared";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
 
@@ -36,7 +40,11 @@ infrastructureController.get(
 
       const client = await createRabbitMQClient(id, workspaceId);
       const nodes = await client.getNodes();
-      return c.json({ nodes });
+
+      // Map nodes to API response format (only include fields used by front-end)
+      const mappedNodes = NodeMapper.toApiResponseArray(nodes);
+
+      return c.json({ nodes: mappedNodes });
     } catch (error) {
       logger.error({ error, id }, "Error fetching nodes for server");
 
@@ -50,7 +58,7 @@ infrastructureController.get(
             message:
               "User does not have 'monitor' permissions to view node information. Please contact your RabbitMQ administrator to grant the necessary permissions.",
           },
-        });
+        } satisfies NodesResponse);
       }
 
       return createErrorResponse(c, error, 500, "Failed to fetch nodes");
@@ -83,8 +91,46 @@ infrastructureController.get(
       }
 
       const client = await createRabbitMQClient(id, workspaceId);
-      const exchanges = await client.getExchanges();
-      return c.json({ exchanges });
+      const [exchanges, bindings] = await Promise.all([
+        client.getExchanges(),
+        client.getBindings().catch(() => []),
+      ]);
+
+      // Map all bindings for the response
+      const mappedBindings = BindingMapper.toApiResponseArray(bindings);
+
+      // Group mapped bindings by exchange (source@vhost)
+      const bindingsMap = new Map<string, typeof mappedBindings>();
+      for (const binding of mappedBindings) {
+        const key = `${binding.source}@${binding.vhost}`;
+        if (!bindingsMap.has(key)) {
+          bindingsMap.set(key, []);
+        }
+        bindingsMap.get(key)!.push(binding);
+      }
+
+      // Map exchanges to API response format (only include fields used by front-end)
+      const mappedExchanges = ExchangeMapper.toApiResponseArray(
+        exchanges,
+        bindingsMap
+      );
+
+      // Calculate exchange type counts
+      const exchangeTypes = {
+        direct: mappedExchanges.filter((e) => e.type === "direct").length,
+        fanout: mappedExchanges.filter((e) => e.type === "fanout").length,
+        topic: mappedExchanges.filter((e) => e.type === "topic").length,
+        headers: mappedExchanges.filter((e) => e.type === "headers").length,
+      };
+
+      return c.json({
+        success: true,
+        exchanges: mappedExchanges,
+        bindings: mappedBindings,
+        totalExchanges: mappedExchanges.length,
+        totalBindings: mappedBindings.length,
+        exchangeTypes,
+      });
     } catch (error) {
       logger.error({ error }, `Error fetching exchanges for server ${id}`);
       return createErrorResponse(c, error, 500, "Failed to fetch exchanges");

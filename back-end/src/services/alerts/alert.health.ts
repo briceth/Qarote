@@ -1,7 +1,6 @@
 import { logger } from "@/core/logger";
 
-import { ClusterHealthSummary, HealthCheck } from "@/types/alert";
-
+import { ClusterHealthSummary, HealthCheck } from "./alert.interfaces";
 import { alertThresholdsService } from "./alert.thresholds";
 
 import { createRabbitMQClient } from "@/controllers/rabbitmq/shared";

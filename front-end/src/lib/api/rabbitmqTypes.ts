@@ -307,47 +307,13 @@ export interface ContextInfo {
 }
 
 export interface Overview {
-  management_version: string;
-  rates_mode: string;
-  sample_retention_policies: SampleRetentionPolicies;
-  exchange_types: ExchangeType[];
-  product_version: string;
-  product_name: string;
-  rabbitmq_version: string;
   cluster_name: string;
+  rabbitmq_version: string;
   erlang_version: string;
-  erlang_full_version: string;
-  /**
-   * @deprecated Since 4.2.0 - Removed in RabbitMQ 4.2
-   * Support status of the release series
-   */
-  release_series_support_status?: string;
-  disable_stats: boolean;
-  is_op_policy_updating_enabled: boolean;
-  enable_queue_totals: boolean;
-  /**
-   * @since 4.0.0
-   * Cluster-level tags for organization
-   */
   cluster_tags?: string[];
-  /**
-   * @since 4.0.0
-   * Node-level tags for filtering
-   */
   node_tags?: string[];
-  /**
-   * @since 4.0.0
-   * Default queue type for the cluster
-   */
   default_queue_type?: string;
-  message_stats: MessageStats;
-  churn_rates: ChurnRates;
-  queue_totals: QueueTotals;
-  object_totals: ObjectTotals;
-  statistics_db_event_queue: number;
-  node: string;
-  listeners: Listener[];
-  contexts: ContextInfo[];
+  release_series_support_status?: string;
 }
 
 export interface Metrics {

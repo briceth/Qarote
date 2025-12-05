@@ -9,39 +9,10 @@ export interface VHost {
   tags?: string[];
   default_queue_type?: string;
   tracing?: boolean;
-  metadata?: {
-    description?: string;
-    tags?: string[];
-  };
-  cluster_state?: Record<string, "running" | "stopped">;
-  recv_oct?: number;
-  recv_oct_details?: {
-    rate: number;
-  };
-  send_oct?: number;
-  send_oct_details?: {
-    rate: number;
-  };
   messages?: number;
   messages_ready?: number;
   messages_unacknowledged?: number;
-  messages_details?: {
-    rate: number;
-  };
-  messages_ready_details?: {
-    rate: number;
-  };
-  messages_unacknowledged_details?: {
-    rate: number;
-  };
-  /**
-   * @since 4.0.0
-   * Whether the vhost is protected from deletion
-   */
   protected_from_deletion?: boolean;
-  /**
-   * Message statistics for the vhost (optional, only present when there's activity)
-   */
   message_stats?: {
     publish?: number;
     publish_details?: {
@@ -56,11 +27,8 @@ export interface VHost {
       rate: number;
     };
   };
-  // Additional properties from enhanced API response
   permissions?: VHostPermission[];
   limits?: VHostLimits;
-  permissionCount?: number;
-  limitCount?: number;
   stats?: VHostStats;
 }
 

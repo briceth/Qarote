@@ -3,6 +3,14 @@ import { Hono } from "hono";
 import { logger } from "@/core/logger";
 import { RabbitMQMetricsCalculator } from "@/core/rabbitmq/MetricsCalculator";
 
+import {
+  LiveRatesResponse,
+  MetricsResponse,
+  QueueLiveRatesResponse,
+} from "@/types/api-responses";
+
+import { NodeMapper, OverviewMapper } from "@/mappers/rabbitmq";
+
 import { createErrorResponse } from "../shared";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
 
@@ -48,16 +56,27 @@ metricsController.get("/servers/:id/metrics", async (c) => {
     // Get enhanced metrics (system-level metrics including CPU, memory, disk usage)
     const enhancedMetrics = await client.getMetrics();
 
-    return c.json({
-      metrics: enhancedMetrics,
-    });
+    // Map nodes and overview to API response format (only include fields used by front-end)
+    const mappedNodes = NodeMapper.toApiResponseArray(enhancedMetrics.nodes);
+    const mappedOverview = OverviewMapper.toApiResponse(
+      enhancedMetrics.overview
+    );
+
+    const response: MetricsResponse = {
+      metrics: {
+        ...enhancedMetrics,
+        overview: mappedOverview,
+        nodes: mappedNodes,
+      },
+    };
+    return c.json(response);
   } catch (error) {
     logger.error({ error, id }, "Error fetching metrics for server");
 
     // Check if this is a 401 Unauthorized error from RabbitMQ API
     if (error instanceof Error && error.message.includes("401")) {
       // Return successful response with permission status instead of error
-      return c.json({
+      const response: MetricsResponse = {
         metrics: null,
         permissionStatus: {
           hasPermission: false,
@@ -65,7 +84,8 @@ metricsController.get("/servers/:id/metrics", async (c) => {
           message:
             "User does not have 'monitor' permissions to view metrics data. Please contact your RabbitMQ administrator to grant the necessary permissions.",
         },
-      });
+      };
+      return c.json(response);
     }
 
     return createErrorResponse(c, error, 500, "Failed to fetch metrics");
@@ -117,7 +137,7 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
     );
     const queueTotals = RabbitMQMetricsCalculator.extractQueueTotals(overview);
 
-    const response = {
+    const response: LiveRatesResponse = {
       serverId: id,
       timeRange,
       dataSource: "live_rates_with_time_range",
@@ -136,12 +156,11 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
     // Check if this is a 401 Unauthorized error from RabbitMQ API
     if (error instanceof Error && error.message.includes("401")) {
       // Return successful response with permission status instead of error
-      return c.json({
+      const response: LiveRatesResponse = {
         serverId: id,
         timeRange,
         dataSource: "permission_denied",
         timestamp: new Date().toISOString(),
-        liveRates: { timestamp: Date.now(), rates: {} },
         messagesRates: [],
         permissionStatus: {
           hasPermission: false,
@@ -154,7 +173,8 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
           updateInterval: "real-time",
           dataPoints: 0,
         },
-      });
+      };
+      return c.json(response);
     }
 
     return createErrorResponse(
@@ -219,7 +239,7 @@ metricsController.get(
       );
       const queueTotals = RabbitMQMetricsCalculator.extractQueueTotals(queue);
 
-      const response = {
+      const response: QueueLiveRatesResponse = {
         serverId: id,
         queueName: decodedQueueName,
         timeRange,
@@ -239,17 +259,12 @@ metricsController.get(
       // Check if this is a 401 Unauthorized error from RabbitMQ API
       if (error instanceof Error && error.message.includes("401")) {
         // Return successful response with permission status instead of error
-        return c.json({
+        const response: QueueLiveRatesResponse = {
           serverId: id,
           queueName: decodeURIComponent(queueName),
           timeRange,
           dataSource: "permission_denied",
           timestamp: new Date().toISOString(),
-          liveRates: {
-            timestamp: Date.now(),
-            queueName: decodeURIComponent(queueName),
-            rates: {},
-          },
           messagesRates: [],
           permissionStatus: {
             hasPermission: false,
@@ -262,7 +277,8 @@ metricsController.get(
             updateInterval: "real-time",
             dataPoints: 0,
           },
-        });
+        };
+        return c.json(response);
       }
 
       return createErrorResponse(

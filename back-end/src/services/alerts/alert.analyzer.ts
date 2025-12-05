@@ -1,12 +1,12 @@
+import { RabbitMQNode, RabbitMQQueue } from "@/types/rabbitmq";
+
+import { generateAlertId } from "./alert.fingerprint";
 import {
   AlertCategory,
   AlertSeverity,
   AlertThresholds,
   RabbitMQAlert,
-} from "@/types/alert";
-import { RabbitMQNode, RabbitMQQueue } from "@/types/rabbitmq";
-
-import { generateAlertId } from "./alert.fingerprint";
+} from "./alert.interfaces";
 
 /**
  * Analyze node health and generate alerts

@@ -42,7 +42,9 @@ module.exports = tseslint.config(
             ["^@/config"],
             // 8. Types modules
             ["^@/types"],
-            // 9. Relative imports (same directory, parent directories)
+            // 9. Mappers
+            ["^@/mappers"],
+            // 10. Relative imports (same directory, parent directories)
             ["^\\."],
           ],
         },

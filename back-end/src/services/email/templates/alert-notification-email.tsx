@@ -11,7 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 
-import { RabbitMQAlert } from "@/types/alert";
+import { RabbitMQAlert } from "@/services/alerts/alert.interfaces";
 
 import {
   baseStyles,

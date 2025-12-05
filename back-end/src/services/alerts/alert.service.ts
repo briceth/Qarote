@@ -1,6 +1,8 @@
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
+import { analyzeNodeHealth, analyzeQueueHealth } from "./alert.analyzer";
+import { alertHealthService } from "./alert.health";
 import {
   AlertSeverity,
   AlertSummary,
@@ -8,10 +10,7 @@ import {
   ClusterHealthSummary,
   HealthCheck,
   RabbitMQAlert,
-} from "@/types/alert";
-
-import { analyzeNodeHealth, analyzeQueueHealth } from "./alert.analyzer";
-import { alertHealthService } from "./alert.health";
+} from "./alert.interfaces";
 import { alertNotificationService } from "./alert.notification";
 import { alertThresholdsService } from "./alert.thresholds";
 

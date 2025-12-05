@@ -12,6 +12,8 @@ import {
   UpdateUserSchema,
 } from "@/schemas/rabbitmq";
 
+import { UserMapper } from "@/mappers/rabbitmq/UserMapper";
+
 import { createErrorResponse } from "../shared";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
 
@@ -43,7 +45,10 @@ usersController.get(
       const client = await createRabbitMQClient(serverId, user.workspaceId);
       const users = await client.getUsers();
 
-      return c.json({ users });
+      // Map users to API response format (only include fields used by front-end)
+      const mappedUsers = UserMapper.toApiResponseArray(users);
+
+      return c.json({ users: mappedUsers });
     } catch (error: unknown) {
       logger.error("Error fetching users:", error);
       return createErrorResponse(c, error, 500, "Failed to fetch users");
@@ -75,8 +80,11 @@ usersController.get(
       const userDetails = await client.getUser(username);
       const permissions = await client.getUserPermissions(username);
 
+      // Map user to API response format (only include fields used by front-end)
+      const mappedUser = UserMapper.toApiResponse(userDetails);
+
       return c.json({
-        user: userDetails,
+        user: mappedUser,
         permissions,
       });
     } catch (error: unknown) {

@@ -8,7 +8,9 @@ import {
   getUserPlan,
 } from "@/services/plan/plan.service";
 
-import { OverviewResponse } from "@/types/rabbitmq";
+import { OverviewResponse } from "@/types/api-responses";
+
+import { OverviewMapper } from "@/mappers/rabbitmq/OverviewMapper";
 
 import { createErrorResponse } from "../shared";
 import { createRabbitMQClient, verifyServerAccess } from "./shared";
@@ -41,12 +43,16 @@ overviewController.get("/servers/:id/overview", async (c) => {
     const client = await createRabbitMQClient(id, workspaceId);
     const overview = await client.getOverview();
 
+    // Map overview to API response format (only include fields used by front-end)
+    const mappedOverview = OverviewMapper.toApiResponse(overview);
+
     // Prepare response with properly typed over-limit warning information
     const response: OverviewResponse = {
-      overview,
+      overview: mappedOverview,
     };
 
     // Add warning information if server is over the queue limit
+    // Note: We still need the original overview for queue_totals calculation
     if (server.isOverQueueLimit && server.workspace) {
       const userPlan = await getUserPlan(user.id);
       const warningMessage = getOverLimitWarningMessage(

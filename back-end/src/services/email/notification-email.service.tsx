@@ -1,7 +1,7 @@
 import { UserPlan } from "@prisma/client";
 import React from "react";
 
-import { RabbitMQAlert } from "@/types/alert";
+import { RabbitMQAlert } from "@/services/alerts/alert.interfaces";
 
 import { CoreEmailService, EmailResult } from "./core-email.service";
 import AlertNotificationEmail from "./templates/alert-notification-email";

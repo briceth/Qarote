@@ -16,6 +16,15 @@ import {
   UpdateThresholdsRequestSchema,
 } from "@/schemas/alerts";
 
+import {
+  AlertNotificationSettingsResponse,
+  RabbitMQAlertsResponse,
+  ResolvedAlertsResponse,
+  ServerHealthCheckResponse,
+  UpdateAlertNotificationSettingsResponse,
+  UpdateThresholdsResponse,
+} from "@/types/api-responses";
+
 import { createErrorResponse } from "../shared";
 import { verifyServerAccess } from "./shared";
 
@@ -61,13 +70,14 @@ alertsController.get(
 
       // For free users, return only summary (no detailed alerts)
       if (userPlan === UserPlan.FREE) {
-        return c.json({
+        const response: RabbitMQAlertsResponse = {
           success: true,
           alerts: [], // Empty array for free users
           summary,
           thresholds,
           timestamp: new Date().toISOString(),
-        });
+        };
+        return c.json(response);
       }
 
       // For Developer and Enterprise users, return full alerts
@@ -111,13 +121,14 @@ alertsController.get(
         paginatedAlerts = filteredAlerts.slice(offset, offset + limit);
       }
 
-      return c.json({
+      const response: RabbitMQAlertsResponse = {
         success: true,
         alerts: paginatedAlerts,
         summary,
         thresholds,
         timestamp: new Date().toISOString(),
-      });
+      };
+      return c.json(response);
     } catch (error) {
       logger.error({ error }, "Error getting alerts");
       return createErrorResponse(c, error, 500, "Failed to get alerts");
@@ -162,12 +173,13 @@ alertsController.get(
         }
       );
 
-      return c.json({
+      const response: ResolvedAlertsResponse = {
         success: true,
         alerts,
         total,
         timestamp: new Date().toISOString(),
-      });
+      };
+      return c.json(response);
     } catch (error) {
       logger.error({ error }, "Error getting resolved alerts");
       return createErrorResponse(
@@ -206,10 +218,12 @@ alertsController.get(
 
       const healthCheck = await alertService.getHealthCheck(id, workspaceId);
 
-      return c.json({
+      const response: ServerHealthCheckResponse = {
         success: true,
         health: healthCheck,
-      });
+      };
+
+      return c.json(response);
     } catch (error: unknown) {
       logger.error({ error }, "Error getting health check");
       return createErrorResponse(c, error, 500, "Failed to get health check");
@@ -302,11 +316,12 @@ alertsController.put(
       const updatedThresholds =
         await alertService.getWorkspaceThresholds(workspaceId);
 
-      return c.json({
+      const response: UpdateThresholdsResponse = {
         success: true,
         message: result.message,
         thresholds: updatedThresholds,
-      });
+      };
+      return c.json(response);
     } catch (error: unknown) {
       logger.error({ error }, "Error updating thresholds");
       return createErrorResponse(c, error, 500, "Failed to update thresholds");
@@ -354,7 +369,7 @@ alertsController.get("/alert-settings", async (c) => {
         ? (workspace.browserNotificationSeverities as string[])
         : ["critical", "warning", "info"];
 
-    return c.json({
+    const response: AlertNotificationSettingsResponse = {
       success: true,
       settings: {
         emailNotificationsEnabled: workspace.emailNotificationsEnabled,
@@ -363,7 +378,9 @@ alertsController.get("/alert-settings", async (c) => {
         browserNotificationsEnabled: workspace.browserNotificationsEnabled,
         browserNotificationSeverities,
       },
-    });
+    };
+
+    return c.json(response);
   } catch (error) {
     logger.error({ error }, "Error getting alert settings");
     return createErrorResponse(c, error, 500, "Failed to get alert settings");
@@ -464,7 +481,7 @@ alertsController.put(
           ? (updatedWorkspace.browserNotificationSeverities as string[])
           : ["critical", "warning", "info"];
 
-      return c.json({
+      const response: UpdateAlertNotificationSettingsResponse = {
         success: true,
         settings: {
           emailNotificationsEnabled: updatedWorkspace.emailNotificationsEnabled,
@@ -474,7 +491,9 @@ alertsController.put(
             updatedWorkspace.browserNotificationsEnabled,
           browserNotificationSeverities: responseBrowserSeverities,
         },
-      });
+      };
+
+      return c.json(response);
     } catch (error) {
       logger.error({ error }, "Error updating alert settings");
       return createErrorResponse(

@@ -9,6 +9,7 @@ import { getUserPlan } from "@/services/plan/plan.service";
 
 import { publishMessageToQueueSchema } from "@/schemas/rabbitmq";
 
+import { PublishMessageResponse } from "@/types/api-responses";
 import type { MessageProperties } from "@/types/rabbitmq";
 
 import { createErrorResponse } from "../shared";
@@ -129,37 +130,35 @@ messagesController.post(
           );
         }
 
-        return c.json(
-          {
-            success: false,
-            message: "Message was published but not routed to any queue",
-            routed: false,
-            exchange: targetExchange,
+        const response: PublishMessageResponse = {
+          success: false,
+          message: "Message was published but not routed to any queue",
+          routed: false,
+          exchange: targetExchange,
+          routingKey: targetRoutingKey,
+          queueName,
+          messageLength: message.length,
+          error: "Message not routed",
+          suggestions,
+          details: {
+            reason:
+              targetExchange === ""
+                ? `No queue named "${targetRoutingKey}" exists for default exchange routing`
+                : `No queue bound to exchange "${targetExchange}" with routing key "${targetRoutingKey}"`,
+            exchange: targetExchange || "(default)",
             routingKey: targetRoutingKey,
-            queueName,
-            messageLength: message.length,
-            error: "Message not routed",
-            suggestions,
-            details: {
-              reason:
-                targetExchange === ""
-                  ? `No queue named "${targetRoutingKey}" exists for default exchange routing`
-                  : `No queue bound to exchange "${targetExchange}" with routing key "${targetRoutingKey}"`,
-              exchange: targetExchange || "(default)",
-              routingKey: targetRoutingKey,
-              possibleCauses: [
-                "Queue does not exist",
-                "Exchange does not exist",
-                "No binding between exchange and queue",
-                "Routing key mismatch",
-              ],
-            },
+            possibleCauses: [
+              "Queue does not exist",
+              "Exchange does not exist",
+              "No binding between exchange and queue",
+              "Routing key mismatch",
+            ],
           },
-          422
-        );
+        };
+        return c.json(response, 422);
       }
 
-      return c.json({
+      const response: PublishMessageResponse = {
         success: true,
         message: "Message sent and routed successfully",
         routed: true,
@@ -167,7 +166,8 @@ messagesController.post(
         routingKey: targetRoutingKey,
         queueName,
         messageLength: message.length,
-      });
+      };
+      return c.json(response);
     } catch (error) {
       logger.error({ error }, "Error sending message");
       return createErrorResponse(c, error, 500, "Failed to send message");

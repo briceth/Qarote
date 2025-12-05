@@ -79,76 +79,45 @@ export interface Queue {
   auto_delete: boolean;
   durable: boolean;
   exclusive: boolean;
+  policy?: string | null;
+  operator_policy?: string | null;
 
   // Consumer information
   consumers: number;
-  consumer_capacity: number;
-  consumer_utilisation: number;
-  exclusive_consumer_tag: string | null;
-  single_active_consumer_tag: string | null;
+  consumer_capacity?: number;
+  consumer_utilisation?: number;
+  exclusive_consumer_tag?: string | null;
+  single_active_consumer_tag?: string | null;
 
   // Message counts
   messages: number;
-  messages_details: RateDetail;
   messages_ready: number;
-  messages_ready_details: RateDetail;
-  messages_ready_ram: number;
   messages_unacknowledged: number;
-  messages_unacknowledged_details: RateDetail;
-  messages_unacknowledged_ram: number;
-  messages_paged_out: number;
-  messages_persistent: number;
-  messages_ram: number;
-
-  // Message bytes
-  message_bytes: number;
-  message_bytes_paged_out: number;
-  message_bytes_persistent: number;
-  message_bytes_ram: number;
-  message_bytes_ready: number;
-  message_bytes_unacknowledged: number;
+  messages_ram?: number;
+  messages_persistent?: number;
+  message_bytes?: number;
 
   // Memory and performance
   memory: number;
-  reductions: number;
-  reductions_details: RateDetail;
-  garbage_collection: GarbageCollection;
+  reductions?: number;
+  idle_since?: string;
+  head_message_timestamp?: string | null;
 
-  // Timestamps
-  head_message_timestamp: string | null;
-  idle_since: string;
+  // Message stats (only rate fields used by front-end)
+  message_stats?: {
+    publish_details?: { rate: number };
+    deliver_details?: { rate: number };
+  };
 
-  // High availability and clustering
-  policy: string | null;
-  operator_policy: string | null;
-  effective_policy_definition: EffectivePolicyDefinition | null;
-  slave_nodes: string[];
-  synchronised_slave_nodes: string[];
-  recoverable_slaves: string[] | null;
-
-  // Storage and internal queue information
-  /**
-   * @since 3.13.0
-   * Storage version (1 for classic, 2 for CQv2)
-   */
+  // Version-specific
   storage_version?: number;
-  /**
-   * @since 4.2.0
-   * Indicates if the queue is internal (not accessible via AMQP)
-   */
   internal?: boolean;
-  /**
-   * @since 4.2.0
-   * Owner of the internal queue
-   */
   internal_owner?: string;
 
-  // Message stats (optional for backwards compatibility)
-  message_stats?: QueueMessageStats;
-  backing_queue_status?: {
-    mode: string;
-    [key: string]: unknown;
-  };
+  // Deprecated (for display only)
+  slave_nodes?: string[];
+  synchronised_slave_nodes?: string[];
+  recoverable_slaves?: string[] | null;
 }
 
 export interface Application {

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 
 import { logger } from "@/core/logger";
 
+import { NodeMemoryDetailsResponse } from "@/types/api-responses";
 import { RabbitMQNode } from "@/types/rabbitmq";
 
 import { createErrorResponse } from "../shared";
@@ -231,7 +232,7 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
       // Access not allowed for this plan level
     }
 
-    return c.json({
+    const response: NodeMemoryDetailsResponse = {
       node: {
         name: node.name,
         running: node.running,
@@ -249,7 +250,8 @@ memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
         hasTrends: Object.keys(memoryTrends).length > 0,
         hasOptimization: Object.keys(memoryOptimization).length > 0,
       },
-    });
+    };
+    return c.json(response);
   } catch (error) {
     logger.error(
       { error, nodeName, serverId: id },
