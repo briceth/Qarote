@@ -6,6 +6,7 @@ interface RabbitMQConfig {
   username: string;
   password: string;
   managementPort: number;
+  vhost?: string;
 }
 
 class TestMessageGenerator {
@@ -18,12 +19,16 @@ class TestMessageGenerator {
   }
 
   private getConnectionUrl(): string {
+    // Use vhost from config or default to / (encoded as %2F)
+    const vhost = this.config.vhost
+      ? encodeURIComponent(this.config.vhost)
+      : "%2F";
     // Use AMQPS URL format for encrypted connections (port 5671)
     if (this.config.port === 5671) {
-      return `amqps://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/%2F`;
+      return `amqps://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/${vhost}`;
     }
     // Use AMQP URL format for unencrypted connections (port 5672)
-    return `amqp://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/%2F`;
+    return `amqp://${this.config.username}:${encodeURIComponent(this.config.password)}@${this.config.host}:${this.config.port}/${vhost}`;
   }
 
   private async waitForRabbitMQ(): Promise<void> {
@@ -261,6 +266,7 @@ async function main() {
     username: process.env.RABBITMQ_USER || "admin",
     password: process.env.RABBITMQ_PASS || "admin123",
     managementPort: parseInt(process.env.RABBITMQ_MANAGEMENT_PORT || "15679"),
+    vhost: process.env.RABBITMQ_VHOST,
   };
 
   // Get message count from command line argument or default to 100

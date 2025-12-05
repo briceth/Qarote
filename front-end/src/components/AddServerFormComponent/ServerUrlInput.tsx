@@ -89,7 +89,7 @@ export const ServerUrlInput = ({ form, mode = "add" }: ServerUrlInputProps) => {
           <Input
             id="server-url"
             type="url"
-            placeholder="https://rabbitmq.example.com"
+            placeholder="https://rabbitmq.example.com or amqps://user:pass@host:5671/vhost"
             value={url}
             onChange={(e) => handleUrlChange(e.target.value)}
             className="pr-10"
@@ -121,8 +121,9 @@ export const ServerUrlInput = ({ form, mode = "add" }: ServerUrlInputProps) => {
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Paste your full RabbitMQ server URL to auto-populate all fields below.
-          Or skip this and fill the fields manually.
+          Paste your full RabbitMQ server URL (HTTP(S) management URL or AMQP(S)
+          connection string) to auto-populate all fields below. Or skip this and
+          fill the fields manually.
         </p>
       </div>
 

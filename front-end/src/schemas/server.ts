@@ -32,8 +32,8 @@ export const urlValidationSchema = z
 
       // If protocol separator exists, validate it's at the start with a valid protocol
       if (protocolSeparatorIndex !== -1) {
-        // Check if URL starts with http:// or https://
-        const protocolMatch = trimmed.match(/^(https?):\/\//i);
+        // Check if URL starts with http://, https://, amqp://, or amqps://
+        const protocolMatch = trimmed.match(/^(https?|amqps?):\/\//i);
         if (!protocolMatch) {
           // Protocol separator exists but not at the start with valid protocol
           return false;
@@ -57,7 +57,7 @@ export const urlValidationSchema = z
         let urlToParse = trimmed;
 
         // Add protocol if missing for validation
-        if (!urlToParse.match(/^https?:\/\//i)) {
+        if (!urlToParse.match(/^(https?|amqps?):\/\//i)) {
           if (urlToParse.includes(".") && !urlToParse.includes("://")) {
             urlToParse = `https://${urlToParse}`;
           } else {
