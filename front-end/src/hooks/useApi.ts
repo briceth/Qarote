@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api";
 import { TimeRange } from "@/components/TimeRangeSelector";
 
 import { useAuth } from "@/contexts/AuthContextDefinition";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import { AlertThresholds } from "@/types/alerts";
 
@@ -15,12 +16,14 @@ export const queryKeys = {
   servers: ["servers"] as const,
   server: (id: string) => ["servers", id] as const,
   overview: (serverId: string) => ["overview", serverId] as const,
-  queues: (serverId: string) => ["queues", serverId] as const,
-  queue: (serverId: string, queueName: string) =>
-    ["queue", serverId, queueName] as const,
+  queues: (serverId: string, vhost?: string) =>
+    ["queues", serverId, vhost || ""] as const,
+  queue: (serverId: string, queueName: string, vhost?: string | null) =>
+    ["queue", serverId, queueName, vhost || ""] as const,
   queueLiveRates: (serverId: string, queueName: string, timeRange?: string) =>
     ["queueLiveRates", serverId, queueName, timeRange] as const,
-  exchanges: (serverId: string) => ["exchanges", serverId] as const,
+  exchanges: (serverId: string, vhost?: string) =>
+    ["exchanges", serverId, vhost || ""] as const,
   nodes: (serverId: string) => ["nodes", serverId] as const,
   alerts: ["alerts"] as const,
 };
@@ -88,18 +91,18 @@ export const useOverview = (serverId: string | null) => {
   });
 };
 
-export const useQueues = (serverId: string | null) => {
+export const useQueues = (serverId: string | null, vhost?: string | null) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
   const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: queryKeys.queues(serverId || ""),
+    queryKey: queryKeys.queues(serverId || "", vhost || undefined),
     queryFn: () => {
       if (!workspace?.id || !serverId) {
         throw new Error("Workspace ID and Server ID are required");
       }
-      return apiClient.getQueues(serverId, workspace.id);
+      return apiClient.getQueues(serverId, workspace.id, vhost || undefined);
     },
     enabled: isEnabled,
     staleTime: 5000, // 5 seconds
@@ -149,17 +152,26 @@ export const useNodeMemoryDetails = (
   });
 };
 
-export const useQueue = (serverId: string, queueName: string) => {
+export const useQueue = (
+  serverId: string,
+  queueName: string,
+  vhost?: string | null
+) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
 
   return useQuery({
-    queryKey: queryKeys.queue(serverId, queueName),
+    queryKey: queryKeys.queue(serverId, queueName, vhost),
     queryFn: () => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.getQueue(serverId, queueName, workspace.id);
+      return apiClient.getQueue(
+        serverId,
+        queueName,
+        workspace.id,
+        vhost || undefined
+      );
     },
     enabled: !!serverId && !!queueName && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds
@@ -225,18 +237,21 @@ export const useChannels = (serverId: string | null) => {
   });
 };
 
-export const useExchanges = (serverId: string | null) => {
+export const useExchanges = (
+  serverId: string | null,
+  vhost?: string | null
+) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
   const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: queryKeys.exchanges(serverId || ""),
+    queryKey: queryKeys.exchanges(serverId || "", vhost || undefined),
     queryFn: () => {
       if (!workspace?.id || !serverId) {
         throw new Error("Workspace ID and Server ID are required");
       }
-      return apiClient.getExchanges(serverId, workspace.id);
+      return apiClient.getExchanges(serverId, workspace.id, vhost || undefined);
     },
     enabled: isEnabled,
     staleTime: 0, // Always consider data stale for immediate updates
@@ -278,6 +293,7 @@ export const useCreateExchange = () => {
 export const useDeleteExchange = () => {
   const queryClient = useQueryClient();
   const { workspace } = useWorkspace();
+  const { selectedVHost } = useVHostContext();
 
   return useMutation({
     mutationFn: ({
@@ -296,7 +312,8 @@ export const useDeleteExchange = () => {
         serverId,
         exchangeName,
         workspace.id,
-        options
+        options,
+        selectedVHost || undefined
       );
     },
     onSuccess: async (_, variables) => {
@@ -332,17 +349,26 @@ export const useBindings = (serverId: string | null) => {
   });
 };
 
-export const useQueueConsumers = (serverId: string, queueName: string) => {
+export const useQueueConsumers = (
+  serverId: string,
+  queueName: string,
+  vhost?: string | null
+) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
 
   return useQuery({
-    queryKey: ["queueConsumers", serverId, queueName],
+    queryKey: ["queueConsumers", serverId, queueName, vhost || ""],
     queryFn: () => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.getQueueConsumers(serverId, queueName, workspace.id);
+      return apiClient.getQueueConsumers(
+        serverId,
+        queueName,
+        workspace.id,
+        vhost || undefined
+      );
     },
     enabled: !!serverId && !!queueName && !!workspace?.id && isAuthenticated,
     staleTime: 5000, // 5 seconds
@@ -350,17 +376,26 @@ export const useQueueConsumers = (serverId: string, queueName: string) => {
   });
 };
 
-export const useQueueBindings = (serverId: string, queueName: string) => {
+export const useQueueBindings = (
+  serverId: string,
+  queueName: string,
+  vhost?: string | null
+) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
 
   return useQuery({
-    queryKey: ["queueBindings", serverId, queueName],
+    queryKey: ["queueBindings", serverId, queueName, vhost || ""],
     queryFn: () => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.getQueueBindings(serverId, queueName, workspace.id);
+      return apiClient.getQueueBindings(
+        serverId,
+        queueName,
+        workspace.id,
+        vhost || undefined
+      );
     },
     enabled: !!serverId && !!queueName && !!workspace?.id && isAuthenticated,
     staleTime: 10000, // 10 seconds
@@ -457,7 +492,8 @@ export const useLiveRatesMetrics = (
 export const useQueueLiveRates = (
   serverId: string,
   queueName: string,
-  timeRange: "1m" | "10m" | "1h" | "8h" | "1d" = "1d"
+  timeRange: "1m" | "10m" | "1h" | "8h" | "1d" = "1d",
+  vhost?: string | null
 ) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
@@ -472,7 +508,8 @@ export const useQueueLiveRates = (
         serverId,
         queueName,
         workspace.id,
-        timeRange
+        timeRange,
+        vhost || undefined
       );
     },
     enabled: !!serverId && !!queueName && !!workspace?.id && isAuthenticated,
@@ -524,6 +561,7 @@ export const useCreateQueue = () => {
 export const useDeleteQueue = () => {
   const queryClient = useQueryClient();
   const { workspace } = useWorkspace();
+  const { selectedVHost } = useVHostContext();
 
   return useMutation({
     mutationFn: ({
@@ -538,7 +576,13 @@ export const useDeleteQueue = () => {
       if (!workspace?.id) {
         throw new Error("Workspace ID is required");
       }
-      return apiClient.deleteQueue(serverId, queueName, workspace.id, options);
+      return apiClient.deleteQueue(
+        serverId,
+        queueName,
+        workspace.id,
+        options,
+        selectedVHost || undefined
+      );
     },
     onSuccess: (_, variables) => {
       // Invalidate queues list for the specific server
@@ -843,19 +887,22 @@ export const useRemoveUserFromWorkspace = () => {
 // RabbitMQ Alert hooks
 export const useRabbitMQAlerts = (
   serverId: string | null,
-  thresholds?: AlertThresholds
+  thresholds?: AlertThresholds,
+  vhost?: string | null
 ) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
   const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
 
   return useQuery({
-    queryKey: ["rabbitmqAlerts", serverId || "", thresholds],
+    queryKey: ["rabbitmqAlerts", serverId || "", thresholds, vhost || ""],
     queryFn: () => {
       if (!workspace?.id || !serverId) {
         throw new Error("Workspace ID and Server ID are required");
       }
-      return apiClient.getRabbitMQAlerts(serverId, workspace.id, thresholds);
+      return apiClient.getRabbitMQAlerts(serverId, workspace.id, thresholds, {
+        vhost: vhost || undefined,
+      });
     },
     enabled: isEnabled,
     staleTime: 5000, // 5 seconds

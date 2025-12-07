@@ -32,6 +32,7 @@ export interface RabbitMQAlert {
   timestamp: string;
   resolved: boolean;
   resolvedAt?: string;
+  vhost?: string; // Virtual host for queue-related alerts
   source: {
     type: "node" | "queue" | "cluster";
     name: string;

@@ -78,10 +78,14 @@ export class RabbitMQApiClient extends BaseApiClient {
     serverId: string,
     queueName: string,
     workspaceId: string,
-    timeRange: TimeRange = "1d"
+    timeRange: TimeRange = "1d",
+    vhost?: string
   ): Promise<LiveRatesResponse> {
     const encodedQueueName = encodeURIComponent(queueName);
     const params = new URLSearchParams({ timeRange });
+    if (vhost) {
+      params.set("vhost", vhost);
+    }
     return this.request<LiveRatesResponse>(
       `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodedQueueName}/metrics/rates?${params.toString()}`
     );
@@ -90,21 +94,28 @@ export class RabbitMQApiClient extends BaseApiClient {
   // Queue Management
   async getQueues(
     serverId: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ): Promise<{ queues: Queue[] }> {
-    return this.request<{ queues: Queue[] }>(
-      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues`
-    );
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues`;
+    const queryParams = vhost ? `?vhost=${encodeURIComponent(vhost)}` : "";
+    return this.request<{ queues: Queue[] }>(`${url}${queryParams}`);
   }
 
   async getQueue(
     serverId: string,
     queueName: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ): Promise<{ queue: Queue }> {
-    return this.request<{ queue: Queue }>(
-      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}`
+    const url = new URL(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}`,
+      window.location.origin
     );
+    if (vhost) {
+      url.searchParams.set("vhost", vhost);
+    }
+    return this.request<{ queue: Queue }>(url.pathname + url.search);
   }
 
   async createQueue(
@@ -142,7 +153,8 @@ export class RabbitMQApiClient extends BaseApiClient {
     options: {
       if_unused?: boolean;
       if_empty?: boolean;
-    } = {}
+    } = {},
+    vhost?: string
   ): Promise<{ success: boolean; message: string }> {
     const queryParams = new URLSearchParams();
     if (options.if_unused !== undefined) {
@@ -150,6 +162,9 @@ export class RabbitMQApiClient extends BaseApiClient {
     }
     if (options.if_empty !== undefined) {
       queryParams.append("if_empty", options.if_empty.toString());
+    }
+    if (vhost) {
+      queryParams.append("vhost", vhost);
     }
 
     const queryString = queryParams.toString();
@@ -285,7 +300,8 @@ export class RabbitMQApiClient extends BaseApiClient {
   // Exchange and Binding Management
   async getExchanges(
     serverId: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ): Promise<{
     success: boolean;
     exchanges: Exchange[];
@@ -299,6 +315,8 @@ export class RabbitMQApiClient extends BaseApiClient {
       headers: number;
     };
   }> {
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/exchanges`;
+    const queryParams = vhost ? `?vhost=${encodeURIComponent(vhost)}` : "";
     return this.request<{
       success: boolean;
       exchanges: Exchange[];
@@ -311,7 +329,7 @@ export class RabbitMQApiClient extends BaseApiClient {
         topic: number;
         headers: number;
       };
-    }>(`/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/exchanges`);
+    }>(`${url}${queryParams}`);
   }
 
   async createExchange(
@@ -360,7 +378,8 @@ export class RabbitMQApiClient extends BaseApiClient {
     workspaceId: string,
     options: {
       if_unused?: boolean;
-    } = {}
+    } = {},
+    vhost?: string
   ): Promise<{
     success: boolean;
     message: string;
@@ -368,6 +387,9 @@ export class RabbitMQApiClient extends BaseApiClient {
     const queryParams = new URLSearchParams();
     if (options.if_unused !== undefined) {
       queryParams.append("if_unused", options.if_unused.toString());
+    }
+    if (vhost) {
+      queryParams.append("vhost", vhost);
     }
 
     const queryString = queryParams.toString();
@@ -400,13 +422,21 @@ export class RabbitMQApiClient extends BaseApiClient {
   async getQueueConsumers(
     serverId: string,
     queueName: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ): Promise<{
     success: boolean;
     consumers: Consumer[];
     totalConsumers: number;
     queueName: string;
   }> {
+    const url = new URL(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}/consumers`,
+      window.location.origin
+    );
+    if (vhost) {
+      url.searchParams.set("vhost", vhost);
+    }
     return this.request<{
       success: boolean;
       consumers: Consumer[];
@@ -423,23 +453,27 @@ export class RabbitMQApiClient extends BaseApiClient {
   async getQueueBindings(
     serverId: string,
     queueName: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ): Promise<{
     success: boolean;
     bindings: Binding[];
     totalBindings: number;
     queueName: string;
   }> {
+    const url = new URL(
+      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(queueName)}/bindings`,
+      window.location.origin
+    );
+    if (vhost) {
+      url.searchParams.set("vhost", vhost);
+    }
     return this.request<{
       success: boolean;
       bindings: Binding[];
       totalBindings: number;
       queueName: string;
-    }>(
-      `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/queues/${encodeURIComponent(
-        queueName
-      )}/bindings`
-    );
+    }>(url.pathname + url.search);
   }
 
   // VHost Management (Admin Only)

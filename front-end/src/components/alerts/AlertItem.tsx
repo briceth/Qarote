@@ -36,6 +36,7 @@ interface ResolvedAlertItem {
   firstSeenAt?: string;
   resolvedAt?: string;
   duration?: number;
+  vhost?: string; // Virtual host for queue-related alerts
   source?: {
     type: string;
     name: string;
@@ -73,6 +74,32 @@ export const AlertItem = ({ alert, isResolved = false }: AlertItemProps) => {
                   {category}
                 </Badge>
               )}
+              {/* Scope tag: vhost for queue alerts, cluster for node alerts */}
+              {(() => {
+                if ("vhost" in alert && alert.vhost) {
+                  return (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      vhost: {alert.vhost === "/" ? "Default" : alert.vhost}
+                    </Badge>
+                  );
+                } else if (
+                  alert.source?.type === "node" ||
+                  alert.source?.type === "cluster"
+                ) {
+                  return (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      cluster
+                    </Badge>
+                  );
+                }
+                return null;
+              })()}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
               {alert.description}

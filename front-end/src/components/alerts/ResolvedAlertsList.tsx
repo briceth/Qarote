@@ -20,6 +20,7 @@ interface ResolvedAlert {
   firstSeenAt: string;
   resolvedAt: string;
   duration?: number;
+  vhost?: string; // Virtual host for queue-related alerts
   source?: {
     type: string;
     name: string;

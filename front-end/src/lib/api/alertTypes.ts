@@ -176,6 +176,7 @@ export interface RabbitMQAlert {
   timestamp: string;
   resolved: boolean;
   resolvedAt?: string;
+  vhost?: string; // Virtual host for queue-related alerts
   source: {
     type: "node" | "queue" | "cluster";
     name: string;
@@ -252,6 +253,7 @@ export interface ResolvedAlert {
   title: string;
   description: string;
   details: Record<string, unknown>;
+  vhost?: string; // Virtual host for queue-related alerts
   source: { type: string; name: string };
   firstSeenAt: string;
   resolvedAt: string;

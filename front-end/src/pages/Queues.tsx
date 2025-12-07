@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { useServerContext } from "@/contexts/ServerContext";
+import { useVHostContext } from "@/contexts/VHostContext";
 
 import { useQueues } from "@/hooks/useApi";
 import { useUser } from "@/hooks/useUser";
@@ -20,7 +21,12 @@ const Queues = () => {
   const { isLoading: workspaceLoading } = useUser();
   const [filterRegex, setFilterRegex] = useState("");
   const { selectedServerId, hasServers } = useServerContext();
-  const { data: queuesData, isLoading, refetch } = useQueues(selectedServerId);
+  const { selectedVHost } = useVHostContext();
+  const {
+    data: queuesData,
+    isLoading,
+    refetch,
+  } = useQueues(selectedServerId, selectedVHost);
 
   const queues = useMemo(() => queuesData?.queues || [], [queuesData?.queues]);
   const queueCount = queues.length;

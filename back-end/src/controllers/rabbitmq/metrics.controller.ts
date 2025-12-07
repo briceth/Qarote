@@ -1,7 +1,11 @@
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { logger } from "@/core/logger";
 import { RabbitMQMetricsCalculator } from "@/core/rabbitmq/MetricsCalculator";
+
+import { ServerParamSchema } from "@/schemas/alerts";
+import { VHostRequiredQuerySchema } from "@/schemas/rabbitmq";
 
 import {
   LiveRatesResponse,
@@ -194,6 +198,8 @@ metricsController.get("/servers/:id/metrics/rates", async (c) => {
  */
 metricsController.get(
   "/servers/:id/queues/:queueName/metrics/rates",
+  zValidator("param", ServerParamSchema),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const id = c.req.param("id");
     const queueName = c.req.param("queueName");
@@ -221,11 +227,16 @@ metricsController.get(
       const client = await createRabbitMQClient(id, workspaceId);
       const timeConfig = timeRangeConfigs[timeRange];
 
+      // Get vhost from validated query (required for queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+
       // Decode queue name in case it contains special characters
       const decodedQueueName = decodeURIComponent(queueName);
       const queue = await client.getQueueWithTimeRange(
         decodedQueueName,
-        timeConfig
+        timeConfig,
+        vhost
       );
 
       logger.info(

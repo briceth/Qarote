@@ -15,7 +15,11 @@ import {
   validateQueueCreationOnServer,
 } from "@/services/plan/plan.service";
 
-import { CreateQueueSchema } from "@/schemas/rabbitmq";
+import {
+  CreateQueueSchema,
+  VHostOptionalQuerySchema,
+  VHostRequiredQuerySchema,
+} from "@/schemas/rabbitmq";
 
 import {
   QueueBindingsResponse,
@@ -41,17 +45,163 @@ const queuesController = new Hono();
  * Get all queues for a specific server (ALL USERS)
  * GET /workspaces/:workspaceId/servers/:id/queues
  */
-queuesController.get("/servers/:id/queues", async (c) => {
-  const id = c.req.param("id");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
+queuesController.get(
+  "/servers/:id/queues",
+  zValidator("query", VHostOptionalQuerySchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const workspaceId = c.req.param("workspaceId");
+    const user = c.get("user");
 
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
+    try {
+      // Verify the server belongs to the user's workspace and get over-limit info
+      const server = await verifyServerAccess(id, workspaceId, true);
+
+      if (!server || !server.workspace) {
+        return c.json({ error: "Server not found or access denied" }, 404);
+      }
+
+      const client = await createRabbitMQClient(id, workspaceId);
+      // Get vhost from validated query (optional)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = vhostParam ? decodeURIComponent(vhostParam) : undefined;
+      const queues = await client.getQueues(vhost);
+
+      // Store queue data in the database
+      for (const queue of queues) {
+        const queueData = {
+          name: queue.name,
+          vhost: queue.vhost,
+          messages: queue.messages || 0,
+          messagesReady: queue.messages_ready || 0,
+          messagesUnack: queue.messages_unacknowledged || 0,
+          lastFetched: new Date(),
+          serverId: id,
+        };
+
+        // Try to find existing queue record
+        const existingQueue = await prisma.queue.findFirst({
+          where: {
+            name: queue.name,
+            vhost: queue.vhost,
+            serverId: id,
+          },
+        });
+
+        if (existingQueue) {
+          // Update existing queue
+          await prisma.queue.update({
+            where: { id: existingQueue.id },
+            data: queueData,
+          });
+
+          // Add metrics record
+          await prisma.queueMetric.create({
+            data: {
+              queueId: existingQueue.id,
+              messages: queue.messages || 0,
+              messagesReady: queue.messages_ready || 0,
+              messagesUnack: queue.messages_unacknowledged || 0,
+              publishRate: queue.message_stats?.publish_details?.rate || 0,
+              consumeRate: queue.message_stats?.deliver_details?.rate || 0,
+            },
+          });
+        } else {
+          // Create new queue
+          const newQueue = await prisma.queue.create({
+            data: queueData,
+          });
+
+          // Add metrics record
+          await prisma.queueMetric.create({
+            data: {
+              queueId: newQueue.id,
+              messages: queue.messages || 0,
+              messagesReady: queue.messages_ready || 0,
+              messagesUnack: queue.messages_unacknowledged || 0,
+              publishRate: queue.message_stats?.publish_details?.rate || 0,
+              consumeRate: queue.message_stats?.deliver_details?.rate || 0,
+            },
+          });
+        }
+      }
+
+      // Sort queues: first by messages (descending), then alphabetically by name
+      queues.sort((a, b) => {
+        // First sort by message count (queues with messages first)
+        const aMessages = a.messages || 0;
+        const bMessages = b.messages || 0;
+
+        if (aMessages !== bMessages) {
+          return bMessages - aMessages; // Descending order (more messages first)
+        }
+
+        // If message counts are equal, sort alphabetically by name
+        return a.name.localeCompare(b.name);
+      });
+
+      // Map queues to API response format (only include fields used by front-end)
+      const mappedQueues = QueueMapper.toApiResponseArray(queues);
+
+      // Prepare response with over-limit warning information
+      const response: QueuesResponse = { queues: mappedQueues };
+
+      // Add warning information if server is over the queue limit
+      if (server.isOverQueueLimit && server.workspace) {
+        const userPlan = await getUserPlan(user.id);
+        const warningMessage = getOverLimitWarningMessage(
+          userPlan,
+          queues.length
+        );
+
+        const upgradeRecommendation =
+          getUpgradeRecommendationForOverLimit(userPlan);
+
+        response.warning = {
+          isOverLimit: true,
+          message: warningMessage,
+          currentQueueCount: queues.length,
+          queueCountAtConnect: server.queueCountAtConnect,
+          upgradeRecommendation: upgradeRecommendation.message,
+          recommendedPlan: upgradeRecommendation.recommendedPlan,
+          warningShown: server.overLimitWarningShown,
+        };
+      }
+
+      return c.json(response);
+    } catch (error) {
+      logger.error(
+        { error, serverId: id },
+        `Error fetching queues for server ${id}:`
+      );
+      return createErrorResponse(c, error, 500, "Failed to fetch queues");
+    }
   }
+);
 
-  try {
+/**
+ * Get a specific queue by name from a server (ALL USERS)
+ * GET /workspaces/:workspaceId/servers/:id/queues/:queueName
+ */
+queuesController.get(
+  "/servers/:id/queues/:queueName",
+  zValidator("query", VHostRequiredQuerySchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
+    const user = c.get("user");
+
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
     // Verify the server belongs to the user's workspace and get over-limit info
     const server = await verifyServerAccess(id, workspaceId, true);
 
@@ -59,252 +209,139 @@ queuesController.get("/servers/:id/queues", async (c) => {
       return c.json({ error: "Server not found or access denied" }, 404);
     }
 
-    const client = await createRabbitMQClient(id, workspaceId);
-    const queues = await client.getQueues();
+    try {
+      const client = await createRabbitMQClient(id, workspaceId);
+      // Get vhost from validated query (required for individual queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+      const queue = await client.getQueue(queueName, vhost);
 
-    // Store queue data in the database
-    for (const queue of queues) {
-      const queueData = {
-        name: queue.name,
-        vhost: queue.vhost,
-        messages: queue.messages || 0,
-        messagesReady: queue.messages_ready || 0,
-        messagesUnack: queue.messages_unacknowledged || 0,
-        lastFetched: new Date(),
-        serverId: id,
-      };
+      // Map queue to API response format (only include fields used by front-end)
+      const mappedQueue = QueueMapper.toApiResponse(queue);
+      const response: SingleQueueResponse = { queue: mappedQueue };
 
-      // Try to find existing queue record
-      const existingQueue = await prisma.queue.findFirst({
-        where: {
-          name: queue.name,
-          vhost: queue.vhost,
-          serverId: id,
-        },
-      });
-
-      if (existingQueue) {
-        // Update existing queue
-        await prisma.queue.update({
-          where: { id: existingQueue.id },
-          data: queueData,
-        });
-
-        // Add metrics record
-        await prisma.queueMetric.create({
-          data: {
-            queueId: existingQueue.id,
-            messages: queue.messages || 0,
-            messagesReady: queue.messages_ready || 0,
-            messagesUnack: queue.messages_unacknowledged || 0,
-            publishRate: queue.message_stats?.publish_details?.rate || 0,
-            consumeRate: queue.message_stats?.deliver_details?.rate || 0,
-          },
-        });
-      } else {
-        // Create new queue
-        const newQueue = await prisma.queue.create({
-          data: queueData,
-        });
-
-        // Add metrics record
-        await prisma.queueMetric.create({
-          data: {
-            queueId: newQueue.id,
-            messages: queue.messages || 0,
-            messagesReady: queue.messages_ready || 0,
-            messagesUnack: queue.messages_unacknowledged || 0,
-            publishRate: queue.message_stats?.publish_details?.rate || 0,
-            consumeRate: queue.message_stats?.deliver_details?.rate || 0,
-          },
-        });
-      }
-    }
-
-    // Sort queues: first by messages (descending), then alphabetically by name
-    queues.sort((a, b) => {
-      // First sort by message count (queues with messages first)
-      const aMessages = a.messages || 0;
-      const bMessages = b.messages || 0;
-
-      if (aMessages !== bMessages) {
-        return bMessages - aMessages; // Descending order (more messages first)
-      }
-
-      // If message counts are equal, sort alphabetically by name
-      return a.name.localeCompare(b.name);
-    });
-
-    // Map queues to API response format (only include fields used by front-end)
-    const mappedQueues = QueueMapper.toApiResponseArray(queues);
-
-    // Prepare response with over-limit warning information
-    const response: QueuesResponse = { queues: mappedQueues };
-
-    // Add warning information if server is over the queue limit
-    if (server.isOverQueueLimit && server.workspace) {
-      const userPlan = await getUserPlan(user.id);
-      const warningMessage = getOverLimitWarningMessage(
-        userPlan,
-        queues.length
+      return c.json(response);
+    } catch (error) {
+      logger.error(
+        { error, serverId: id, queueName },
+        `Error fetching queue ${queueName} for server ${id}:`
       );
-
-      const upgradeRecommendation =
-        getUpgradeRecommendationForOverLimit(userPlan);
-
-      response.warning = {
-        isOverLimit: true,
-        message: warningMessage,
-        currentQueueCount: queues.length,
-        queueCountAtConnect: server.queueCountAtConnect,
-        upgradeRecommendation: upgradeRecommendation.message,
-        recommendedPlan: upgradeRecommendation.recommendedPlan,
-        warningShown: server.overLimitWarningShown,
-      };
+      return createErrorResponse(c, error, 500, "Failed to fetch queue");
     }
-
-    return c.json(response);
-  } catch (error) {
-    logger.error(
-      { error, serverId: id },
-      `Error fetching queues for server ${id}:`
-    );
-    return createErrorResponse(c, error, 500, "Failed to fetch queues");
   }
-});
-
-/**
- * Get a specific queue by name from a server (ALL USERS)
- * GET /workspaces/:workspaceId/servers/:id/queues/:queueName
- */
-queuesController.get("/servers/:id/queues/:queueName", async (c) => {
-  const id = c.req.param("id");
-  const queueName = c.req.param("queueName");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
-
-  // Verify the server belongs to the user's workspace and get over-limit info
-  const server = await verifyServerAccess(id, workspaceId, true);
-
-  if (!server || !server.workspace) {
-    return c.json({ error: "Server not found or access denied" }, 404);
-  }
-
-  try {
-    const client = await createRabbitMQClient(id, workspaceId);
-    const queue = await client.getQueue(queueName);
-
-    // Map queue to API response format (only include fields used by front-end)
-    const mappedQueue = QueueMapper.toApiResponse(queue);
-    const response: SingleQueueResponse = { queue: mappedQueue };
-
-    return c.json(response);
-  } catch (error) {
-    logger.error(
-      { error, serverId: id, queueName },
-      `Error fetching queue ${queueName} for server ${id}:`
-    );
-    return createErrorResponse(c, error, 500, "Failed to fetch queue");
-  }
-});
+);
 
 /**
  * Get consumers for a specific queue on a server (ALL USERS)
  * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/consumers
  */
-queuesController.get("/servers/:id/queues/:queueName/consumers", async (c) => {
-  const id = c.req.param("id");
-  const queueName = c.req.param("queueName");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
+queuesController.get(
+  "/servers/:id/queues/:queueName/consumers",
+  zValidator("query", VHostRequiredQuerySchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
+    const user = c.get("user");
 
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
+    const server = await verifyServerAccess(id, workspaceId, true);
+
+    if (!server || !server.workspace) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    try {
+      const client = await createRabbitMQClient(id, workspaceId);
+      // Get vhost from validated query (required for queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+      const consumers = await client.getQueueConsumers(queueName, vhost);
+
+      // Map consumers to API response format
+      const mappedConsumers = ConsumerMapper.toApiResponseArray(consumers);
+
+      const response: QueueConsumersResponse = {
+        success: true,
+        consumers: mappedConsumers,
+        totalConsumers: mappedConsumers.length,
+        queueName,
+      };
+      return c.json(response);
+    } catch (error) {
+      logger.error(
+        `Error fetching consumers for queue ${queueName} on server ${id}:`,
+        error
+      );
+      return createErrorResponse(
+        c,
+        error,
+        500,
+        "Failed to fetch queue consumers"
+      );
+    }
   }
-
-  const server = await verifyServerAccess(id, workspaceId, true);
-
-  if (!server || !server.workspace) {
-    return c.json({ error: "Server not found or access denied" }, 404);
-  }
-
-  try {
-    const client = await createRabbitMQClient(id, workspaceId);
-    const consumers = await client.getQueueConsumers(queueName);
-
-    // Map consumers to API response format
-    const mappedConsumers = ConsumerMapper.toApiResponseArray(consumers);
-
-    const response: QueueConsumersResponse = {
-      success: true,
-      consumers: mappedConsumers,
-      totalConsumers: mappedConsumers.length,
-      queueName,
-    };
-    return c.json(response);
-  } catch (error) {
-    logger.error(
-      `Error fetching consumers for queue ${queueName} on server ${id}:`,
-      error
-    );
-    return createErrorResponse(
-      c,
-      error,
-      500,
-      "Failed to fetch queue consumers"
-    );
-  }
-});
+);
 
 /**
  * Get bindings for a specific queue on a server (ALL USERS)
  * GET /workspaces/:workspaceId/servers/:id/queues/:queueName/bindings
  */
-queuesController.get("/servers/:id/queues/:queueName/bindings", async (c) => {
-  const id = c.req.param("id");
-  const queueName = c.req.param("queueName");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
+queuesController.get(
+  "/servers/:id/queues/:queueName/bindings",
+  zValidator("query", VHostRequiredQuerySchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const queueName = c.req.param("queueName");
+    const workspaceId = c.req.param("workspaceId");
+    const user = c.get("user");
 
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
+    // Verify user has access to this workspace
+    if (user.workspaceId !== workspaceId) {
+      return c.json({ error: "Access denied to this workspace" }, 403);
+    }
+
+    const server = await verifyServerAccess(id, workspaceId, true);
+
+    if (!server || !server.workspace) {
+      return c.json({ error: "Server not found or access denied" }, 404);
+    }
+
+    try {
+      const client = await createRabbitMQClient(id, workspaceId);
+      // Get vhost from validated query (required for queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+      const bindings = await client.getQueueBindings(queueName, vhost);
+
+      // Map bindings to API response format
+      const mappedBindings = BindingMapper.toApiResponseArray(bindings);
+
+      const response: QueueBindingsResponse = {
+        success: true,
+        bindings: mappedBindings,
+        totalBindings: mappedBindings.length,
+        queueName,
+      };
+      return c.json(response);
+    } catch (error) {
+      logger.error(
+        `Error fetching bindings for queue ${queueName} on server ${id}:`,
+        error
+      );
+      return createErrorResponse(
+        c,
+        error,
+        500,
+        "Failed to fetch queue bindings"
+      );
+    }
   }
-
-  const server = await verifyServerAccess(id, workspaceId, true);
-
-  if (!server || !server.workspace) {
-    return c.json({ error: "Server not found or access denied" }, 404);
-  }
-
-  try {
-    const client = await createRabbitMQClient(id, workspaceId);
-    const bindings = await client.getQueueBindings(queueName);
-
-    // Map bindings to API response format
-    const mappedBindings = BindingMapper.toApiResponseArray(bindings);
-
-    const response: QueueBindingsResponse = {
-      success: true,
-      bindings: mappedBindings,
-      totalBindings: mappedBindings.length,
-      queueName,
-    };
-    return c.json(response);
-  } catch (error) {
-    logger.error(
-      `Error fetching bindings for queue ${queueName} on server ${id}:`,
-      error
-    );
-    return createErrorResponse(c, error, 500, "Failed to fetch queue bindings");
-  }
-});
+);
 
 /**
  * Create a new queue for a specific server (ADMIN ONLY - sensitive operation)
@@ -314,6 +351,7 @@ queuesController.post(
   "/servers/:serverId/queues",
   authorize([UserRole.ADMIN]),
   zValidator("json", CreateQueueSchema),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const serverId = c.req.param("serverId");
     const workspaceId = c.req.param("workspaceId");
@@ -353,9 +391,13 @@ queuesController.post(
         0 // Queue count is no longer tracked in resource counts
       );
 
+      // Get vhost from validated query (required for queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+
       // Create the queue via RabbitMQ API
       const client = await createRabbitMQClient(serverId, workspaceId);
-      const queue = await client.createQueue(queueData.name, {
+      const queue = await client.createQueue(queueData.name, vhost, {
         durable: queueData.durable,
         autoDelete: queueData.autoDelete,
         arguments: queueData.arguments,
@@ -424,6 +466,7 @@ queuesController.post(
 queuesController.delete(
   "/servers/:serverId/queues/:queueName/messages",
   authorize([UserRole.ADMIN]),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
@@ -442,8 +485,12 @@ queuesController.delete(
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
+      // Get vhost from validated query (required for queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+
       const client = await createRabbitMQClient(serverId, workspaceId);
-      await client.purgeQueue(queueName);
+      await client.purgeQueue(queueName, vhost);
 
       const response: QueuePurgeResponse = {
         success: true,
@@ -468,6 +515,7 @@ queuesController.delete(
 queuesController.delete(
   "/servers/:serverId/queues/:queueName",
   authorize([UserRole.ADMIN]),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
@@ -489,6 +537,9 @@ queuesController.delete(
       const url = new URL(c.req.url);
       const ifUnused = url.searchParams.get("if_unused") === "true";
       const ifEmpty = url.searchParams.get("if_empty") === "true";
+      // Get vhost from validated query (required for queue operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
 
       // First, find the queue to ensure it exists and belongs to this workspace
       const existingQueue = await prisma.queue.findFirst({
@@ -509,7 +560,7 @@ queuesController.delete(
 
       // Delete from RabbitMQ first (this is the source of truth)
       const client = await createRabbitMQClient(serverId, workspaceId);
-      await client.deleteQueue(queueName, {
+      await client.deleteQueue(queueName, vhost, {
         if_unused: ifUnused,
         if_empty: ifEmpty,
       });

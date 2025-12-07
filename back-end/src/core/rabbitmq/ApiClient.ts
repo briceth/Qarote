@@ -89,10 +89,14 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getQueues(): Promise<RabbitMQQueue[]> {
+  async getQueues(vhost?: string): Promise<RabbitMQQueue[]> {
     try {
-      logger.debug({ vhost: this.vhost }, "Fetching RabbitMQ queues");
-      const queues = await this.request(`/queues/${this.vhost}`);
+      // Follow RabbitMQ API: /api/queues for all, /api/queues/vhost for filtered
+      const endpoint = vhost
+        ? `/queues/${encodeURIComponent(vhost)}`
+        : "/queues";
+      logger.debug({ vhost: vhost || "all" }, "Fetching RabbitMQ queues");
+      const queues = await this.request(endpoint);
       logger.debug(
         {
           count: queues?.length || 0,
@@ -114,14 +118,17 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getQueuesWithTimeRange(timeRange: {
-    age: number; // seconds (e.g., 60 for last minute, 600 for last 10 minutes, 3600 for last hour)
-    increment: number; // seconds between samples (e.g., 10)
-  }): Promise<RabbitMQQueue[]> {
+  async getQueuesWithTimeRange(
+    timeRange: {
+      age: number; // seconds (e.g., 60 for last minute, 600 for last 10 minutes, 3600 for last hour)
+      increment: number; // seconds between samples (e.g., 10)
+    },
+    vhost?: string
+  ): Promise<RabbitMQQueue[]> {
     try {
       logger.debug(
         {
-          vhost: this.vhost,
+          vhost: vhost || "all",
           age: timeRange.age,
           increment: timeRange.increment,
         },
@@ -135,8 +142,12 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
           "name,message_stats.publish,message_stats.publish_details,message_stats.deliver,message_stats.deliver_details,message_stats.ack,message_stats.ack_details,message_stats.deliver_get,message_stats.deliver_get_details,message_stats.confirm,message_stats.confirm_details,message_stats.get,message_stats.get_details,message_stats.get_no_ack,message_stats.get_no_ack_details,message_stats.redeliver,message_stats.redeliver_details,message_stats.reject,message_stats.reject_details,message_stats.return_unroutable,message_stats.return_unroutable_details",
       });
 
+      // Follow RabbitMQ API: /api/queues for all, /api/queues/vhost for filtered
+      const endpoint = vhost
+        ? `/queues/${encodeURIComponent(vhost)}`
+        : "/queues";
       const queues = await this.request(
-        `/queues/${this.vhost}?${queryParams.toString()}`
+        `${endpoint}?${queryParams.toString()}`
       );
       logger.debug(
         {
@@ -187,17 +198,21 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getQueue(queueName: string): Promise<RabbitMQQueue> {
+  async getQueue(queueName: string, vhost: string): Promise<RabbitMQQueue> {
     try {
-      logger.debug({ queueName }, "Fetching RabbitMQ queue");
+      logger.debug({ queueName, vhost }, "Fetching RabbitMQ queue");
       const encodedQueueName = encodeURIComponent(queueName);
+      const encodedVhost = encodeURIComponent(vhost);
       const queue = await this.request(
-        `/queues/${this.vhost}/${encodedQueueName}`
+        `/queues/${encodedVhost}/${encodedQueueName}`
       );
-      logger.debug({ queueName }, "RabbitMQ queue fetched successfully");
+      logger.debug({ queueName, vhost }, "RabbitMQ queue fetched successfully");
       return queue;
     } catch (error) {
-      logger.error({ error, queueName }, "Failed to fetch RabbitMQ queue:");
+      logger.error(
+        { error, queueName, vhost },
+        "Failed to fetch RabbitMQ queue:"
+      );
 
       if (error instanceof Error) {
         captureRabbitMQError(error, {
@@ -216,16 +231,19 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     timeRange: {
       age: number; // seconds (e.g., 60 for last minute, 600 for last 10 minutes, 3600 for last hour)
       increment: number; // seconds between samples (e.g., 10)
-    }
+    },
+    vhost: string
   ): Promise<RabbitMQQueue> {
     try {
       logger.debug("Fetching RabbitMQ queue with time range", {
         queueName,
+        vhost,
         age: timeRange.age,
         increment: timeRange.increment,
       });
 
       const encodedQueueName = encodeURIComponent(queueName);
+      const encodedVhost = encodeURIComponent(vhost);
       const queryParams = new URLSearchParams({
         msg_rates_age: timeRange.age.toString(),
         msg_rates_incr: timeRange.increment.toString(),
@@ -236,15 +254,16 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       });
 
       const queue = await this.request(
-        `/queues/${this.vhost}/${encodedQueueName}?${queryParams.toString()}`
+        `/queues/${encodedVhost}/${encodedQueueName}?${queryParams.toString()}`
       );
       logger.debug("RabbitMQ queue with time range fetched successfully", {
         queueName,
+        vhost,
       });
       return queue;
     } catch (error) {
       logger.error(
-        { error, queueName },
+        { error, queueName, vhost },
         "Failed to fetch RabbitMQ queue with time range"
       );
 
@@ -304,10 +323,14 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getExchanges(): Promise<RabbitMQExchange[]> {
+  async getExchanges(vhost?: string): Promise<RabbitMQExchange[]> {
     try {
-      logger.debug("Fetching RabbitMQ exchanges");
-      const exchanges = await this.request(`/exchanges/${this.vhost}`);
+      // Follow RabbitMQ API: /api/exchanges for all, /api/exchanges/vhost for filtered
+      const endpoint = vhost
+        ? `/exchanges/${encodeURIComponent(vhost)}`
+        : "/exchanges";
+      logger.debug({ vhost: vhost || "all" }, "Fetching RabbitMQ exchanges");
+      const exchanges = await this.request(endpoint);
       logger.debug("RabbitMQ exchanges fetched successfully", {
         count: exchanges?.length || 0,
       });
@@ -326,10 +349,14 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getBindings(): Promise<RabbitMQBinding[]> {
+  async getBindings(vhost?: string): Promise<RabbitMQBinding[]> {
     try {
-      logger.debug("Fetching RabbitMQ bindings");
-      const bindings = await this.request(`/bindings/${this.vhost}`);
+      // Follow RabbitMQ API: /api/bindings for all, /api/bindings/vhost for filtered
+      const endpoint = vhost
+        ? `/bindings/${encodeURIComponent(vhost)}`
+        : "/bindings";
+      logger.debug({ vhost: vhost || "all" }, "Fetching RabbitMQ bindings");
+      const bindings = await this.request(endpoint);
       logger.debug("RabbitMQ bindings fetched successfully", {
         count: bindings?.length || 0,
       });
@@ -370,24 +397,28 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getQueueConsumers(queueName: string): Promise<RabbitMQConsumer[]> {
+  async getQueueConsumers(
+    queueName: string,
+    vhost: string
+  ): Promise<RabbitMQConsumer[]> {
     try {
-      logger.debug("Fetching RabbitMQ queue consumers", { queueName });
+      logger.debug("Fetching RabbitMQ queue consumers", { queueName, vhost });
       const encodedQueueName = encodeURIComponent(queueName);
       const consumers = await this.getConsumers();
       const queueConsumers = consumers.filter(
         (consumer) =>
           consumer.queue?.name === encodedQueueName &&
-          consumer.queue?.vhost === decodeURIComponent(this.vhost)
+          consumer.queue?.vhost === vhost
       );
       logger.debug("RabbitMQ queue consumers fetched successfully", {
         queueName,
+        vhost,
         count: queueConsumers.length,
       });
       return queueConsumers;
     } catch (error) {
       logger.error(
-        { error, queueName },
+        { error, queueName, vhost },
         "Failed to fetch RabbitMQ queue consumers"
       );
 
@@ -403,21 +434,26 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     }
   }
 
-  async getQueueBindings(queueName: string): Promise<RabbitMQBinding[]> {
+  async getQueueBindings(
+    queueName: string,
+    vhost: string
+  ): Promise<RabbitMQBinding[]> {
     try {
-      logger.debug("Fetching RabbitMQ queue bindings", { queueName });
+      logger.debug("Fetching RabbitMQ queue bindings", { queueName, vhost });
       const encodedQueueName = encodeURIComponent(queueName);
+      const encodedVhost = encodeURIComponent(vhost);
       const bindings = await this.request(
-        `/queues/${this.vhost}/${encodedQueueName}/bindings`
+        `/queues/${encodedVhost}/${encodedQueueName}/bindings`
       );
       logger.debug("RabbitMQ queue bindings fetched successfully", {
         queueName,
+        vhost,
         count: bindings?.length || 0,
       });
       return bindings;
     } catch (error) {
       logger.error(
-        { error, queueName },
+        { error, queueName, vhost },
         "Failed to fetch RabbitMQ queue bindings"
       );
 
@@ -436,6 +472,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async createExchange(
     exchangeName: string,
     exchangeType: string,
+    vhost: string,
     options: {
       durable?: boolean;
       auto_delete?: boolean;
@@ -447,6 +484,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       logger.debug("Creating RabbitMQ exchange", {
         exchangeName,
         exchangeType,
+        vhost,
         options,
       });
 
@@ -458,10 +496,10 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
         arguments: options.arguments ?? {},
       };
 
-      // const encodedExchangeName = exchangeName;
       const encodedExchangeName = encodeURIComponent(exchangeName);
+      const encodedVhost = encodeURIComponent(vhost);
 
-      await this.request(`/exchanges/${this.vhost}/${encodedExchangeName}`, {
+      await this.request(`/exchanges/${encodedVhost}/${encodedExchangeName}`, {
         method: "PUT",
         body: JSON.stringify(exchangeDefinition),
       });
@@ -469,10 +507,11 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       logger.debug("RabbitMQ exchange created successfully", {
         exchangeName,
         exchangeType,
+        vhost,
       });
     } catch (error) {
       logger.error(
-        { error, exchangeName, exchangeType },
+        { error, exchangeName, exchangeType, vhost },
         "Failed to create RabbitMQ exchange"
       );
 
@@ -490,14 +529,20 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
 
   async deleteExchange(
     exchangeName: string,
+    vhost: string,
     options: {
       if_unused?: boolean;
     } = {}
   ): Promise<void> {
     try {
-      logger.debug("Deleting RabbitMQ exchange", { exchangeName, options });
+      logger.debug("Deleting RabbitMQ exchange", {
+        exchangeName,
+        vhost,
+        options,
+      });
 
       const encodedExchangeName = encodeURIComponent(exchangeName);
+      const encodedVhost = encodeURIComponent(vhost);
 
       // Build query parameters
       const queryParams = new URLSearchParams();
@@ -506,14 +551,17 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       }
 
       const queryString = queryParams.toString();
-      const url = `/exchanges/${this.vhost}/${encodedExchangeName}${queryString ? `?${queryString}` : ""}`;
+      const url = `/exchanges/${encodedVhost}/${encodedExchangeName}${queryString ? `?${queryString}` : ""}`;
 
       await this.request(url, { method: "DELETE" });
 
-      logger.debug("RabbitMQ exchange deleted successfully", { exchangeName });
+      logger.debug("RabbitMQ exchange deleted successfully", {
+        exchangeName,
+        vhost,
+      });
     } catch (error) {
       logger.error(
-        { error, exchangeName },
+        { error, exchangeName, vhost },
         "Failed to delete RabbitMQ exchange"
       );
 
@@ -531,15 +579,17 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
 
   async deleteQueue(
     queueName: string,
+    vhost: string,
     options: {
       if_unused?: boolean;
       if_empty?: boolean;
     } = {}
   ): Promise<void> {
     try {
-      logger.debug("Deleting RabbitMQ queue", { queueName, options });
+      logger.debug("Deleting RabbitMQ queue", { queueName, vhost, options });
 
       const encodedQueueName = encodeURIComponent(queueName);
+      const encodedVhost = encodeURIComponent(vhost);
 
       // Build query parameters
       const queryParams = new URLSearchParams();
@@ -551,15 +601,18 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       }
 
       const queryString = queryParams.toString();
-      const url = `/queues/${this.vhost}/${encodedQueueName}${queryString ? `?${queryString}` : ""}`;
+      const url = `/queues/${encodedVhost}/${encodedQueueName}${queryString ? `?${queryString}` : ""}`;
 
       await this.request(url, {
         method: "DELETE",
       });
 
-      logger.debug("RabbitMQ queue deleted successfully", { queueName });
+      logger.debug("RabbitMQ queue deleted successfully", { queueName, vhost });
     } catch (error) {
-      logger.error({ error, queueName }, "Failed to delete RabbitMQ queue");
+      logger.error(
+        { error, queueName, vhost },
+        "Failed to delete RabbitMQ queue"
+      );
 
       if (error instanceof Error) {
         captureRabbitMQError(error, {

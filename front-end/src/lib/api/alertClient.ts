@@ -132,6 +132,7 @@ export class AlertApiClient extends BaseApiClient {
       severity?: string;
       category?: string;
       resolved?: boolean;
+      vhost?: string;
     }
   ): Promise<RabbitMQAlertsResponse> {
     const params = new URLSearchParams();
@@ -161,6 +162,9 @@ export class AlertApiClient extends BaseApiClient {
       }
       if (options.resolved !== undefined) {
         params.append("resolved", options.resolved.toString());
+      }
+      if (options.vhost) {
+        params.append("vhost", options.vhost);
       }
     }
 

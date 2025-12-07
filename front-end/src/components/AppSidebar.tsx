@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Clock,
   Database,
+  FolderTree,
   HelpCircle,
   LogOut,
   MessageSquare,
@@ -43,6 +44,7 @@ import {
 
 import { useAuth } from "@/contexts/AuthContextDefinition";
 import { useServerContext } from "@/contexts/ServerContext";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import { useServers } from "@/hooks/useApi";
 import { useLogout } from "@/hooks/useAuth";
@@ -125,6 +127,12 @@ const shortenHost = (host: string, maxLength: number = 25) => {
 export function AppSidebar() {
   const location = useLocation();
   const { selectedServerId, setSelectedServerId } = useServerContext();
+  const {
+    selectedVHost,
+    setSelectedVHost,
+    availableVHosts,
+    isLoading: vhostsLoading,
+  } = useVHostContext();
   const { user } = useAuth();
   const logoutMutation = useLogout();
   const { data: serversData } = useServers();
@@ -237,6 +245,62 @@ export function AppSidebar() {
                   </Button>
                 }
               />
+            </div>
+          )}
+
+          {/* VHost Selection */}
+          {selectedServerId && (
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">
+                  Virtual Host
+                </span>
+              </div>
+
+              {vhostsLoading ? (
+                <div className="text-center p-3 bg-sidebar-accent rounded-lg">
+                  <p className="text-xs text-sidebar-foreground/70">
+                    Loading vhosts...
+                  </p>
+                </div>
+              ) : availableVHosts.length > 0 ? (
+                <Select
+                  value={selectedVHost || ""}
+                  onValueChange={setSelectedVHost}
+                >
+                  <SelectTrigger className="w-full text-sm">
+                    <SelectValue placeholder="Select a vhost...">
+                      {selectedVHost && (
+                        <div className="flex items-center gap-2 w-full min-w-0">
+                          <FolderTree className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate font-medium">
+                            {selectedVHost === "/" ? "Default" : selectedVHost}
+                          </span>
+                        </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="min-w-[300px]">
+                    {availableVHosts.map((vhost) => (
+                      <SelectItem key={vhost.name} value={vhost.name}>
+                        <div className="flex items-center gap-2 w-full min-w-0">
+                          <FolderTree className="h-3 w-3 flex-shrink-0" />
+                          <span className="font-medium">
+                            {vhost.name === "/" ? "Default" : vhost.name}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-center p-3 bg-sidebar-accent rounded-lg border-2 border-dashed border-sidebar-border">
+                  <FolderTree className="h-8 w-8 text-sidebar-foreground/70 mx-auto mb-2" />
+                  <p className="text-xs text-sidebar-foreground/70">
+                    No vhosts available
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -4,6 +4,10 @@ import { Hono } from "hono";
 import { logger } from "@/core/logger";
 
 import { ServerParamSchema } from "@/schemas/alerts";
+import {
+  VHostOptionalQuerySchema,
+  VHostRequiredQuerySchema,
+} from "@/schemas/rabbitmq";
 
 import { NodesResponse } from "@/types/api-responses";
 
@@ -73,6 +77,7 @@ infrastructureController.get(
 infrastructureController.get(
   "/servers/:id/exchanges",
   zValidator("param", ServerParamSchema),
+  zValidator("query", VHostOptionalQuerySchema),
   async (c) => {
     const id = c.req.param("id");
     const workspaceId = c.req.param("workspaceId");
@@ -91,9 +96,12 @@ infrastructureController.get(
       }
 
       const client = await createRabbitMQClient(id, workspaceId);
+      // Get vhost from validated query (optional)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = vhostParam ? decodeURIComponent(vhostParam) : undefined;
       const [exchanges, bindings] = await Promise.all([
-        client.getExchanges(),
-        client.getBindings().catch(() => []),
+        client.getExchanges(vhost),
+        client.getBindings(vhost).catch(() => []),
       ]);
 
       // Map all bindings for the response
@@ -145,6 +153,7 @@ infrastructureController.get(
 infrastructureController.post(
   "/servers/:id/exchanges",
   zValidator("param", ServerParamSchema),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const id = c.req.param("id");
     const workspaceId = c.req.param("workspaceId");
@@ -190,8 +199,12 @@ infrastructureController.post(
         );
       }
 
+      // Get vhost from validated query (required for exchange operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+
       const client = await createRabbitMQClient(id, workspaceId);
-      await client.createExchange(name, type, {
+      await client.createExchange(name, type, vhost, {
         durable: durable ?? true,
         auto_delete: auto_delete ?? false,
         internal: internal ?? false,
@@ -224,9 +237,11 @@ infrastructureController.post(
 infrastructureController.delete(
   "/servers/:id/exchanges/:exchangeName",
   zValidator("param", ServerParamSchema),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const id = c.req.param("id");
     const exchangeName = c.req.param("exchangeName");
+    const { vhost: vhostParam } = c.req.valid("query");
     const workspaceId = c.req.param("workspaceId");
     const user = c.get("user");
     const url = new URL(c.req.url);
@@ -244,8 +259,11 @@ infrastructureController.delete(
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
+      // Decode vhost (already validated by schema)
+      const vhost = decodeURIComponent(vhostParam);
+
       const client = await createRabbitMQClient(id, workspaceId);
-      await client.deleteExchange(exchangeName, {
+      await client.deleteExchange(exchangeName, vhost, {
         if_unused: ifUnused,
       });
 

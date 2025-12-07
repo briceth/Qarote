@@ -71,7 +71,9 @@ export class RabbitMQBaseClient {
       `${credentials.username}:${credentials.password}`
     ).toString("base64")}`;
 
-    this.vhost = encodeURIComponent(credentials.vhost); // not used
+    // Note: this.vhost is only used for server connection/authentication when adding a RabbitMQ server.
+    // It should NOT be used for filtering API calls - use dynamic vhost parameter from frontend instead.
+    this.vhost = encodeURIComponent(credentials.vhost);
     this.version = credentials.version;
     this.versionMajorMinor = credentials.versionMajorMinor;
   }

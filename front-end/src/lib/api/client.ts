@@ -96,12 +96,22 @@ class ApiClient {
     return this.rabbitmqClient.getOverview(serverId, workspaceId);
   }
 
-  async getQueues(serverId: string, workspaceId: string) {
-    return this.rabbitmqClient.getQueues(serverId, workspaceId);
+  async getQueues(serverId: string, workspaceId: string, vhost?: string) {
+    return this.rabbitmqClient.getQueues(serverId, workspaceId, vhost);
   }
 
-  async getQueue(serverId: string, queueName: string, workspaceId: string) {
-    return this.rabbitmqClient.getQueue(serverId, queueName, workspaceId);
+  async getQueue(
+    serverId: string,
+    queueName: string,
+    workspaceId: string,
+    vhost?: string
+  ) {
+    return this.rabbitmqClient.getQueue(
+      serverId,
+      queueName,
+      workspaceId,
+      vhost
+    );
   }
 
   async createQueue(params: Parameters<RabbitMQApiClient["createQueue"]>[0]) {
@@ -119,13 +129,15 @@ class ApiClient {
     options: {
       if_unused?: boolean;
       if_empty?: boolean;
-    } = {}
+    } = {},
+    vhost?: string
   ) {
     return this.rabbitmqClient.deleteQueue(
       serverId,
       queueName,
       workspaceId,
-      options
+      options,
+      vhost
     );
   }
 
@@ -183,8 +195,8 @@ class ApiClient {
     return this.rabbitmqClient.getChannels(serverId, workspaceId);
   }
 
-  async getExchanges(serverId: string, workspaceId: string) {
-    return this.rabbitmqClient.getExchanges(serverId, workspaceId);
+  async getExchanges(serverId: string, workspaceId: string, vhost?: string) {
+    return this.rabbitmqClient.getExchanges(serverId, workspaceId, vhost);
   }
 
   async createExchange(
@@ -203,13 +215,15 @@ class ApiClient {
     serverId: string,
     exchangeName: string,
     workspaceId: string,
-    options: Parameters<RabbitMQApiClient["deleteExchange"]>[3] = {}
+    options: Parameters<RabbitMQApiClient["deleteExchange"]>[3] = {},
+    vhost?: string
   ) {
     return this.rabbitmqClient.deleteExchange(
       serverId,
       exchangeName,
       workspaceId,
-      options
+      options,
+      vhost
     );
   }
 
@@ -220,24 +234,28 @@ class ApiClient {
   async getQueueConsumers(
     serverId: string,
     queueName: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ) {
     return this.rabbitmqClient.getQueueConsumers(
       serverId,
       queueName,
-      workspaceId
+      workspaceId,
+      vhost
     );
   }
 
   async getQueueBindings(
     serverId: string,
     queueName: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ) {
     return this.rabbitmqClient.getQueueBindings(
       serverId,
       queueName,
-      workspaceId
+      workspaceId,
+      vhost
     );
   }
 
@@ -257,13 +275,15 @@ class ApiClient {
     serverId: string,
     queueName: string,
     workspaceId: string,
-    timeRange: "1m" | "10m" | "1h" | "8h" | "1d" = "1m"
+    timeRange: "1m" | "10m" | "1h" | "8h" | "1d" = "1m",
+    vhost?: string
   ) {
     return this.rabbitmqClient.getQueueLiveRates(
       serverId,
       queueName,
       workspaceId,
-      timeRange
+      timeRange,
+      vhost
     );
   }
 
@@ -765,6 +785,7 @@ class ApiClient {
       severity?: string;
       category?: string;
       resolved?: boolean;
+      vhost?: string;
     }
   ) {
     return this.alertClient.getServerAlerts(

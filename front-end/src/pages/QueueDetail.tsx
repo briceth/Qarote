@@ -30,6 +30,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { useServerContext } from "@/contexts/ServerContext";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import {
   useDeleteQueue,
@@ -44,6 +45,7 @@ const QueueDetail = () => {
   const { queueName } = useParams<{ queueName: string }>();
   const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
+  const { selectedVHost } = useVHostContext();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>("1m");
@@ -52,18 +54,19 @@ const QueueDetail = () => {
     data: queueData,
     isLoading,
     refetch,
-  } = useQueue(selectedServerId, queueName);
+  } = useQueue(selectedServerId, queueName, selectedVHost);
 
   const { data: consumersData, isLoading: consumersLoading } =
-    useQueueConsumers(selectedServerId, queueName);
+    useQueueConsumers(selectedServerId, queueName, selectedVHost);
 
   const { data: bindingsData, isLoading: bindingsLoading } = useQueueBindings(
     selectedServerId,
-    queueName
+    queueName,
+    selectedVHost
   );
 
   const { data: queueLiveRatesData, isLoading: liveRatesLoading } =
-    useQueueLiveRates(selectedServerId || "", queueName || "", timeRange);
+    useQueueLiveRates(selectedServerId, queueName, timeRange, selectedVHost);
 
   const deleteQueueMutation = useDeleteQueue();
 

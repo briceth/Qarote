@@ -224,7 +224,8 @@ export class AlertNotificationService {
           serverId,
           alert.category,
           alert.source.type,
-          alert.source.name
+          alert.source.name,
+          alert.vhost
         );
 
         activeFingerprints.add(fingerprint);
@@ -386,7 +387,8 @@ export class AlertNotificationService {
             serverId,
             alert.category,
             alert.source.type,
-            alert.source.name
+            alert.source.name,
+            alert.vhost
           );
           const existing = seenAlerts.find(
             (a) => a.fingerprint === fingerprint
@@ -432,7 +434,8 @@ export class AlertNotificationService {
                   serverId,
                   alert.category,
                   alert.source.type,
-                  alert.source.name
+                  alert.source.name,
+                  alert.vhost
                 );
                 await prisma.seenAlert.updateMany({
                   where: { fingerprint },

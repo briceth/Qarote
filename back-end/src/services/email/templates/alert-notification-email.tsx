@@ -152,6 +152,12 @@ export default function AlertNotificationEmail({
                           {alert.description}
                         </Text>
 
+                        {alert.vhost && (
+                          <Text style={layoutStyles.detailValue}>
+                            <strong>Virtual Host:</strong> {alert.vhost}
+                          </Text>
+                        )}
+
                         {alert.details && (
                           <Section style={utilityStyles.spacer}>
                             {typeof alert.details.current === "number" ? (

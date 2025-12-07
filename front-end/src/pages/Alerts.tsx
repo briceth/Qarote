@@ -18,6 +18,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useServerContext } from "@/contexts/ServerContext";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import {
   useAlertNotificationSettings,
@@ -33,6 +34,7 @@ const Alerts = () => {
   const { serverId } = useParams<{ serverId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedServerId, hasServers } = useServerContext();
+  const { selectedVHost } = useVHostContext();
   const { userPlan } = useUser();
   // const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [showNotificationSettingsModal, setShowNotificationSettingsModal] =
@@ -64,12 +66,12 @@ const Alerts = () => {
     connections: { warning: 500, critical: 1000 },
   };
 
-  // Query for alerts with the RabbitMQ alerts hook
+  // Query for alerts with the RabbitMQ alerts hook (filtered by vhost)
   const {
     data: alertsData,
     isLoading: alertsLoading,
     error: alertsError,
-  } = useRabbitMQAlerts(currentServerId, defaultThresholds);
+  } = useRabbitMQAlerts(currentServerId, defaultThresholds, selectedVHost);
 
   // Query for resolved alerts
   const {

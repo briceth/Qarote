@@ -392,6 +392,9 @@ export function analyzeQueueHealth(
 
   // QUEUE ALERTS
 
+  // Extract vhost from queue for queue-related alerts
+  const queueVhost = queue.vhost || "/";
+
   // Check high message count
   const messageCount = queue.messages || 0;
   if (messageCount >= thresholds.queueMessages.critical) {
@@ -411,6 +414,7 @@ export function analyzeQueueHealth(
       },
       timestamp,
       resolved: false,
+      vhost: queueVhost,
       source: { type: "queue", name: queue.name },
     });
   } else if (messageCount >= thresholds.queueMessages.warning) {
@@ -430,6 +434,7 @@ export function analyzeQueueHealth(
       },
       timestamp,
       resolved: false,
+      vhost: queueVhost,
       source: { type: "queue", name: queue.name },
     });
   }
@@ -451,6 +456,7 @@ export function analyzeQueueHealth(
       },
       timestamp,
       resolved: false,
+      vhost: queueVhost,
       source: { type: "queue", name: queue.name },
     });
   }
@@ -475,6 +481,7 @@ export function analyzeQueueHealth(
       },
       timestamp,
       resolved: false,
+      vhost: queueVhost,
       source: { type: "queue", name: queue.name },
     });
   } else if (unackedMessages >= thresholds.unackedMessages.warning) {
@@ -489,11 +496,12 @@ export function analyzeQueueHealth(
       details: {
         current: unackedMessages,
         threshold: thresholds.unackedMessages.warning,
-        recommended: "Check consumer acknowledgment patterns",
+        recommended: "Monitor consumer acknowledgment patterns",
         affected: [queue.name],
       },
       timestamp,
       resolved: false,
+      vhost: queueVhost,
       source: { type: "queue", name: queue.name },
     });
   }
@@ -526,6 +534,7 @@ export function analyzeQueueHealth(
         },
         timestamp,
         resolved: false,
+        vhost: queueVhost,
         source: { type: "queue", name: queue.name },
       });
     }
@@ -552,6 +561,7 @@ export function analyzeQueueHealth(
         },
         timestamp,
         resolved: false,
+        vhost: queueVhost,
         source: { type: "queue", name: queue.name },
       });
     }

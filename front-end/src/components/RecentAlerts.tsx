@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useServerContext } from "@/contexts/ServerContext";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import { useUser } from "@/hooks/useUser";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -26,6 +27,7 @@ import { UserPlan } from "@/types/plans";
 export const RecentAlerts = () => {
   const navigate = useNavigate();
   const { selectedServerId } = useServerContext();
+  const { selectedVHost } = useVHostContext();
   const { workspace } = useWorkspace();
   const { userPlan } = useUser();
 
@@ -38,13 +40,13 @@ export const RecentAlerts = () => {
     connections: { warning: 500, critical: 1000 },
   };
 
-  // Query for recent alerts with limit of 3
+  // Query for recent alerts with limit of 3 (filtered by vhost)
   const {
     data: alertsData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["recentAlerts", selectedServerId],
+    queryKey: ["recentAlerts", selectedServerId, selectedVHost || ""],
     queryFn: () =>
       apiClient.getRabbitMQAlerts(
         selectedServerId!,
@@ -53,6 +55,7 @@ export const RecentAlerts = () => {
         {
           limit: 3, // Only fetch 3 most recent alerts
           resolved: false, // Only get active alerts
+          vhost: selectedVHost || undefined,
         }
       ),
     enabled: !!selectedServerId,
@@ -202,6 +205,33 @@ export const RecentAlerts = () => {
                         {alert.category}
                       </Badge>
                     )}
+                    {/* Scope tag: vhost for queue alerts, cluster for node alerts */}
+                    {(() => {
+                      if ("vhost" in alert && alert.vhost) {
+                        return (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs flex items-center gap-1"
+                          >
+                            vhost:{" "}
+                            {alert.vhost === "/" ? "Default" : alert.vhost}
+                          </Badge>
+                        );
+                      } else if (
+                        alert.source?.type === "node" ||
+                        alert.source?.type === "cluster"
+                      ) {
+                        return (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs flex items-center gap-1"
+                          >
+                            cluster
+                          </Badge>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
                     {alert.description}

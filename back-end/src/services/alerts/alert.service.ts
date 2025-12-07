@@ -23,11 +23,13 @@ import { createRabbitMQClient } from "@/controllers/rabbitmq/shared";
 export class AlertService {
   /**
    * Get alerts for a server
+   * @param vhost - Optional vhost to filter queue-related alerts. Node alerts are not filtered by vhost.
    */
   async getServerAlerts(
     serverId: string,
     serverName: string,
-    workspaceId: string
+    workspaceId: string,
+    vhost?: string
   ): Promise<{ alerts: RabbitMQAlert[]; summary: AlertSummary }> {
     const alerts: RabbitMQAlert[] = [];
     const client = await createRabbitMQClient(serverId, workspaceId);
@@ -37,7 +39,7 @@ export class AlertService {
       await alertThresholdsService.getWorkspaceThresholds(workspaceId);
 
     try {
-      // Analyze nodes
+      // Analyze nodes (not filtered by vhost - nodes are cluster-wide)
       const nodesResponse = await client.getNodes();
       if (nodesResponse && Array.isArray(nodesResponse)) {
         for (const node of nodesResponse) {
@@ -55,8 +57,8 @@ export class AlertService {
     }
 
     try {
-      // Analyze queues
-      const queuesResponse = await client.getQueues();
+      // Analyze queues (filtered by vhost if provided)
+      const queuesResponse = await client.getQueues(vhost);
       if (queuesResponse && Array.isArray(queuesResponse)) {
         for (const queue of queuesResponse) {
           const queueAlerts = analyzeQueueHealth(

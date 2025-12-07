@@ -43,6 +43,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useServerContext } from "@/contexts/ServerContext";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import { useDeleteExchange, useExchanges } from "@/hooks/useApi";
 import { useToast } from "@/hooks/useToast";
@@ -51,6 +52,7 @@ import { ApiErrorWithCode } from "@/types/apiErrors";
 
 const Exchanges = () => {
   const { selectedServerId, hasServers } = useServerContext();
+  const { selectedVHost } = useVHostContext();
   const { toast } = useToast();
   const [expandedExchanges, setExpandedExchanges] = useState<Set<string>>(
     new Set()
@@ -67,7 +69,7 @@ const Exchanges = () => {
     data: exchangesData,
     isLoading: exchangesLoading,
     error: exchangesError,
-  } = useExchanges(selectedServerId);
+  } = useExchanges(selectedServerId, selectedVHost);
 
   const deleteExchangeMutation = useDeleteExchange();
 

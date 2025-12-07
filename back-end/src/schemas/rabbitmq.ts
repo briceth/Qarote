@@ -35,6 +35,20 @@ export const CreateServerSchema = z.object({
 // Schema for updating a RabbitMQ server
 export const UpdateServerSchema = CreateServerSchema.partial();
 
+// Schema for vhost query parameter (required)
+export const VHostRequiredQuerySchema = z.object({
+  vhost: z.string().min(1, "vhost query parameter is required"),
+});
+
+// Schema for vhost query parameter (optional)
+export const VHostOptionalQuerySchema = z.object({
+  vhost: z.string().optional(),
+});
+
+// Type exports
+export type VHostRequiredQuery = z.infer<typeof VHostRequiredQuerySchema>;
+export type VHostOptionalQuery = z.infer<typeof VHostOptionalQuerySchema>;
+
 // Schema for publishing a message to an exchange
 export const PublishMessageSchema = z.object({
   exchange: z.string().min(1, "Exchange name is required"),

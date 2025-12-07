@@ -249,6 +249,7 @@ export const AlertsQuerySchema = z.object({
   resolved: z.enum(["true", "false"]).optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
   offset: z.string().regex(/^\d+$/).transform(Number).optional(),
+  vhost: z.string().optional(),
 });
 
 // GET /servers/:id/alerts response

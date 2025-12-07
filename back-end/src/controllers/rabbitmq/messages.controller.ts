@@ -7,7 +7,10 @@ import { logger } from "@/core/logger";
 
 import { getUserPlan } from "@/services/plan/plan.service";
 
-import { publishMessageToQueueSchema } from "@/schemas/rabbitmq";
+import {
+  publishMessageToQueueSchema,
+  VHostRequiredQuerySchema,
+} from "@/schemas/rabbitmq";
 
 import { PublishMessageResponse } from "@/types/api-responses";
 import type { MessageProperties } from "@/types/rabbitmq";
@@ -25,6 +28,7 @@ messagesController.post(
   "/servers/:serverId/queues/:queueName/messages",
   authorize([UserRole.ADMIN]),
   zValidator("json", publishMessageToQueueSchema),
+  zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
@@ -64,6 +68,10 @@ messagesController.post(
 
       logger.info({ plan }, "Message sending validation");
 
+      // Get vhost from validated query (required for message operations)
+      const { vhost: vhostParam } = c.req.valid("query");
+      const vhost = decodeURIComponent(vhostParam);
+
       // Send the message via RabbitMQ API
       const client = await createRabbitMQClient(serverId, workspaceId);
 
@@ -102,6 +110,7 @@ messagesController.post(
       const publishResult = await client.publishMessage(
         targetExchange,
         targetRoutingKey,
+        vhost,
         message,
         publishProperties
       );

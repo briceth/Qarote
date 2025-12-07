@@ -94,6 +94,15 @@ export class SlackService {
           value: `${alert.source.type}: ${alert.source.name}`,
           short: true,
         },
+        ...(alert.vhost
+          ? [
+              {
+                title: "Virtual Host",
+                value: alert.vhost,
+                short: true,
+              },
+            ]
+          : []),
         ...(alert.details.current !== undefined
           ? [
               {

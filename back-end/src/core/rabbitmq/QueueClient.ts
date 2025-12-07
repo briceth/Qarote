@@ -20,14 +20,23 @@ import { RabbitMQBaseClient } from "./BaseClient";
  * Queue and message operations for RabbitMQ
  */
 export class RabbitMQQueueClient extends RabbitMQBaseClient {
-  async purgeQueue(queueName: string): Promise<PurgeQueueResult> {
+  async purgeQueue(
+    queueName: string,
+    vhost: string
+  ): Promise<PurgeQueueResult> {
     const encodedQueueName = encodeURIComponent(queueName);
+    const encodedVhost = encodeURIComponent(vhost);
     try {
-      logger.info(`Purging queue: ${queueName} (encoded: ${encodedQueueName})`);
+      logger.info(
+        `Purging queue: ${queueName} in vhost: ${vhost} (encoded: ${encodedQueueName})`
+      );
 
-      await this.request(`/queues/${this.vhost}/${encodedQueueName}/contents`, {
-        method: "DELETE",
-      });
+      await this.request(
+        `/queues/${encodedVhost}/${encodedQueueName}/contents`,
+        {
+          method: "DELETE",
+        }
+      );
 
       logger.info(`Queue "${queueName}" purged successfully (204 No Content)`);
 
@@ -52,10 +61,12 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
 
   async getMessages(
     queueName: string,
+    vhost: string,
     count: number = 10
   ): Promise<RabbitMQMessage[]> {
     const encodedQueueName = encodeURIComponent(queueName);
-    const endpoint = `/queues/${this.vhost}/${encodedQueueName}/get`;
+    const encodedVhost = encodeURIComponent(vhost);
+    const endpoint = `/queues/${encodedVhost}/${encodedQueueName}/get`;
 
     const payload = {
       count,
@@ -98,11 +109,13 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
   async publishMessage(
     exchange: string,
     routingKey: string,
+    vhost: string,
     payload: string,
     properties: MessageProperties = {}
   ): Promise<PublishResult> {
     const encodedExchange = encodeURIComponent(exchange);
-    const endpoint = `/exchanges/${this.vhost}/${encodedExchange}/publish`;
+    const encodedVhost = encodeURIComponent(vhost);
+    const endpoint = `/exchanges/${encodedVhost}/${encodedExchange}/publish`;
 
     // Map our property names to RabbitMQ Management API property names
     const rabbitMQProperties: Record<string, unknown> = {};
@@ -177,10 +190,12 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
 
   async createQueue(
     queueName: string,
+    vhost: string,
     options: QueueCreateOptions = {}
   ): Promise<CreateQueueResult> {
     const encodedQueueName = encodeURIComponent(queueName);
-    const endpoint = `/queues/${this.vhost}/${encodedQueueName}`;
+    const encodedVhost = encodeURIComponent(vhost);
+    const endpoint = `/queues/${encodedVhost}/${encodedQueueName}`;
 
     const queueData = {
       durable: options.durable ?? true,
@@ -217,12 +232,14 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
   async bindQueue(
     queueName: string,
     exchangeName: string,
+    vhost: string,
     routingKey: string = "",
     bindingArgs: BindingArguments = {}
   ): Promise<BindQueueResult> {
     const encodedQueueName = encodeURIComponent(queueName);
     const encodedExchangeName = encodeURIComponent(exchangeName);
-    const endpoint = `/bindings/${this.vhost}/e/${encodedExchangeName}/q/${encodedQueueName}`;
+    const encodedVhost = encodeURIComponent(vhost);
+    const endpoint = `/bindings/${encodedVhost}/e/${encodedExchangeName}/q/${encodedQueueName}`;
 
     const bindingData = {
       routing_key: routingKey,

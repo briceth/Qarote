@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { TimeRange } from "@/components/TimeRangeSelector";
 
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
+
 import { RabbitMQAuthorizationError } from "@/types/apiErrors";
 
 import {
@@ -23,6 +25,7 @@ export const useDashboardData = (
   selectedServerId: string | null,
   timeRange: TimeRange = "1d"
 ) => {
+  const { selectedVHost } = useVHostContext();
   const [chartData, setChartData] = useState<ChartData[]>([
     { time: "00:00", published: 0, consumed: 0 },
     { time: "04:00", published: 0, consumed: 0 },
@@ -42,7 +45,7 @@ export const useDashboardData = (
     data: queuesData,
     isLoading: queuesLoading,
     isFetching: queuesFetching,
-  } = useQueues(selectedServerId);
+  } = useQueues(selectedServerId, selectedVHost);
   const {
     data: nodesData,
     isLoading: nodesLoading,
@@ -109,22 +112,34 @@ export const useDashboardData = (
   const connectionsError = null; // connectionsData doesn't have permissionStatus, so we handle errors at the component level
 
   // Calculate metrics
-  const metrics = useMemo(
-    () => ({
-      messagesPerSec: Math.round(
-        (overview?.message_stats?.publish_details?.rate || 0) +
-          (overview?.message_stats?.deliver_details?.rate || 0)
-      ),
-      activeQueues: overview?.object_totals?.queues || 0,
+  const metrics = useMemo(() => {
+    // Calculate activeQueues and queueDepth from filtered queues data (respects vhost selection)
+    const activeQueues = queues.length;
+    const queueDepth = queues.reduce(
+      (sum, queue) => sum + (queue.messages || 0),
+      0
+    );
+
+    // Calculate messagesPerSec from live rates data (most recent data point)
+    const latestRate =
+      liveRatesData?.messagesRates && liveRatesData.messagesRates.length > 0
+        ? liveRatesData.messagesRates[liveRatesData.messagesRates.length - 1]
+        : null;
+    const messagesPerSec = latestRate
+      ? Math.round((latestRate.publish || 0) + (latestRate.deliver || 0))
+      : 0;
+
+    return {
+      messagesPerSec,
+      activeQueues,
       avgLatency: enhancedMetrics?.avgLatency || 0,
-      queueDepth: overview?.queue_totals?.messages || 0,
+      queueDepth,
       connectedNodes: nodes.length,
       totalMemory: enhancedMetrics?.totalMemoryGB || 0,
       cpuUsage: enhancedMetrics?.avgCpuUsage || 0,
       diskUsage: enhancedMetrics?.diskUsage || 0,
-    }),
-    [overview, enhancedMetrics, nodes]
-  );
+    };
+  }, [enhancedMetrics, nodes, queues, liveRatesData]);
 
   // Update chart data from live rates API
   useEffect(() => {

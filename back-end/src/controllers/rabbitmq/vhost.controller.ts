@@ -46,7 +46,7 @@ vhostController.get("/servers/:serverId/vhosts", async (c) => {
     const client = await createRabbitMQClient(serverId, workspaceId);
     const [vhosts, allQueues] = await Promise.all([
       client.getVHosts(),
-      client.getQueues().catch(() => []),
+      client.getQueues(undefined).catch(() => []), // Get all queues across all vhosts
     ]);
 
     // Enhance vhost data with additional details
@@ -148,8 +148,8 @@ vhostController.get("/servers/:serverId/vhosts/:vhostName", async (c) => {
       client.getVHost(vhostName),
       client.getVHostPermissions(vhostName).catch(() => []),
       client.getVHostLimits(vhostName).catch(() => ({})),
-      client.getQueues().catch(() => []),
-      client.getExchanges().catch(() => []),
+      client.getQueues(undefined).catch(() => []), // Get all queues across all vhosts
+      client.getExchanges(undefined).catch(() => []), // Get all exchanges across all vhosts
       client.getConnections().catch(() => []),
     ]);
 

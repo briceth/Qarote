@@ -59,10 +59,15 @@ alertsController.get(
       // Get user plan to determine access level
       const userPlan = await getUserPlan(user.id);
 
+      // Get vhost from validated query (optional - filters queue-related alerts)
+      const { vhost: vhostParam } = query;
+      const vhost = vhostParam ? decodeURIComponent(vhostParam) : undefined;
+
       const { alerts, summary } = await alertService.getServerAlerts(
         id,
         server.name,
-        workspaceId
+        workspaceId,
+        vhost
       );
 
       // Get current thresholds for response

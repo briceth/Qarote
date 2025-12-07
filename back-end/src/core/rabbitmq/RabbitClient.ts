@@ -30,26 +30,32 @@ export class RabbitMQClient extends RabbitMQApiClient {
   }
 
   // Delegate queue operations to the specialized queue client
-  async purgeQueue(queueName: string): Promise<PurgeQueueResult> {
-    return this.queueClient.purgeQueue(queueName);
+  async purgeQueue(
+    queueName: string,
+    vhost: string
+  ): Promise<PurgeQueueResult> {
+    return this.queueClient.purgeQueue(queueName, vhost);
   }
 
   async getMessages(
     queueName: string,
+    vhost: string,
     count: number = 10
   ): Promise<RabbitMQMessage[]> {
-    return this.queueClient.getMessages(queueName, count);
+    return this.queueClient.getMessages(queueName, vhost, count);
   }
 
   async publishMessage(
     exchange: string,
     routingKey: string,
+    vhost: string,
     payload: string,
     properties: MessageProperties = {}
   ): Promise<PublishResult> {
     return this.queueClient.publishMessage(
       exchange,
       routingKey,
+      vhost,
       payload,
       properties
     );
@@ -57,20 +63,23 @@ export class RabbitMQClient extends RabbitMQApiClient {
 
   async createQueue(
     queueName: string,
+    vhost: string,
     options: QueueCreateOptions = {}
   ): Promise<CreateQueueResult> {
-    return this.queueClient.createQueue(queueName, options);
+    return this.queueClient.createQueue(queueName, vhost, options);
   }
 
   async bindQueue(
     queueName: string,
     exchangeName: string,
+    vhost: string,
     routingKey: string = "",
     bindingArgs: BindingArguments = {}
   ): Promise<BindQueueResult> {
     return this.queueClient.bindQueue(
       queueName,
       exchangeName,
+      vhost,
       routingKey,
       bindingArgs
     );
@@ -111,6 +120,7 @@ export class RabbitMQClient extends RabbitMQApiClient {
   async createExchange(
     exchangeName: string,
     exchangeType: string,
+    vhost: string,
     options: {
       durable?: boolean;
       auto_delete?: boolean;
@@ -118,15 +128,16 @@ export class RabbitMQClient extends RabbitMQApiClient {
       arguments?: { [key: string]: unknown };
     } = {}
   ): Promise<void> {
-    return super.createExchange(exchangeName, exchangeType, options);
+    return super.createExchange(exchangeName, exchangeType, vhost, options);
   }
 
   async deleteExchange(
     exchangeName: string,
+    vhost: string,
     options: {
       if_unused?: boolean;
     } = {}
   ): Promise<void> {
-    return super.deleteExchange(exchangeName, options);
+    return super.deleteExchange(exchangeName, vhost, options);
   }
 }
