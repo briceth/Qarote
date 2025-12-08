@@ -52,9 +52,9 @@ dataRoutes.get(
           },
           servers: {
             include: {
-              Queues: {
+              queues: {
                 include: {
-                  QueueMetrics: true,
+                  queueMetrics: true,
                 },
               },
             },

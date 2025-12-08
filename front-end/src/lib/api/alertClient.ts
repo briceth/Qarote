@@ -125,83 +125,74 @@ export class AlertApiClient extends BaseApiClient {
   async getServerAlerts(
     serverId: string,
     workspaceId: string,
-    thresholds?: AlertThresholds,
-    options?: {
+    options: {
       limit?: number;
       offset?: number;
       severity?: string;
       category?: string;
       resolved?: boolean;
-      vhost?: string;
+      vhost: string; // Required - must specify vhost
     }
   ): Promise<RabbitMQAlertsResponse> {
     const params = new URLSearchParams();
 
-    // Add threshold parameters
-    if (thresholds) {
-      Object.entries(thresholds).forEach(([key, value]) => {
-        if (value !== undefined) {
-          params.append(key, String(value));
-        }
-      });
-    }
+    // vhost is required
+    params.append("vhost", encodeURIComponent(options.vhost));
 
-    // Add query options
-    if (options) {
-      if (options.limit !== undefined) {
-        params.append("limit", options.limit.toString());
-      }
-      if (options.offset !== undefined) {
-        params.append("offset", options.offset.toString());
-      }
-      if (options.severity) {
-        params.append("severity", options.severity);
-      }
-      if (options.category) {
-        params.append("category", options.category);
-      }
-      if (options.resolved !== undefined) {
-        params.append("resolved", options.resolved.toString());
-      }
-      if (options.vhost) {
-        params.append("vhost", options.vhost);
-      }
+    // Add optional query options
+    if (options.limit !== undefined) {
+      params.append("limit", options.limit.toString());
+    }
+    if (options.offset !== undefined) {
+      params.append("offset", options.offset.toString());
+    }
+    if (options.severity) {
+      params.append("severity", options.severity);
+    }
+    if (options.category) {
+      params.append("category", options.category);
+    }
+    if (options.resolved !== undefined) {
+      params.append("resolved", options.resolved.toString());
     }
 
     const queryString = params.toString();
-    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts${queryString ? `?${queryString}` : ""}`;
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts?${queryString}`;
     return this.request<RabbitMQAlertsResponse>(url);
   }
 
   async getResolvedAlerts(
     serverId: string,
     workspaceId: string,
-    options?: {
+    options: {
       limit?: number;
       offset?: number;
       severity?: string;
       category?: string;
+      vhost: string; // Required - must specify vhost
     }
   ): Promise<ResolvedAlertsResponse> {
     const params = new URLSearchParams();
 
-    if (options) {
-      if (options.limit !== undefined) {
-        params.append("limit", options.limit.toString());
-      }
-      if (options.offset !== undefined) {
-        params.append("offset", options.offset.toString());
-      }
-      if (options.severity) {
-        params.append("severity", options.severity);
-      }
-      if (options.category) {
-        params.append("category", options.category);
-      }
+    // vhost is required
+    params.append("vhost", encodeURIComponent(options.vhost));
+
+    // Add optional query options
+    if (options.limit !== undefined) {
+      params.append("limit", options.limit.toString());
+    }
+    if (options.offset !== undefined) {
+      params.append("offset", options.offset.toString());
+    }
+    if (options.severity) {
+      params.append("severity", options.severity);
+    }
+    if (options.category) {
+      params.append("category", options.category);
     }
 
     const queryString = params.toString();
-    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts/resolved${queryString ? `?${queryString}` : ""}`;
+    const url = `/rabbitmq/workspaces/${workspaceId}/servers/${serverId}/alerts/resolved?${queryString}`;
     return this.request(url);
   }
 

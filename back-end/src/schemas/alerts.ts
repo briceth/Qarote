@@ -249,7 +249,7 @@ export const AlertsQuerySchema = z.object({
   resolved: z.enum(["true", "false"]).optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
   offset: z.string().regex(/^\d+$/).transform(Number).optional(),
-  vhost: z.string().optional(),
+  vhost: z.string(),
 });
 
 // GET /servers/:id/alerts response
@@ -313,6 +313,7 @@ export const AlertNotificationSettingsSchema = z.object({
   emailNotificationsEnabled: z.boolean(),
   contactEmail: z.string().email().optional().nullable(),
   notificationSeverities: z.array(AlertSeveritySchema).optional(), // Array of severities to receive notifications for
+  notificationServerIds: z.array(z.string().uuid()).optional().nullable(), // Array of server IDs to receive notifications for (null/empty = all servers)
   browserNotificationsEnabled: z.boolean(),
   browserNotificationSeverities: z.array(AlertSeveritySchema).optional(), // Array of severities to receive browser notifications for
 });
@@ -321,6 +322,7 @@ export const UpdateAlertNotificationSettingsRequestSchema = z.object({
   emailNotificationsEnabled: z.boolean().optional(),
   contactEmail: z.string().email().optional().nullable(),
   notificationSeverities: z.array(AlertSeveritySchema).optional(), // Array of severities to receive notifications for
+  notificationServerIds: z.array(z.string().uuid()).optional().nullable(), // Array of server IDs to receive notifications for (null/empty = all servers)
   browserNotificationsEnabled: z.boolean().optional(),
   browserNotificationSeverities: z.array(AlertSeveritySchema).optional(), // Array of severities to receive browser notifications for
 });

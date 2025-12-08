@@ -887,21 +887,37 @@ export const useRemoveUserFromWorkspace = () => {
 // RabbitMQ Alert hooks
 export const useRabbitMQAlerts = (
   serverId: string | null,
-  thresholds?: AlertThresholds,
-  vhost?: string | null
+  vhost: string | null,
+  options?: {
+    limit?: number;
+    offset?: number;
+    severity?: string;
+    category?: string;
+    resolved?: boolean;
+  }
 ) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
-  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
+  const isEnabled = !!serverId && !!workspace?.id && !!vhost && isAuthenticated;
 
   return useQuery({
-    queryKey: ["rabbitmqAlerts", serverId || "", thresholds, vhost || ""],
+    queryKey: [
+      "rabbitmqAlerts",
+      serverId || "",
+      vhost || "",
+      options?.limit,
+      options?.offset,
+      options?.severity,
+      options?.category,
+      options?.resolved,
+    ],
     queryFn: () => {
-      if (!workspace?.id || !serverId) {
-        throw new Error("Workspace ID and Server ID are required");
+      if (!workspace?.id || !serverId || !vhost) {
+        throw new Error("Workspace ID, Server ID, and VHost are required");
       }
-      return apiClient.getRabbitMQAlerts(serverId, workspace.id, thresholds, {
-        vhost: vhost || undefined,
+      return apiClient.getRabbitMQAlerts(serverId, workspace.id, {
+        vhost,
+        ...options,
       });
     },
     enabled: isEnabled,
@@ -912,6 +928,7 @@ export const useRabbitMQAlerts = (
 
 export const useResolvedAlerts = (
   serverId: string | null,
+  vhost: string | null,
   options?: {
     limit?: number;
     offset?: number;
@@ -921,15 +938,26 @@ export const useResolvedAlerts = (
 ) => {
   const { isAuthenticated } = useAuth();
   const { workspace } = useWorkspace();
-  const isEnabled = !!serverId && !!workspace?.id && isAuthenticated;
+  const isEnabled = !!serverId && !!workspace?.id && !!vhost && isAuthenticated;
 
   return useQuery({
-    queryKey: ["resolvedAlerts", serverId || "", options],
+    queryKey: [
+      "resolvedAlerts",
+      serverId || "",
+      vhost || "",
+      options?.limit,
+      options?.offset,
+      options?.severity,
+      options?.category,
+    ],
     queryFn: () => {
-      if (!workspace?.id || !serverId) {
-        throw new Error("Workspace ID and Server ID are required");
+      if (!workspace?.id || !serverId || !vhost) {
+        throw new Error("Workspace ID, Server ID, and VHost are required");
       }
-      return apiClient.getResolvedAlerts(serverId, workspace.id, options);
+      return apiClient.getResolvedAlerts(serverId, workspace.id, {
+        vhost,
+        ...options,
+      });
     },
     enabled: isEnabled,
     staleTime: 30000, // 30 seconds

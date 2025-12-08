@@ -55,7 +55,8 @@ export class SlackService {
     alerts: RabbitMQAlert[],
     workspaceName: string,
     serverName: string,
-    customValue?: string | null
+    serverId?: string,
+    frontendUrl?: string
   ): SlackMessage {
     const criticalCount = alerts.filter(
       (a) => a.severity === "critical"
@@ -134,24 +135,59 @@ export class SlackService {
       });
     }
 
-    // Add custom value to the text if provided
-    let messageText = summaryText;
-    if (customValue && customValue.trim()) {
-      messageText = `${summaryText}\n\n${customValue.trim()}`;
+    // Determine vhost for URL - use the most common vhost from alerts, or first one if available
+    const vhosts = alerts.map((a) => a.vhost).filter((v): v is string => !!v);
+    const vhostCounts = vhosts.reduce(
+      (acc, vhost) => {
+        acc[vhost] = (acc[vhost] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+    const mostCommonVhost =
+      Object.entries(vhostCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+      vhosts[0];
+
+    // Build alerts URL with serverId and vhost query parameters
+    let alertsUrl: string | undefined;
+    if (frontendUrl && serverId) {
+      const url = new URL(`${frontendUrl}/alerts`);
+      url.searchParams.set("serverId", serverId);
+      if (mostCommonVhost) {
+        url.searchParams.set("vhost", mostCommonVhost);
+      }
+      alertsUrl = url.toString();
+    }
+
+    // Build blocks array with button if URL is available
+    const blocks: SlackMessage["blocks"] = [];
+    if (alertsUrl) {
+      blocks.push({
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "View Alerts in Dashboard",
+            },
+            url: alertsUrl,
+            style: "primary",
+          },
+        ],
+      });
     }
 
     const message: SlackMessage = {
-      text: messageText,
+      text: summaryText,
       username: "RabbitHQ Alerts",
       icon_emoji: ":rabbit:",
+      blocks,
       attachments: [
         {
           color,
           title: summaryText,
-          text:
-            customValue && customValue.trim()
-              ? `${summaryDetails}\n\n${customValue.trim()}`
-              : summaryDetails,
+          text: summaryDetails,
           fields: [],
         },
         ...attachments,
@@ -275,13 +311,15 @@ export class SlackService {
     alerts: RabbitMQAlert[],
     workspaceName: string,
     serverName: string,
-    customValue?: string | null
+    serverId?: string,
+    frontendUrl?: string
   ): Promise<SlackResult> {
     const message = this.createAlertMessage(
       alerts,
       workspaceName,
       serverName,
-      customValue
+      serverId,
+      frontendUrl
     );
     return this.sendMessage(webhookUrl, message);
   }
@@ -293,11 +331,12 @@ export class SlackService {
     slackConfigs: Array<{
       id: string;
       webhookUrl: string;
-      customValue?: string | null;
     }>,
     alerts: RabbitMQAlert[],
     workspaceName: string,
-    serverName: string
+    serverName: string,
+    serverId?: string,
+    frontendUrl?: string
   ): Promise<Array<{ slackConfigId: string; result: SlackResult }>> {
     const results: Array<{ slackConfigId: string; result: SlackResult }> = [];
 
@@ -308,7 +347,8 @@ export class SlackService {
         alerts,
         workspaceName,
         serverName,
-        config.customValue
+        serverId,
+        frontendUrl
       );
       return {
         slackConfigId: config.id,

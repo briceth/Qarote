@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { useServerContext } from "@/contexts/ServerContext";
-import { useVHostContext } from "@/contexts/VHostContext";
+import { useVHostContext } from "@/contexts/VHostContextDefinition";
 
 import { useQueues } from "@/hooks/useApi";
 import { useUser } from "@/hooks/useUser";

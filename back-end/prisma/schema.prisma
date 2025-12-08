@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,34 +7,442 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  USER
-  READONLY
+model Alert {
+  id             String        @id @default(uuid())
+  title          String
+  description    String
+  createdById    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  resolvedAt     DateTime?
+  acknowledgedAt DateTime?
+  alertRuleId    String?
+  threshold      Float?
+  value          Float?
+  severity       AlertSeverity
+  status         AlertStatus   @default(ACTIVE)
+  workspaceId    String
+  alertRule      AlertRule?    @relation(fields: [alertRuleId], references: [id])
+  user           User?         @relation(fields: [createdById], references: [id])
+  workspace      Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  EXPIRED
+model AlertRule {
+  id             String             @id @default(cuid())
+  name           String
+  description    String?
+  type           AlertType
+  threshold      Float
+  operator       ComparisonOperator
+  severity       AlertSeverity
+  enabled        Boolean            @default(true)
+  serverId       String
+  createdById    String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  workspaceId    String
+  alerts         Alert[]
+  user           User               @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  server         RabbitMQServer     @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  workspace      Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
-enum UserPlan {
-  FREE
-  DEVELOPER
-  ENTERPRISE
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  email     String
+  type      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }
 
-enum AlertType {
-  QUEUE_DEPTH
-  MESSAGE_RATE
-  CONSUMER_COUNT
-  MEMORY_USAGE
-  DISK_USAGE
-  CONNECTION_COUNT
-  CHANNEL_COUNT
-  NODE_DOWN
-  EXCHANGE_ERROR
+model Feedback {
+  id                                String           @id @default(uuid())
+  type                              FeedbackType
+  category                          FeedbackCategory
+  title                             String           @db.VarChar(100)
+  description                       String
+  priority                          FeedbackPriority @default(MEDIUM)
+  status                            FeedbackStatus   @default(OPEN)
+  email                             String?          @db.VarChar(255)
+  metadata                          Json?
+  userId                            String?
+  workspaceId                       String?
+  response                          String?
+  respondedById                     String?
+  respondedAt                       DateTime?
+  createdAt                         DateTime         @default(now())
+  updatedAt                         DateTime         @updatedAt
+  respondedBy                       User?            @relation("Feedback_respondedByIdToUser", fields: [respondedById], references: [id])
+  user                              User?            @relation("Feedback_userIdToUser", fields: [userId], references: [id])
+  workspace                         Workspace?       @relation(fields: [workspaceId], references: [id])
+
+  @@index([createdAt], map: "feedback_created_at_idx")
+  @@index([priority], map: "feedback_priority_idx")
+  @@index([status], map: "feedback_status_idx")
+  @@index([type], map: "feedback_type_idx")
+  @@index([workspaceId], map: "feedback_workspace_idx")
+}
+
+model Invitation {
+  id                                  String           @id @default(uuid())
+  email                               String
+  token                               String           @unique
+  invitedById                         String
+  invitedUserId                       String?
+  role                                UserRole         @default(USER)
+  status                              InvitationStatus @default(PENDING)
+  expiresAt                           DateTime
+  createdAt                           DateTime         @default(now())
+  updatedAt                           DateTime         @updatedAt
+  workspaceId                         String
+  invitedBy                           User             @relation("Invitation_invitedByIdToUser", fields: [invitedById], references: [id], onDelete: Cascade)
+  invitedUser                         User?            @relation("Invitation_invitedUserIdToUser", fields: [invitedUserId], references: [id])
+  workspace                           Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([token])
+  @@index([userId])
+}
+
+model Queue {
+  id             String         @id @default(uuid())
+  name           String
+  vhost          String
+  serverId       String
+  messages       Int
+  messagesReady  Int
+  messagesUnack  Int
+  lastFetched    DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  server         RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  queueMetrics   QueueMetric[]
+
+  @@unique([name, vhost, serverId])
+}
+
+model QueueMetric {
+  id            String   @id @default(uuid())
+  queueId       String
+  timestamp     DateTime @default(now())
+  messages      Int
+  messagesReady Int
+  messagesUnack Int
+  publishRate   Float
+  consumeRate   Float
+  queue         Queue    @relation(fields: [queueId], references: [id], onDelete: Cascade)
+
+  @@index([queueId, timestamp])
+}
+
+model RabbitMQServer {
+  id                    String            @id @default(uuid())
+  name                  String
+  host                  String
+  port                  Int
+  username              String
+  password              String
+  vhost                 String            @default("/")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  sslVerifyPeer         Boolean           @default(true)
+  workspaceId           String?
+  version               String?
+  versionMajorMinor     String?
+  isOverQueueLimit      Boolean           @default(false)
+  overLimitWarningShown Boolean           @default(false)
+  queueCountAtConnect   Int?
+  useHttps              Boolean           @default(false)
+  queuePauseStates      Json?
+  amqpPort              Int               @default(5672)
+  alertRules            AlertRule[]
+  queues                Queue[]
+  workspace             Workspace?        @relation(fields: [workspaceId], references: [id])
+  resolvedAlerts        ResolvedAlert[]
+  seenAlerts            SeenAlert[]
+}
+
+model User {
+  id                                        String                   @id @default(uuid())
+  email                                     String                   @unique
+  passwordHash                              String?
+  firstName                                 String
+  lastName                                  String
+  role                                      UserRole                 @default(USER)
+  isActive                                  Boolean                  @default(true)
+  lastLogin                                 DateTime?
+  createdAt                                 DateTime                 @default(now())
+  updatedAt                                 DateTime                 @updatedAt
+  workspaceId                               String?
+  emailVerified                             Boolean                  @default(false)
+  emailVerifiedAt                           DateTime?
+  pendingEmail                              String?
+  googleId                                  String?                  @unique
+  stripeCustomerId                          String?                  @unique
+  stripeSubscriptionId                      String?                  @unique
+  discordJoined                             Boolean                  @default(false)
+  discordJoinedAt                           DateTime?
+  alerts                                    Alert[]
+  alertRules                                AlertRule[]
+  emailVerificationTokens                   EmailVerificationToken[]
+  feedbackRespondedBy                       Feedback[]               @relation("Feedback_respondedByIdToUser")
+  feedback                                  Feedback[]               @relation("Feedback_userIdToUser")
+  invitationsSent                           Invitation[]             @relation("Invitation_invitedByIdToUser")
+  invitationsReceived                       Invitation[]             @relation("Invitation_invitedUserIdToUser")
+  passwordResets                             PasswordReset[]
+  workspace                                 Workspace?               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  payments                                   Payment[]
+  subscription                               Subscription?
+}
+
+model Workspace {
+  id                            String                    @id @default(uuid())
+  name                          String
+  contactEmail                  String?
+  logoUrl                       String?
+  createdAt                     DateTime                  @default(now())
+  updatedAt                     DateTime                  @updatedAt
+  ownerId                       String?
+  tags                          Json?
+  emailNotificationsEnabled     Boolean                   @default(true)
+  notificationSeverities        Json?
+  browserNotificationsEnabled   Boolean                   @default(false)
+  browserNotificationSeverities Json?
+  notificationServerIds         Json?
+  alerts                        Alert[]
+  alertRules                    AlertRule[]
+  feedback                      Feedback[]
+  invitations                   Invitation[]
+  servers                       RabbitMQServer[]
+  users                         User[]
+  alertThresholds              WorkspaceAlertThresholds?
+  licenses                      License[]
+  resolvedAlerts                ResolvedAlert[]
+  seenAlerts                    SeenAlert[]
+  slackConfigs                  SlackConfig[]
+  webhooks                       Webhook[]
+}
+
+model WorkspaceAlertThresholds {
+  id                          String    @id @default(uuid())
+  memoryWarning               Float     @default(80.0)
+  memoryCritical              Float     @default(90.0)
+  diskWarning                 Float     @default(80.0)
+  diskCritical                Float     @default(90.0)
+  fileDescriptorsWarning      Float     @default(80.0)
+  fileDescriptorsCritical     Float     @default(90.0)
+  socketsWarning              Float     @default(80.0)
+  socketsCritical             Float     @default(90.0)
+  processesWarning            Float     @default(80.0)
+  processesCritical           Float     @default(90.0)
+  unackedMessagesWarning      Int       @default(1000)
+  unackedMessagesCritical     Int       @default(5000)
+  consumerUtilizationWarning  Float     @default(20.0)
+  consumerUtilizationCritical Float     @default(10.0)
+  runQueueWarning             Int       @default(50)
+  runQueueCritical            Int       @default(100)
+  workspaceId                 String    @unique
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  workspace                   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model License {
+  id               String     @id @default(uuid())
+  licenseKey       String     @unique
+  tier             UserPlan
+  expiresAt        DateTime?
+  customerEmail    String
+  workspaceId      String?
+  lastValidatedAt  DateTime?
+  isActive         Boolean    @default(true)
+  stripeCustomerId String?
+  stripePaymentId  String?
+  instanceId       String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  workspace        Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([isActive], name: "license_active_idx")
+  @@index([customerEmail], name: "license_customer_email_idx")
+  @@index([licenseKey], name: "license_key_idx")
+  @@index([workspaceId], name: "license_workspace_idx")
+}
+
+model Payment {
+  id                String           @id @default(uuid())
+  stripePaymentId   String           @unique
+  stripeInvoiceId   String?
+  stripeChargeId   String?
+  amount            Decimal          @db.Decimal(10, 2)
+  currency          String           @default("usd")
+  status            PaymentStatus
+  description       String?
+  billingInterval   BillingInterval?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  paymentMethodId   String?
+  paymentMethodType String?
+  failureCode       String?
+  failureMessage    String?
+  receiptUrl        String?
+  invoiceUrl        String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  paidAt            DateTime?
+  userId            String
+  plan              UserPlan?
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt], name: "payment_created_at_idx")
+  @@index([status], name: "payment_status_idx")
+  @@index([stripePaymentId], name: "payment_stripe_id_idx")
+  @@index([userId], name: "payment_user_idx")
+}
+
+model ResolvedAlert {
+  id             String         @id @default(uuid())
+  serverId       String
+  serverName     String
+  severity       String
+  category       String
+  title          String
+  description    String
+  details        Json
+  sourceType     String
+  sourceName     String
+  fingerprint    String
+  firstSeenAt    DateTime
+  resolvedAt     DateTime       @default(now())
+  duration       Int?
+  workspaceId    String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  server         RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  workspace      Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([fingerprint])
+  @@index([resolvedAt])
+  @@index([serverId])
+  @@index([workspaceId])
+}
+
+model SeenAlert {
+  id             String         @id @default(uuid())
+  fingerprint    String         @unique
+  serverId       String
+  workspaceId    String
+  severity       String
+  category       String
+  sourceType     String
+  sourceName     String
+  firstSeenAt    DateTime       @default(now())
+  lastSeenAt     DateTime       @default(now())
+  resolvedAt     DateTime?
+  emailSentAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  server         RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  workspace      Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([fingerprint])
+  @@index([resolvedAt])
+  @@index([serverId])
+  @@index([workspaceId])
+}
+
+model SlackConfig {
+  id          String    @id @default(uuid())
+  workspaceId String
+  webhookUrl  String
+  customValue String?
+  enabled     Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([enabled])
+  @@index([workspaceId])
+}
+
+model StripeWebhookEvent {
+  id            String    @id @default(uuid())
+  stripeEventId String    @unique
+  eventType     String
+  processed     Boolean   @default(false)
+  data          Json
+  processedAt   DateTime?
+  errorMessage  String?
+  retryCount    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([eventType], name: "webhook_event_type_idx")
+  @@index([processed], name: "webhook_processed_idx")
+  @@index([stripeEventId], name: "webhook_stripe_event_idx")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  stripeSubscriptionId String             @unique
+  stripePriceId        String
+  stripeCustomerId     String
+  status               SubscriptionStatus
+  billingInterval      BillingInterval
+  pricePerMonth        Decimal            @db.Decimal(10, 2)
+  currency             String             @default("usd")
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+  cancelationReason    String?
+  metadata             Json?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  isRenewalAfterCancel Boolean            @default(false)
+  previousCancelDate   DateTime?
+  userId               String             @unique
+  plan                 UserPlan
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status], name: "subscription_status_idx")
+  @@index([stripeSubscriptionId], name: "subscription_stripe_id_idx")
+  @@index([userId], name: "subscription_user_idx")
+}
+
+model Webhook {
+  id          String    @id @default(uuid())
+  workspaceId String
+  url         String
+  enabled     Boolean   @default(true)
+  secret      String?
+  version     String    @default("v1")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([enabled])
+  @@index([workspaceId])
 }
 
 enum AlertSeverity {
@@ -53,18 +458,28 @@ enum AlertStatus {
   RESOLVED
 }
 
+enum AlertType {
+  QUEUE_DEPTH
+  MESSAGE_RATE
+  CONSUMER_COUNT
+  MEMORY_USAGE
+  DISK_USAGE
+  CONNECTION_COUNT
+  CHANNEL_COUNT
+  NODE_DOWN
+  EXCHANGE_ERROR
+}
+
+enum BillingInterval {
+  MONTH
+  YEAR
+}
+
 enum ComparisonOperator {
   GREATER_THAN
   LESS_THAN
   EQUALS
   NOT_EQUALS
-}
-
-enum FeedbackType {
-  BUG
-  FEATURE
-  GENERAL
-  IMPROVEMENT
 }
 
 enum FeedbackCategory {
@@ -89,14 +504,17 @@ enum FeedbackStatus {
   CLOSED
 }
 
-enum SubscriptionStatus {
-  ACTIVE
-  PAST_DUE
-  CANCELED
-  INCOMPLETE
-  INCOMPLETE_EXPIRED
-  TRIALING
-  UNPAID
+enum FeedbackType {
+  BUG
+  FEATURE
+  GENERAL
+  IMPROVEMENT
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
 }
 
 enum PaymentStatus {
@@ -107,571 +525,24 @@ enum PaymentStatus {
   REQUIRES_ACTION
 }
 
-enum BillingInterval {
-  MONTH
-  YEAR
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
 }
 
-model Workspace {
-  id           String         @id @default(uuid())
-  name         String
-  contactEmail String?
-  logoUrl      String?
-  tags         Json?          // Array of tags for organization and categorization
-  ownerId      String?        // Who created this workspace (nullable for migration)
-  
-  // Alert notification settings
-  emailNotificationsEnabled Boolean  @default(true) // Enable/disable email notifications for alerts
-  notificationSeverities    Json?    // Array of alert severities to receive notifications for: ["critical", "warning", "info"] (default: all)
-  browserNotificationsEnabled Boolean @default(false) // Enable/disable browser notifications for alerts
-  browserNotificationSeverities Json? // Array of alert severities to receive browser notifications for: ["critical", "warning", "info"] (default: all)
-  
-  users                    User[]
-  servers                  RabbitMQServer[]
-  alertRules               AlertRule[]
-  alerts                   Alert[]
-  feedback                 Feedback[]
-  
-  // Alert preferences
-  alertThresholds          WorkspaceAlertThresholds?
-  seenAlerts               SeenAlert[]
-  resolvedAlerts           ResolvedAlert[]
-  webhooks                 Webhook[]
-  slackConfigs             SlackConfig[]
-  licenses                 License[]
-  
-  createdAt                DateTime       @default(now())
-  updatedAt                DateTime       @updatedAt
-  invitations              Invitation[]
+enum UserPlan {
+  FREE
+  DEVELOPER
+  ENTERPRISE
 }
 
-model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  passwordHash   String?
-  firstName       String
-  lastName       String
-  role           UserRole  @default(USER)
-  isActive       Boolean   @default(true)
-  
-  // OAuth providers
-  googleId        String?   @unique
-  
-  // Email verification
-  emailVerified  Boolean   @default(false)
-  emailVerifiedAt DateTime?
-  pendingEmail   String?   // For email change requests
-  
-  lastLogin      DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  workspaceId    String?
-  workspace      Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  invitations    Invitation[] @relation("InvitedUser")
-  invitedBy      Invitation[] @relation("InvitingUser")
-  alerts         Alert[]
-  alertRules     AlertRule[]
-  
-  // Feedback relations
-  feedback       Feedback[]
-  feedbackResponses Feedback[] @relation("FeedbackResponses")
-  
-  // Email verification tokens
-  emailVerificationTokens EmailVerificationToken[]
-
-  // Password reset tokens
-  passwordResets PasswordReset[]
-  
-  // Stripe integration - moved from workspace to user level
-  stripeCustomerId      String?   @unique
-  stripeSubscriptionId  String?   @unique
-  
-  // Discord integration
-  discordJoined        Boolean   @default(false)
-  discordJoinedAt      DateTime?
-  
-  // Payment relations - moved from workspace to user level
-  subscription             Subscription?
-  payments                 Payment[]
-}
-
-model PasswordReset {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([token])
-  @@index([userId])
-  @@index([expiresAt])
-}
-
-model Invitation {
-  id             String           @id @default(uuid())
-  email          String
-  token          String           @unique
-  workspaceId    String
-  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  invitedById    String
-  invitedBy      User             @relation("InvitingUser", fields: [invitedById], references: [id], onDelete: Cascade)
-  invitedUserId  String?
-  invitedUser    User?            @relation("InvitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
-  role           UserRole         @default(USER)
-  status         InvitationStatus @default(PENDING)
-  expiresAt      DateTime
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-}
-
-model EmailVerificationToken {
-  id             String   @id @default(uuid())
-  token          String   @unique
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email          String   // The email address to verify (current or pending)
-  type           String   // "SIGNUP" or "EMAIL_CHANGE"
-  expiresAt      DateTime
-  createdAt      DateTime @default(now())
-  
-  @@index([userId])
-  @@index([token])
-}
-
-model RabbitMQServer {
-  id                  String      @id @default(uuid())
-  name                String
-  host                String
-  port                Int         // Management API port (default: 15672)
-  amqpPort            Int         @default(5672) // AMQP protocol port (default: 5672)
-  username            String
-  password            String
-  vhost               String      @default("/")
-  useHttps            Boolean     @default(false) // Protocol selection separate from SSL config
-  sslVerifyPeer       Boolean     @default(true)
-  version             String?     // RabbitMQ version (e.g., "3.12.10", "4.0.1")
-  versionMajorMinor   String?     // Major.Minor version for plan validation (e.g., "3.12", "4.0")
-  
-  // Plan validation fields
-  isOverQueueLimit    Boolean     @default(false) // True if server has more queues than plan allows
-  queueCountAtConnect Int?        // Number of queues when server was connected
-  overLimitWarningShown Boolean   @default(false) // True if warning has been shown to user
-  
-  // Queue pause states (JSON field to store pause state per queue)
-  queuePauseStates    Json?       // Stores map of queueName -> QueuePauseState
-  
-  workspaceId             String?
-  workspace               Workspace?           @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
-  createdAt               DateTime             @default(now())
-  updatedAt               DateTime             @updatedAt
-  Queues                  Queue[]
-  alertRules              AlertRule[]
-  seenAlerts              SeenAlert[]
-  resolvedAlerts          ResolvedAlert[]
-}
-
-model Queue {
-  id             String        @id @default(uuid())
-  name           String
-  vhost          String
-  serverId       String
-  server         RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  messages       Int
-  messagesReady  Int
-  messagesUnack  Int
-  lastFetched    DateTime
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  QueueMetrics   QueueMetric[]
-
-  @@unique([name, vhost, serverId])
-}
-
-model QueueMetric {
-  id            String   @id @default(uuid())
-  queueId       String
-  queue         Queue    @relation(fields: [queueId], references: [id], onDelete: Cascade)
-  timestamp     DateTime @default(now())
-  messages      Int
-  messagesReady Int
-  messagesUnack Int
-  publishRate   Float
-  consumeRate   Float
-
-  @@index([queueId, timestamp])
-}
-
-model Alert {
-  id            String        @id @default(uuid())
-  title         String
-  description   String
-  severity      AlertSeverity
-  status        AlertStatus   @default(ACTIVE)
-  value         Float?        // The actual value that triggered the alert
-  threshold     Float?        // The threshold that was breached
-  
-  // Relations
-  alertRuleId   String?
-  alertRule     AlertRule?    @relation(fields: [alertRuleId], references: [id], onDelete: SetNull)
-  workspaceId   String
-  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdById   String?
-  createdBy     User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  
-  // Timestamps
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  resolvedAt    DateTime?
-  acknowledgedAt DateTime?
-}
-
-model AlertRule {
-  id          String             @id @default(cuid())
-  name        String
-  description String?
-  type        AlertType
-  threshold   Float
-  operator    ComparisonOperator
-  severity    AlertSeverity
-  enabled     Boolean            @default(true)
-  
-  // Relations
-  serverId    String
-  server      RabbitMQServer     @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  workspaceId String
-  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdById String
-  createdBy   User               @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  
-  // Metadata
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  
-  // Generated alerts
-  alerts      Alert[]
-}
-
-
-model Feedback {
-  id          String           @id @default(uuid())
-  type        FeedbackType
-  category    FeedbackCategory
-  title       String           @db.VarChar(100)
-  description String           @db.Text
-  priority    FeedbackPriority @default(MEDIUM)
-  status      FeedbackStatus   @default(OPEN)
-  email       String?          @db.VarChar(255)
-  
-  // Metadata (stored as JSON for flexibility)
-  metadata    Json?
-  
-  // Relations
-  userId      String?
-  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  workspaceId String?
-  workspace   Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
-  
-  // Response tracking
-  response       String?       @db.Text
-  respondedById  String?
-  respondedBy    User?         @relation("FeedbackResponses", fields: [respondedById], references: [id], onDelete: SetNull)
-  respondedAt    DateTime?
-  
-  // Timestamps
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  
-  @@index([status], name: "feedback_status_idx")
-  @@index([type], name: "feedback_type_idx")
-  @@index([priority], name: "feedback_priority_idx")
-  @@index([workspaceId], name: "feedback_workspace_idx")
-  @@index([createdAt], name: "feedback_created_at_idx")
-}
-
-model WorkspaceAlertThresholds {
-  id          String    @id @default(uuid())
-  
-  // Node health thresholds
-  memoryWarning           Float     @default(80.0)   // Memory usage percentage
-  memoryCritical          Float     @default(90.0)
-  diskWarning             Float     @default(80.0)   // Disk usage percentage
-  diskCritical            Float     @default(90.0)
-  fileDescriptorsWarning  Float     @default(80.0)   // File descriptors usage percentage
-  fileDescriptorsCritical Float     @default(90.0)
-  socketsWarning          Float     @default(80.0)   // Socket usage percentage
-  socketsCritical         Float     @default(90.0)
-  processesWarning        Float     @default(80.0)   // Process count percentage
-  processesCritical       Float     @default(90.0)
-  
-  // Queue health thresholds
-  unackedMessagesWarning      Int   @default(1000)   // Unacknowledged messages count
-  unackedMessagesCritical     Int   @default(5000)
-  consumerUtilizationWarning  Float @default(20.0)   // Consumer utilization percentage (low is bad)
-  consumerUtilizationCritical Float @default(10.0)
-  runQueueWarning             Int   @default(50)     // Erlang run queue length
-  runQueueCritical            Int   @default(100)
-  
-  // Relations
-  workspaceId String    @unique
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model SeenAlert {
-  id          String    @id @default(uuid())
-  
-  // Alert fingerprint (stable identifier)
-  fingerprint String    @unique // Format: serverId-category-sourceType-sourceName
-  
-  // Alert details for reference
-  serverId    String
-  workspaceId String
-  severity    String    // "critical" | "warning" | "info"
-  category    String    // AlertCategory
-  sourceType  String    // "node" | "queue" | "cluster"
-  sourceName  String
-  
-  // Tracking
-  firstSeenAt DateTime  @default(now())
-  lastSeenAt  DateTime  @default(now())
-  resolvedAt  DateTime? // When alert was auto-resolved (no longer active)
-  emailSentAt DateTime? // When email notification was sent
-  
-  // Relations
-  server      RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  @@index([workspaceId])
-  @@index([fingerprint])
-  @@index([serverId])
-  @@index([resolvedAt]) // For querying resolved alerts
-  @@map("seen_alerts")
-}
-
-model ResolvedAlert {
-  id          String    @id @default(uuid())
-  
-  // Alert details (full snapshot at resolution time)
-  serverId    String
-  serverName  String
-  severity    String    // "critical" | "warning" | "info"
-  category    String    // AlertCategory
-  title       String
-  description String
-  details     Json      // Full alert details as JSON
-  sourceType  String    // "node" | "queue" | "cluster"
-  sourceName  String
-  
-  // Fingerprint for reference
-  fingerprint String    // Reference to SeenAlert fingerprint
-  
-  // Timestamps
-  firstSeenAt DateTime  // When alert was first detected
-  resolvedAt  DateTime  @default(now()) // When alert was resolved
-  duration    Int?      // Duration in milliseconds (resolvedAt - firstSeenAt)
-  
-  // Relations
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  server      RabbitMQServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  @@index([workspaceId])
-  @@index([serverId])
-  @@index([resolvedAt])
-  @@index([fingerprint])
-  @@map("resolved_alerts")
-}
-
-model Webhook {
-  id          String    @id @default(uuid())
-  workspaceId String
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  url         String    // Webhook endpoint URL
-  enabled     Boolean   @default(true) // Enable/disable webhook
-  secret      String?   // Optional secret for webhook signature verification
-  version     String    @default("v1") // API version (v1, v2, etc.)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([workspaceId])
-  @@index([enabled])
-  @@map("webhooks")
-}
-
-model SlackConfig {
-  id          String    @id @default(uuid())
-  workspaceId String
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  webhookUrl  String    // Slack incoming webhook URL
-  customValue String?   // Optional custom text to add to each notification
-  enabled     Boolean   @default(true) // Enable/disable Slack notifications
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([workspaceId])
-  @@index([enabled])
-  @@map("slack_configs")
-}
-
-model Subscription {
-  id                    String             @id @default(uuid())
-  userId                String             @unique
-  stripeSubscriptionId  String             @unique
-  stripePriceId         String
-  stripeCustomerId      String
-  
-  // Subscription details
-  plan                  UserPlan
-  status                SubscriptionStatus
-  billingInterval       BillingInterval
-  
-  // Pricing
-  pricePerMonth         Decimal            @db.Decimal(10,2)
-  currency              String             @default("usd")
-  
-  // Billing periods
-  currentPeriodStart    DateTime
-  currentPeriodEnd      DateTime
-  
-  // Trial information
-  trialStart            DateTime?
-  trialEnd              DateTime?
-  
-  // Cancellation
-  cancelAtPeriodEnd     Boolean            @default(false)
-  canceledAt            DateTime?
-  cancelationReason     String?
-  
-  // Renewal tracking
-  isRenewalAfterCancel  Boolean            @default(false)
-  previousCancelDate    DateTime?
-  
-  // Metadata
-  metadata              Json?
-  
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
-  
-  // Relations
-  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([stripeSubscriptionId], name: "subscription_stripe_id_idx")
-  @@index([userId], name: "subscription_user_idx")
-  @@index([status], name: "subscription_status_idx")
-  @@map("subscriptions")
-}
-
-model License {
-  id                String    @id @default(uuid())
-  licenseKey        String    @unique
-  tier              UserPlan  // FREE, DEVELOPER, or ENTERPRISE
-  expiresAt         DateTime?
-  customerEmail     String
-  workspaceId       String?
-  lastValidatedAt   DateTime?
-  isActive          Boolean   @default(true)
-  
-  // Stripe purchase information
-  stripeCustomerId  String?
-  stripePaymentId  String?
-  
-  // Instance tracking (for self-hosted deployments)
-  instanceId        String?   // Optional instance identifier
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  // Relations
-  workspace         Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
-  
-  @@index([licenseKey], name: "license_key_idx")
-  @@index([customerEmail], name: "license_customer_email_idx")
-  @@index([workspaceId], name: "license_workspace_idx")
-  @@index([isActive], name: "license_active_idx")
-  @@map("licenses")
-}
-
-model Payment {
-  id                  String        @id @default(uuid())
-  userId              String
-  stripePaymentId     String        @unique
-  stripeInvoiceId     String?
-  stripeChargeId      String?
-  
-  // Payment details
-  amount              Decimal       @db.Decimal(10,2)
-  currency            String        @default("usd")
-  status              PaymentStatus
-  
-  // Description and metadata
-  description         String?
-  plan                UserPlan?
-  billingInterval     BillingInterval?
-  
-  // Billing period covered by this payment
-  periodStart         DateTime?
-  periodEnd           DateTime?
-  
-  // Payment processing
-  paymentMethodId     String?
-  paymentMethodType   String?       // card, bank_transfer, etc.
-  
-  // Failure information
-  failureCode         String?
-  failureMessage      String?
-  
-  // Receipt and invoice
-  receiptUrl          String?
-  invoiceUrl          String?
-  
-  // Metadata from Stripe
-  metadata            Json?
-  
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  paidAt              DateTime?
-  
-  // Relations
-  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId], name: "payment_user_idx")
-  @@index([status], name: "payment_status_idx")
-  @@index([stripePaymentId], name: "payment_stripe_id_idx")
-  @@index([createdAt], name: "payment_created_at_idx")
-  @@map("payments")
-}
-
-model StripeWebhookEvent {
-  id              String    @id @default(uuid())
-  stripeEventId   String    @unique
-  eventType       String
-  processed       Boolean   @default(false)
-  
-  // Event data
-  data            Json
-  
-  // Processing information
-  processedAt     DateTime?
-  errorMessage    String?
-  retryCount      Int       @default(0)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  @@index([stripeEventId], name: "webhook_stripe_event_idx")
-  @@index([eventType], name: "webhook_event_type_idx")
-  @@index([processed], name: "webhook_processed_idx")
-  @@map("stripe_webhook_events")
+enum UserRole {
+  ADMIN
+  USER
+  READONLY
 }

@@ -28,19 +28,58 @@ import {
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { useUser } from "@/hooks/useUser";
 
-import { AlertThresholds } from "@/types/alerts";
-
 const Alerts = () => {
   const { serverId } = useParams<{ serverId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { selectedServerId, hasServers } = useServerContext();
-  const { selectedVHost } = useVHostContext();
+  const { selectedServerId, hasServers, setSelectedServerId } =
+    useServerContext();
+  const { selectedVHost, setSelectedVHost } = useVHostContext();
   const { userPlan } = useUser();
   // const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [showNotificationSettingsModal, setShowNotificationSettingsModal] =
     useState(false);
   const [showAlertRulesModal, setShowAlertRulesModal] = useState(false);
   const [viewMode, setViewMode] = useState<"active" | "resolved">("active");
+
+  // Pagination state for Active Alerts
+  const [activeAlertsPage, setActiveAlertsPage] = useState(1);
+  const [activeAlertsPageSize, setActiveAlertsPageSize] = useState(25);
+
+  // Pagination state for Resolved Alerts
+  const [resolvedAlertsPage, setResolvedAlertsPage] = useState(1);
+  const [resolvedAlertsPageSize, setResolvedAlertsPageSize] = useState(25);
+
+  // Read serverId and vhost from query parameters (from email/Slack links)
+  // This must run early and take priority over context defaults
+  useEffect(() => {
+    const queryServerId = searchParams.get("serverId");
+    const queryVHost = searchParams.get("vhost");
+
+    // Decode vhost if present (searchParams.get() should decode, but be explicit)
+    const decodedVHost = queryVHost ? decodeURIComponent(queryVHost) : null;
+
+    if (queryServerId && queryServerId !== selectedServerId) {
+      setSelectedServerId(queryServerId);
+      // Remove from URL after setting
+      searchParams.delete("serverId");
+      setSearchParams(searchParams, { replace: true });
+    }
+
+    if (decodedVHost && decodedVHost !== selectedVHost) {
+      // Set vhost from URL - this takes priority over context defaults
+      setSelectedVHost(decodedVHost);
+      // Remove from URL after setting
+      searchParams.delete("vhost");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [
+    searchParams,
+    setSearchParams,
+    selectedServerId,
+    selectedVHost,
+    setSelectedServerId,
+    setSelectedVHost,
+  ]);
 
   const currentServerId = serverId || selectedServerId;
 
@@ -57,28 +96,28 @@ const Alerts = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Default thresholds for query
-  const defaultThresholds: AlertThresholds = {
-    memory: { warning: 80, critical: 95 },
-    disk: { warning: 15, critical: 10 },
-    fileDescriptors: { warning: 80, critical: 90 },
-    queueMessages: { warning: 10000, critical: 50000 },
-    connections: { warning: 500, critical: 1000 },
-  };
+  // Ensure vhost is always set (use "/" as default if not selected)
+  const currentVHost = selectedVHost || "/";
 
-  // Query for alerts with the RabbitMQ alerts hook (filtered by vhost)
+  // Query for alerts with the RabbitMQ alerts hook (filtered by vhost, with pagination)
   const {
     data: alertsData,
     isLoading: alertsLoading,
     error: alertsError,
-  } = useRabbitMQAlerts(currentServerId, defaultThresholds, selectedVHost);
+  } = useRabbitMQAlerts(currentServerId, currentVHost, {
+    limit: activeAlertsPageSize,
+    offset: (activeAlertsPage - 1) * activeAlertsPageSize,
+  });
 
-  // Query for resolved alerts
+  // Query for resolved alerts (with pagination)
   const {
     data: resolvedAlertsData,
     isLoading: resolvedAlertsLoading,
     error: resolvedAlertsError,
-  } = useResolvedAlerts(currentServerId);
+  } = useResolvedAlerts(currentServerId, currentVHost, {
+    limit: resolvedAlertsPageSize,
+    offset: (resolvedAlertsPage - 1) * resolvedAlertsPageSize,
+  });
 
   // Get browser notification settings
   const { data: notificationSettings } = useAlertNotificationSettings(true);
@@ -221,6 +260,14 @@ const Alerts = () => {
                       alerts={alerts}
                       summary={summary}
                       userPlan={userPlan}
+                      total={alertsData?.total || 0}
+                      page={activeAlertsPage}
+                      pageSize={activeAlertsPageSize}
+                      onPageChange={setActiveAlertsPage}
+                      onPageSizeChange={(size) => {
+                        setActiveAlertsPageSize(size);
+                        setActiveAlertsPage(1); // Reset to first page when changing page size
+                      }}
                     />
                   </TabsContent>
 
@@ -229,6 +276,14 @@ const Alerts = () => {
                       alerts={resolvedAlertsData?.alerts || []}
                       isLoading={resolvedAlertsLoading && !resolvedAlertsData}
                       error={resolvedAlertsError}
+                      total={resolvedAlertsData?.total || 0}
+                      page={resolvedAlertsPage}
+                      pageSize={resolvedAlertsPageSize}
+                      onPageChange={setResolvedAlertsPage}
+                      onPageSizeChange={(size) => {
+                        setResolvedAlertsPageSize(size);
+                        setResolvedAlertsPage(1); // Reset to first page when changing page size
+                      }}
                     />
                   </TabsContent>
                 </Tabs>

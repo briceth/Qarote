@@ -21,7 +21,6 @@ import { useVHostContext } from "@/contexts/VHostContextDefinition";
 import { useUser } from "@/hooks/useUser";
 import { useWorkspace } from "@/hooks/useWorkspace";
 
-import { AlertThresholds } from "@/types/alerts";
 import { UserPlan } from "@/types/plans";
 
 export const RecentAlerts = () => {
@@ -31,34 +30,20 @@ export const RecentAlerts = () => {
   const { workspace } = useWorkspace();
   const { userPlan } = useUser();
 
-  // Default thresholds for query
-  const defaultThresholds: AlertThresholds = {
-    memory: { warning: 80, critical: 95 },
-    disk: { warning: 15, critical: 10 },
-    fileDescriptors: { warning: 80, critical: 90 },
-    queueMessages: { warning: 10000, critical: 50000 },
-    connections: { warning: 500, critical: 1000 },
-  };
-
   // Query for recent alerts with limit of 3 (filtered by vhost)
   const {
     data: alertsData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["recentAlerts", selectedServerId, selectedVHost || ""],
+    queryKey: ["recentAlerts", selectedServerId, selectedVHost],
     queryFn: () =>
-      apiClient.getRabbitMQAlerts(
-        selectedServerId!,
-        workspace.id,
-        defaultThresholds,
-        {
-          limit: 3, // Only fetch 3 most recent alerts
-          resolved: false, // Only get active alerts
-          vhost: selectedVHost || undefined,
-        }
-      ),
-    enabled: !!selectedServerId,
+      apiClient.getRabbitMQAlerts(selectedServerId, workspace.id, {
+        limit: 3, // Only fetch 3 most recent alerts
+        resolved: false, // Only get active alerts
+        vhost: selectedVHost || "/", // Use "/" as default if no vhost selected
+      }),
+    enabled: !!selectedServerId && !!selectedVHost,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 

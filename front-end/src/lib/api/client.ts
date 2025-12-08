@@ -778,22 +778,16 @@ class ApiClient {
   async getRabbitMQAlerts(
     serverId: string,
     workspaceId: string,
-    thresholds?: AlertThresholds,
-    options?: {
+    options: {
       limit?: number;
       offset?: number;
       severity?: string;
       category?: string;
       resolved?: boolean;
-      vhost?: string;
+      vhost: string;
     }
   ) {
-    return this.alertClient.getServerAlerts(
-      serverId,
-      workspaceId,
-      thresholds,
-      options
-    );
+    return this.alertClient.getServerAlerts(serverId, workspaceId, options);
   }
 
   async getRabbitMQAlertsSummary(serverId: string, workspaceId: string) {
@@ -803,11 +797,12 @@ class ApiClient {
   async getResolvedAlerts(
     serverId: string,
     workspaceId: string,
-    options?: {
+    options: {
       limit?: number;
       offset?: number;
       severity?: string;
       category?: string;
+      vhost: string; // Required - must specify vhost
     }
   ) {
     return this.alertClient.getResolvedAlerts(serverId, workspaceId, options);

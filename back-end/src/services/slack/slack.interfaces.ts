@@ -13,6 +13,15 @@ export interface SlackMessage {
       type: string;
       text: string;
     }>;
+    elements?: Array<{
+      type: string;
+      text?: {
+        type: string;
+        text: string;
+      };
+      url?: string;
+      style?: string;
+    }>;
   }>;
   attachments?: Array<{
     color: string;

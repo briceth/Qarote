@@ -50,7 +50,7 @@ alertsController.get("/rules", async (c) => {
             host: true,
           },
         },
-        createdBy: {
+        user: {
           select: {
             id: true,
             firstName: true,
@@ -108,7 +108,7 @@ alertsController.get("/rules/:id", async (c) => {
             host: true,
           },
         },
-        createdBy: {
+        user: {
           select: {
             id: true,
             firstName: true,
@@ -188,7 +188,7 @@ alertsController.post(
               host: true,
             },
           },
-          createdBy: {
+          user: {
             select: {
               id: true,
               firstName: true,
@@ -296,7 +296,7 @@ alertsController.put(
               host: true,
             },
           },
-          createdBy: {
+          user: {
             select: {
               id: true,
               firstName: true,
@@ -425,7 +425,7 @@ alertsController.get(
               },
             },
           },
-          createdBy: {
+          user: {
             select: {
               id: true,
               firstName: true,
@@ -497,7 +497,7 @@ alertsController.get("/:id", async (c) => {
             },
           },
         },
-        createdBy: {
+        user: {
           select: {
             id: true,
             firstName: true,
@@ -573,7 +573,7 @@ alertsController.post(
               },
             },
           },
-          createdBy: {
+          user: {
             select: {
               id: true,
               firstName: true,
@@ -646,7 +646,7 @@ alertsController.post(
               },
             },
           },
-          createdBy: {
+          user: {
             select: {
               id: true,
               firstName: true,
@@ -729,7 +729,7 @@ alertsController.get("/stats/summary", async (c) => {
                 },
               },
             },
-            createdBy: {
+            user: {
               select: {
                 id: true,
                 firstName: true,

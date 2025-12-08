@@ -5,6 +5,8 @@ import { NotificationEmailService } from "@/services/email/notification-email.se
 import { SlackService } from "@/services/slack/slack.service";
 import { WebhookService } from "@/services/webhook/webhook.service";
 
+import { emailConfig } from "@/config";
+
 import { generateAlertFingerprint } from "./alert.fingerprint";
 import { RabbitMQAlert } from "./alert.interfaces";
 
@@ -162,7 +164,8 @@ export class AlertNotificationService {
     alerts: RabbitMQAlert[],
     workspaceId: string,
     serverId: string,
-    serverName?: string
+    serverName: string, // Required - always available from caller
+    vhost?: string // Optional - undefined means "check all vhosts"
   ): Promise<void> {
     try {
       // Get workspace to check for contact email and notification settings
@@ -173,20 +176,13 @@ export class AlertNotificationService {
           name: true,
           emailNotificationsEnabled: true,
           notificationSeverities: true,
+          notificationServerIds: true,
         },
       });
 
-      // Check if email notifications are enabled
-      if (!workspace || !workspace.emailNotificationsEnabled) {
-        logger.debug(
-          `Email notifications disabled for workspace ${workspaceId}, skipping alert notifications`
-        );
-        return;
-      }
-
-      if (!workspace.contactEmail) {
-        logger.debug(
-          `Workspace ${workspaceId} has no contact email, skipping alert notifications`
+      if (!workspace) {
+        logger.warn(
+          `Workspace ${workspaceId} not found, skipping alert tracking`
         );
         return;
       }
@@ -213,13 +209,9 @@ export class AlertNotificationService {
       const newAlerts: RabbitMQAlert[] = [];
       const now = new Date();
 
-      // Process each alert
+      // Process each alert - ALWAYS track alerts regardless of notification settings
+      // Severity preferences only affect notifications, not tracking
       for (const alert of alerts) {
-        // Only track alerts that match user's severity preferences
-        if (!notificationSeverities.includes(alert.severity)) {
-          continue;
-        }
-
         const fingerprint = generateAlertFingerprint(
           serverId,
           alert.category,
@@ -235,12 +227,9 @@ export class AlertNotificationService {
         );
         const isNew = !existingAlert;
 
-        // Check if alert should trigger notification
-        let shouldNotify = false;
-
+        // Always track alerts in database, regardless of severity preferences
         if (isNew) {
-          // Brand new alert - always notify
-          shouldNotify = true;
+          // Brand new alert - create SeenAlert record
           await prisma.seenAlert.create({
             data: {
               fingerprint,
@@ -256,10 +245,7 @@ export class AlertNotificationService {
             },
           });
         } else {
-          // Existing alert - check if it should trigger notification
-          const wasResolved = !!existingAlert.resolvedAt;
-
-          // Update last seen time and clear resolution if alert is active again
+          // Existing alert - update last seen time and clear resolution if alert is active again
           await prisma.seenAlert.updateMany({
             where: { fingerprint },
             data: {
@@ -268,6 +254,21 @@ export class AlertNotificationService {
               severity: alert.severity, // Update severity in case it changed
             },
           });
+        }
+
+        // Check if alert should trigger notification
+        // Only send notifications for alerts that match severity preferences
+        const shouldNotifyForSeverity = notificationSeverities.includes(
+          alert.severity
+        );
+        let shouldNotify = false;
+
+        if (isNew && shouldNotifyForSeverity) {
+          // Brand new alert that matches severity preferences - always notify
+          shouldNotify = true;
+        } else if (!isNew && shouldNotifyForSeverity) {
+          // Existing alert that matches severity preferences - check if should notify
+          const wasResolved = !!existingAlert.resolvedAt;
 
           // Check time since last notification (emailSentAt) or first seen (if no email sent)
           // This ensures we respect the cooldown period even if emailSentAt is null
@@ -294,12 +295,44 @@ export class AlertNotificationService {
 
       // Auto-resolve alerts that are no longer active
       // Find all seen alerts for this server that are not in current alerts
+      // IMPORTANT: If vhost is specified, only check alerts for that vhost (or node/cluster alerts)
+      // This prevents incorrectly resolving alerts from other vhosts when viewing a specific vhost
+      const unresolvedSeenAlertsWhere: {
+        workspaceId: string;
+        serverId: string;
+        resolvedAt: null;
+        OR?: Array<{
+          sourceType: string;
+          fingerprint?: { contains: string };
+        }>;
+      } = {
+        workspaceId,
+        serverId,
+        resolvedAt: null, // Only unresolved ones
+      };
+
+      // If vhost is specified, only auto-resolve alerts for that vhost (or node/cluster alerts)
+      // This prevents resolving alerts from other vhosts when viewing a specific vhost
+      if (vhost) {
+        const vhostPattern = `-queue-${vhost}-`;
+        unresolvedSeenAlertsWhere.OR = [
+          // Include queue alerts that match the vhost
+          {
+            sourceType: "queue",
+            fingerprint: { contains: vhostPattern },
+          },
+          // Include all node and cluster alerts (not vhost-specific)
+          {
+            sourceType: "node",
+          },
+          {
+            sourceType: "cluster",
+          },
+        ];
+      }
+
       const unresolvedSeenAlerts = await prisma.seenAlert.findMany({
-        where: {
-          workspaceId,
-          serverId,
-          resolvedAt: null, // Only unresolved ones
-        },
+        where: unresolvedSeenAlertsWhere,
         select: {
           fingerprint: true,
           severity: true,
@@ -310,15 +343,8 @@ export class AlertNotificationService {
         },
       });
 
-      // Get server name if not provided
-      let resolvedServerName = serverName;
-      if (!resolvedServerName) {
-        const server = await prisma.rabbitMQServer.findUnique({
-          where: { id: serverId },
-          select: { name: true },
-        });
-        resolvedServerName = server?.name || "Unknown Server";
-      }
+      // Use provided server name (always available from caller)
+      const resolvedServerName = serverName;
 
       for (const seenAlert of unresolvedSeenAlerts) {
         if (!activeFingerprints.has(seenAlert.fingerprint)) {
@@ -380,7 +406,24 @@ export class AlertNotificationService {
       }
 
       // Send notifications (email and webhooks) for alerts that should trigger notification
-      if (newAlerts.length > 0) {
+      // Only send if email notifications are enabled and contact email is set
+      const shouldSendNotifications =
+        workspace.emailNotificationsEnabled && !!workspace.contactEmail;
+
+      // Check if notifications are enabled for this server
+      const notificationServerIds = workspace.notificationServerIds
+        ? (workspace.notificationServerIds as string[])
+        : null;
+      const serverNotificationsEnabled =
+        !notificationServerIds ||
+        notificationServerIds.length === 0 ||
+        notificationServerIds.includes(serverId);
+
+      if (
+        newAlerts.length > 0 &&
+        shouldSendNotifications &&
+        serverNotificationsEnabled
+      ) {
         // Filter to only alerts that should actually get notifications
         const alertsToNotify = newAlerts.filter((alert) => {
           const fingerprint = generateAlertFingerprint(
@@ -526,7 +569,6 @@ export class AlertNotificationService {
               select: {
                 id: true,
                 webhookUrl: true,
-                customValue: true,
               },
             });
 
@@ -535,7 +577,9 @@ export class AlertNotificationService {
                 [slackConfig],
                 alertsToNotify,
                 workspace.name,
-                serverName
+                serverName,
+                serverId,
+                emailConfig.frontendUrl
               );
 
               // Log Slack results
@@ -569,6 +613,17 @@ export class AlertNotificationService {
           } catch (error) {
             logger.error({ error }, "Failed to send Slack notifications");
           }
+        }
+      } else if (newAlerts.length > 0) {
+        // Log why notifications weren't sent (for debugging)
+        if (!shouldSendNotifications) {
+          logger.debug(
+            `Skipping notifications for ${newAlerts.length} alerts: email notifications disabled or no contact email`
+          );
+        } else if (!serverNotificationsEnabled) {
+          logger.debug(
+            `Skipping notifications for ${newAlerts.length} alerts: server ${serverId} not in notification server list`
+          );
         }
       }
     } catch (error) {

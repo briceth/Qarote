@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { UserPlan } from "@prisma/client";
+import { Prisma, UserPlan } from "@prisma/client";
 import { Hono } from "hono";
 
 import { logger } from "@/core/logger";
@@ -59,9 +59,9 @@ alertsController.get(
       // Get user plan to determine access level
       const userPlan = await getUserPlan(user.id);
 
-      // Get vhost from validated query (optional - filters queue-related alerts)
+      // Get vhost from validated query (required - filters queue-related alerts)
       const { vhost: vhostParam } = query;
-      const vhost = vhostParam ? decodeURIComponent(vhostParam) : undefined;
+      const vhost = decodeURIComponent(vhostParam);
 
       const { alerts, summary } = await alertService.getServerAlerts(
         id,
@@ -80,6 +80,7 @@ alertsController.get(
           alerts: [], // Empty array for free users
           summary,
           thresholds,
+          total: summary.total, // Total count for free users
           timestamp: new Date().toISOString(),
         };
         return c.json(response);
@@ -117,6 +118,9 @@ alertsController.get(
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
+      // Calculate total count before pagination
+      const total = filteredAlerts.length;
+
       // Apply pagination
       const offset = query.offset || 0;
       const limit = query.limit;
@@ -131,6 +135,7 @@ alertsController.get(
         alerts: paginatedAlerts,
         summary,
         thresholds,
+        total, // Total count of filtered alerts (before pagination)
         timestamp: new Date().toISOString(),
       };
       return c.json(response);
@@ -167,6 +172,10 @@ alertsController.get(
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
+      // Get vhost from validated query (required - filters queue-related alerts)
+      const { vhost: vhostParam } = query;
+      const vhost = decodeURIComponent(vhostParam);
+
       const { alerts, total } = await alertService.getResolvedAlerts(
         id,
         workspaceId,
@@ -175,6 +184,7 @@ alertsController.get(
           offset: query.offset,
           severity: query.severity,
           category: query.category,
+          vhost, // Filter resolved alerts by vhost
         }
       );
 
@@ -354,6 +364,7 @@ alertsController.get("/alert-settings", async (c) => {
         emailNotificationsEnabled: true,
         contactEmail: true,
         notificationSeverities: true,
+        notificationServerIds: true,
         browserNotificationsEnabled: true,
         browserNotificationSeverities: true,
       },
@@ -368,6 +379,11 @@ alertsController.get("/alert-settings", async (c) => {
       ? (workspace.notificationSeverities as string[])
       : ["critical", "warning", "info"];
 
+    // Parse notificationServerIds from JSON, null/empty means all servers
+    const notificationServerIds = workspace.notificationServerIds
+      ? (workspace.notificationServerIds as string[])
+      : null;
+
     // Parse browserNotificationSeverities from JSON, default to all severities if not set
     const browserNotificationSeverities =
       workspace.browserNotificationSeverities
@@ -380,6 +396,7 @@ alertsController.get("/alert-settings", async (c) => {
         emailNotificationsEnabled: workspace.emailNotificationsEnabled,
         contactEmail: workspace.contactEmail,
         notificationSeverities,
+        notificationServerIds,
         browserNotificationsEnabled: workspace.browserNotificationsEnabled,
         browserNotificationSeverities,
       },
@@ -406,6 +423,7 @@ alertsController.put(
       emailNotificationsEnabled,
       contactEmail,
       notificationSeverities,
+      notificationServerIds,
       browserNotificationsEnabled,
       browserNotificationSeverities,
     } = c.req.valid("json");
@@ -438,6 +456,7 @@ alertsController.put(
         emailNotificationsEnabled?: boolean;
         contactEmail?: string | null;
         notificationSeverities?: string[];
+        notificationServerIds?: string[] | typeof Prisma.JsonNull;
         browserNotificationsEnabled?: boolean;
         browserNotificationSeverities?: string[];
       } = {};
@@ -452,6 +471,15 @@ alertsController.put(
 
       if (notificationSeverities !== undefined) {
         updateData.notificationSeverities = notificationSeverities;
+      }
+
+      if (notificationServerIds !== undefined) {
+        // If empty array, set to Prisma.JsonNull (means all servers)
+        // For Prisma JSON fields, use Prisma.JsonNull for explicit null
+        updateData.notificationServerIds =
+          notificationServerIds && notificationServerIds.length > 0
+            ? notificationServerIds
+            : Prisma.JsonNull;
       }
 
       if (browserNotificationsEnabled !== undefined) {
@@ -470,6 +498,7 @@ alertsController.put(
           emailNotificationsEnabled: true,
           contactEmail: true,
           notificationSeverities: true,
+          notificationServerIds: true,
           browserNotificationsEnabled: true,
           browserNotificationSeverities: true,
         },
@@ -479,6 +508,11 @@ alertsController.put(
       const responseSeverities = updatedWorkspace.notificationSeverities
         ? (updatedWorkspace.notificationSeverities as string[])
         : ["critical", "warning", "info"];
+
+      // Parse notificationServerIds from JSON, null/empty means all servers
+      const responseServerIds = updatedWorkspace.notificationServerIds
+        ? (updatedWorkspace.notificationServerIds as string[])
+        : null;
 
       // Parse browserNotificationSeverities from JSON, default to all severities if not set
       const responseBrowserSeverities =
@@ -492,6 +526,7 @@ alertsController.put(
           emailNotificationsEnabled: updatedWorkspace.emailNotificationsEnabled,
           contactEmail: updatedWorkspace.contactEmail,
           notificationSeverities: responseSeverities,
+          notificationServerIds: responseServerIds,
           browserNotificationsEnabled:
             updatedWorkspace.browserNotificationsEnabled,
           browserNotificationSeverities: responseBrowserSeverities,

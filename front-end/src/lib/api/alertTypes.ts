@@ -216,6 +216,7 @@ export interface RabbitMQAlertsResponse {
     info: number;
   };
   thresholds: AlertThresholds;
+  total: number; // Total count of alerts (after filtering, before pagination)
   timestamp: string;
 }
 
@@ -273,6 +274,7 @@ export interface AlertNotificationSettings {
     emailNotificationsEnabled: boolean;
     contactEmail: string | null;
     notificationSeverities?: string[];
+    notificationServerIds?: string[] | null;
     browserNotificationsEnabled: boolean;
     browserNotificationSeverities?: string[];
   };
@@ -282,6 +284,7 @@ export interface UpdateAlertNotificationSettingsRequest {
   emailNotificationsEnabled?: boolean;
   contactEmail?: string | null;
   notificationSeverities?: string[];
+  notificationServerIds?: string[] | null;
   browserNotificationsEnabled?: boolean;
   browserNotificationSeverities?: string[];
 }

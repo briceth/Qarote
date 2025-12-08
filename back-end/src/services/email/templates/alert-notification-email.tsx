@@ -59,13 +59,35 @@ const getSeverityIcon = (severity: string) => {
 export default function AlertNotificationEmail({
   workspaceName,
   serverName,
-  serverId: _serverId,
+  serverId,
   alerts,
   frontendUrl,
 }: AlertNotificationEmailProps): JSX.Element {
   const criticalAlerts = alerts.filter((a) => a.severity === "critical");
   const warningAlerts = alerts.filter((a) => a.severity === "warning");
   const hasCritical = criticalAlerts.length > 0;
+
+  // Determine vhost for URL - use the most common vhost from alerts, or first one if available
+  const vhosts = alerts.map((a) => a.vhost).filter((v): v is string => !!v);
+  const vhostCounts = vhosts.reduce(
+    (acc, vhost) => {
+      acc[vhost] = (acc[vhost] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+  const mostCommonVhost =
+    Object.entries(vhostCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    vhosts[0];
+
+  // Build alerts URL with serverId and vhost query parameters
+  const alertsUrl = new URL(`${frontendUrl}/alerts`);
+  if (serverId) {
+    alertsUrl.searchParams.set("serverId", serverId);
+  }
+  if (mostCommonVhost) {
+    alertsUrl.searchParams.set("vhost", mostCommonVhost);
+  }
 
   // Group alerts by category
   const alertsByCategory = alerts.reduce(
@@ -205,7 +227,7 @@ export default function AlertNotificationEmail({
             <Section style={buttonStyles.buttonSection}>
               <Button
                 style={buttonStyles.primaryButton}
-                href={`${frontendUrl}/alerts`}
+                href={alertsUrl.toString()}
               >
                 View Alerts in Dashboard
               </Button>

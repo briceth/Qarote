@@ -97,7 +97,8 @@ export class AlertService {
       alerts,
       workspaceId,
       serverId,
-      serverName
+      serverName,
+      vhost // Pass vhost context for proper auto-resolution
     );
 
     return { alerts, summary };
@@ -159,6 +160,7 @@ export class AlertService {
 
   /**
    * Get resolved alerts for a server
+   * @param vhost - Optional vhost to filter queue-related alerts. Node/cluster alerts are not filtered by vhost.
    */
   async getResolvedAlerts(
     serverId: string,
@@ -168,6 +170,7 @@ export class AlertService {
       offset?: number;
       severity?: string;
       category?: string;
+      vhost?: string;
     }
   ): Promise<{
     alerts: Array<{
@@ -191,6 +194,10 @@ export class AlertService {
       workspaceId: string;
       severity?: string;
       category?: string;
+      OR?: Array<{
+        sourceType: string;
+        fingerprint?: { contains: string };
+      }>;
     } = {
       serverId,
       workspaceId,
@@ -202,6 +209,25 @@ export class AlertService {
 
     if (options?.category) {
       where.category = options.category;
+    }
+
+    // Filter by vhost: queue alerts include vhost in fingerprint, node/cluster alerts don't
+    if (options?.vhost) {
+      const vhostPattern = `-queue-${options.vhost}-`;
+      where.OR = [
+        // Include queue alerts that match the vhost (fingerprint contains vhost pattern)
+        {
+          sourceType: "queue",
+          fingerprint: { contains: vhostPattern },
+        },
+        // Include all node and cluster alerts (not vhost-specific, so always include)
+        {
+          sourceType: "node",
+        },
+        {
+          sourceType: "cluster",
+        },
+      ];
     }
 
     const [resolvedAlerts, total] = await Promise.all([

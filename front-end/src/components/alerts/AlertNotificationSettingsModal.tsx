@@ -9,16 +9,27 @@ import {
   Mail,
   MessageSquare,
   Plus,
+  Search,
   Trash2,
   Webhook,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ApiError } from "@/lib/api/types";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +39,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 
 import {
@@ -36,6 +52,7 @@ import {
   useCreateWebhook,
   useDeleteSlackConfig,
   useDeleteWebhook,
+  useServers,
   useSlackConfigs,
   useUpdateAlertNotificationSettings,
   useUpdateSlackConfig,
@@ -64,12 +81,50 @@ export function AlertNotificationSettingsModal({
     useState(false);
   const [browserNotificationSeverities, setBrowserNotificationSeverities] =
     useState<string[]>(["critical", "warning", "info"]);
+  const [notificationServerIds, setNotificationServerIds] = useState<
+    string[] | null
+  >(null);
+  const [serverSearchOpen, setServerSearchOpen] = useState(false);
+  const [serverSearchTerm, setServerSearchTerm] = useState<string>("");
 
   // Track if this is the initial load to prevent auto-save on mount
   const isInitialMount = React.useRef(true);
 
   // Query for current settings
   const { data: settingsData } = useAlertNotificationSettings(isOpen);
+
+  // Query for servers
+  const { data: serversData } = useServers();
+  const servers = serversData?.servers || [];
+
+  // Get selected server objects
+  const selectedServers = React.useMemo(() => {
+    if (!notificationServerIds || notificationServerIds.length === 0)
+      return [];
+    return servers.filter((server) =>
+      notificationServerIds.includes(server.id)
+    );
+  }, [servers, notificationServerIds]);
+
+  // Filter servers based on search term (excluding already selected)
+  const availableServers = React.useMemo(() => {
+    const selectedIds = notificationServerIds || [];
+    return servers.filter((server) => !selectedIds.includes(server.id));
+  }, [servers, notificationServerIds]);
+
+  const filteredServers = React.useMemo(() => {
+    if (!serverSearchTerm.trim()) return availableServers;
+    const searchLower = serverSearchTerm.toLowerCase();
+    return availableServers.filter(
+      (server) =>
+        server.name.toLowerCase().includes(searchLower) ||
+        server.host.toLowerCase().includes(searchLower) ||
+        server.port.toString().includes(searchLower)
+    );
+  }, [availableServers, serverSearchTerm]);
+
+  // Selected servers count
+  const selectedCount = notificationServerIds?.length || 0;
 
   // Webhook hooks (must be called before any early returns)
   const { data: webhooksData } = useWebhooks(isOpen);
@@ -107,6 +162,9 @@ export function AlertNotificationSettingsModal({
           "info",
         ]
       );
+      setNotificationServerIds(
+        settingsData.settings.notificationServerIds || null
+      );
       // Mark initial load as complete after settings are loaded
       // Use a small delay to ensure state updates are complete
       const timeoutId = setTimeout(() => {
@@ -137,11 +195,9 @@ export function AlertNotificationSettingsModal({
     const firstSlack = slackConfigs[0];
     if (firstSlack) {
       setSlackWebhookUrl(firstSlack.webhookUrl);
-      setSlackCustomValue(firstSlack.customValue || "");
       setSlackEnabled(firstSlack.enabled);
     } else {
       setSlackWebhookUrl("");
-      setSlackCustomValue("");
       setSlackEnabled(true);
     }
   }, [slackConfigsData]);
@@ -158,7 +214,6 @@ export function AlertNotificationSettingsModal({
   const [showSecret, setShowSecret] = useState(false);
 
   const [slackWebhookUrl, setSlackWebhookUrl] = useState("");
-  const [slackCustomValue, setSlackCustomValue] = useState("");
   const [slackEnabled, setSlackEnabled] = useState(true);
 
   const [showWebhookExample, setShowWebhookExample] = useState(false);
@@ -194,15 +249,20 @@ export function AlertNotificationSettingsModal({
   }, [browserNotificationSeverities]);
 
   const autoSaveSettings = React.useCallback(
-    (skipValidation = false) => {
+    (options: {
+      skipValidation?: boolean;
+      onlyBrowserNotifications?: boolean;
+      onlyEmailNotifications?: boolean;
+    } = {}) => {
+      const { skipValidation = false, onlyBrowserNotifications = false, onlyEmailNotifications = false } = options;
       const currentEnabled = emailNotificationsEnabledRef.current;
       const currentEmail = contactEmailRef.current;
       const currentSeverities = notificationSeveritiesRef.current;
       const currentBrowserEnabled = browserNotificationsEnabledRef.current;
       const currentBrowserSeverities = browserNotificationSeveritiesRef.current;
 
-      // Validate email if notifications are enabled
-      if (!skipValidation && currentEnabled) {
+      // Validate email if notifications are enabled AND we're not only changing browser notifications
+      if (!skipValidation && currentEnabled && !onlyBrowserNotifications) {
         if (!currentEmail.trim()) {
           toast.error("Please provide an email address for notifications");
           return;
@@ -221,7 +281,7 @@ export function AlertNotificationSettingsModal({
       }
 
       // Validate browser notification severities
-      if (!skipValidation && currentBrowserEnabled) {
+      if (!skipValidation && currentBrowserEnabled && !onlyEmailNotifications) {
         if (currentBrowserSeverities.length === 0) {
           toast.error(
             "Please select at least one alert severity for browser notifications"
@@ -230,24 +290,54 @@ export function AlertNotificationSettingsModal({
         }
       }
 
+      // Build the update payload - only include fields that are being changed
+      const updatePayload: {
+        emailNotificationsEnabled?: boolean;
+        contactEmail?: string | null;
+        notificationSeverities?: string[];
+        notificationServerIds?: string[] | null;
+        browserNotificationsEnabled?: boolean;
+        browserNotificationSeverities?: string[];
+      } = {};
+
+      if (onlyBrowserNotifications) {
+        // Only update browser notification settings
+        updatePayload.browserNotificationsEnabled = currentBrowserEnabled;
+        updatePayload.browserNotificationSeverities = currentBrowserEnabled
+          ? currentBrowserSeverities
+          : undefined;
+      } else if (onlyEmailNotifications) {
+        // Only update email notification settings
+        updatePayload.emailNotificationsEnabled = currentEnabled;
+        updatePayload.contactEmail = currentEnabled ? currentEmail : null;
+        updatePayload.notificationSeverities = currentEnabled
+          ? currentSeverities
+          : undefined;
+        updatePayload.notificationServerIds = notificationServerIds;
+      } else {
+        // Update all settings
+        updatePayload.emailNotificationsEnabled = currentEnabled;
+        updatePayload.contactEmail = currentEnabled ? currentEmail : null;
+        updatePayload.notificationSeverities = currentEnabled
+          ? currentSeverities
+          : undefined;
+        updatePayload.notificationServerIds = notificationServerIds;
+        updatePayload.browserNotificationsEnabled = currentBrowserEnabled;
+        updatePayload.browserNotificationSeverities = currentBrowserEnabled
+          ? currentBrowserSeverities
+          : undefined;
+      }
+
       updateSettingsMutation.mutate(
-        {
-          emailNotificationsEnabled: currentEnabled,
-          contactEmail: currentEnabled ? currentEmail : null,
-          notificationSeverities: currentEnabled
-            ? currentSeverities
-            : undefined,
-          browserNotificationsEnabled: currentBrowserEnabled,
-          browserNotificationSeverities: currentBrowserEnabled
-            ? currentBrowserSeverities
-            : undefined,
-        },
+        updatePayload,
         {
           onSuccess: () => {
             toast.success("Settings updated successfully");
           },
           onError: (error: ApiError) => {
-            toast.error(error.message || "Failed to update settings");
+            const errorMessage = error.message || "Failed to update settings";
+            toast.error(errorMessage);
+            console.error("Failed to update notification settings:", error);
           },
         }
       );
@@ -260,7 +350,10 @@ export function AlertNotificationSettingsModal({
     if (isInitialMount.current) return;
 
     const timeoutId = setTimeout(() => {
-      autoSaveSettings(!emailNotificationsEnabled); // Skip validation when toggling off
+      autoSaveSettings({
+        skipValidation: !emailNotificationsEnabled, // Skip validation when toggling off
+        onlyEmailNotifications: true, // Only update email notification settings
+      });
     }, 100);
 
     return () => clearTimeout(timeoutId);
@@ -275,7 +368,9 @@ export function AlertNotificationSettingsModal({
 
     const timeoutId = setTimeout(() => {
       if (emailNotificationsEnabled) {
-        autoSaveSettings();
+        autoSaveSettings({
+          onlyEmailNotifications: true, // Only update email notification settings
+        });
       }
     }, 100);
 
@@ -288,7 +383,10 @@ export function AlertNotificationSettingsModal({
     if (isInitialMount.current) return;
 
     const timeoutId = setTimeout(() => {
-      autoSaveSettings(!browserNotificationsEnabled); // Skip validation when toggling off
+      autoSaveSettings({
+        skipValidation: !browserNotificationsEnabled, // Skip validation when toggling off
+        onlyBrowserNotifications: true, // Only update browser notification settings
+      });
     }, 100);
 
     return () => clearTimeout(timeoutId);
@@ -301,7 +399,9 @@ export function AlertNotificationSettingsModal({
 
     const timeoutId = setTimeout(() => {
       if (browserNotificationsEnabled) {
-        autoSaveSettings();
+        autoSaveSettings({
+          onlyBrowserNotifications: true, // Only update browser notification settings
+        });
       }
     }, 100);
 
@@ -445,7 +545,6 @@ export function AlertNotificationSettingsModal({
           slackConfigId: firstSlack.id,
           data: {
             webhookUrl: slackWebhookUrl.trim(),
-            customValue: slackCustomValue.trim() || null,
             enabled: slackEnabled,
           },
         },
@@ -487,7 +586,6 @@ export function AlertNotificationSettingsModal({
       createSlackConfigMutation.mutate(
         {
           webhookUrl: slackWebhookUrl.trim(),
-          customValue: slackCustomValue.trim() || null,
           enabled: slackEnabled,
         },
         {
@@ -532,7 +630,6 @@ export function AlertNotificationSettingsModal({
       onSuccess: () => {
         toast.success("Slack configuration deleted successfully");
         setSlackWebhookUrl("");
-        setSlackCustomValue("");
         setSlackEnabled(true);
       },
       onError: (error: ApiError) => {
@@ -595,6 +692,141 @@ export function AlertNotificationSettingsModal({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Server Selection */}
+          {servers.length > 0 && (
+            <div className="space-y-3 p-4 border rounded-lg">
+              <div>
+                <Label className="text-base">Servers</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Select which servers you want to receive notifications for.
+                  If none are selected, notifications will be sent for all
+                  servers.
+                </p>
+              </div>
+
+              {/* Selected Servers as Tags */}
+              {selectedServers.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50">
+                  {selectedServers.map((server) => (
+                    <Badge
+                      key={server.id}
+                      variant="secondary"
+                      className="flex items-center gap-1.5 pr-1"
+                    >
+                      <span className="text-xs">
+                        {server.name} ({server.host}:{server.port})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentIds = notificationServerIds || [];
+                          const newIds = currentIds.filter(
+                            (id) => id !== server.id
+                          );
+                          setNotificationServerIds(
+                            newIds.length > 0 ? newIds : null
+                          );
+                        }}
+                        disabled={updateSettingsMutation.isPending}
+                        className="ml-1 rounded-full hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Search Input with Popover */}
+              <div className="flex items-center gap-2">
+                <Popover open={serverSearchOpen} onOpenChange={setServerSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={serverSearchOpen}
+                      className="w-full justify-between"
+                      disabled={updateSettingsMutation.isPending}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Search className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">
+                          {selectedCount > 0
+                            ? `${selectedCount} server${selectedCount > 1 ? "s" : ""} selected`
+                            : "Search and select servers..."}
+                        </span>
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search servers by name, host, or port..."
+                        value={serverSearchTerm}
+                        onValueChange={setServerSearchTerm}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {serverSearchTerm
+                            ? `No servers found matching "${serverSearchTerm}"`
+                            : "No servers available"}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {filteredServers.map((server) => (
+                            <CommandItem
+                              key={server.id}
+                              value={`${server.name} ${server.host} ${server.port}`}
+                              onSelect={() => {
+                                const currentIds = notificationServerIds || [];
+                                const newIds = [...currentIds, server.id];
+                                setNotificationServerIds(newIds);
+                                setServerSearchTerm("");
+                                // Keep popover open for multiple selections
+                              }}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {server.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {server.host}:{server.port}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                {selectedCount > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setNotificationServerIds(null);
+                      setServerSearchOpen(false);
+                    }}
+                    disabled={updateSettingsMutation.isPending}
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
+
+              {selectedCount > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedCount} of {servers.length} server
+                  {servers.length > 1 ? "s" : ""} selected. Leave empty to
+                  receive notifications for all servers.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Alert Severity Selection */}
           <div className="space-y-3 p-4 border rounded-lg">
             <Label className="text-base">Alert Severities</Label>
@@ -854,7 +1086,9 @@ export function AlertNotificationSettingsModal({
                   size="sm"
                   onClick={() => {
                     if (contactEmail.trim() && emailNotificationsEnabled) {
-                      autoSaveSettings();
+                      autoSaveSettings({
+                        onlyEmailNotifications: true, // Only update email notification settings
+                      });
                     }
                   }}
                   disabled={
@@ -880,7 +1114,9 @@ export function AlertNotificationSettingsModal({
                     emailNotificationsEnabled
                   ) {
                     e.preventDefault();
-                    autoSaveSettings();
+                    autoSaveSettings({
+                      onlyEmailNotifications: true, // Only update email notification settings
+                    });
                   }
                 }}
                 disabled={updateSettingsMutation.isPending}
@@ -1072,26 +1308,6 @@ export function AlertNotificationSettingsModal({
                     Slack's Apps &gt; Incoming WebHooks
                   </a>
                   .
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="slack-custom-value">
-                  Custom value (Optional)
-                </Label>
-                <Input
-                  id="slack-custom-value"
-                  type="text"
-                  placeholder="e.g., Custom message to add to notifications"
-                  value={slackCustomValue}
-                  onChange={(e) => setSlackCustomValue(e.target.value)}
-                  disabled={
-                    createSlackConfigMutation.isPending ||
-                    updateSlackConfigMutation.isPending
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Optional. Text that'll be added to body of each notification.
                 </p>
               </div>
 
