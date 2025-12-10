@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 
 import { ApiError } from "@/lib/api/types";
+import { logger } from "@/lib/logger";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -99,8 +100,7 @@ export function AlertNotificationSettingsModal({
 
   // Get selected server objects
   const selectedServers = React.useMemo(() => {
-    if (!notificationServerIds || notificationServerIds.length === 0)
-      return [];
+    if (!notificationServerIds || notificationServerIds.length === 0) return [];
     return servers.filter((server) =>
       notificationServerIds.includes(server.id)
     );
@@ -249,12 +249,18 @@ export function AlertNotificationSettingsModal({
   }, [browserNotificationSeverities]);
 
   const autoSaveSettings = React.useCallback(
-    (options: {
-      skipValidation?: boolean;
-      onlyBrowserNotifications?: boolean;
-      onlyEmailNotifications?: boolean;
-    } = {}) => {
-      const { skipValidation = false, onlyBrowserNotifications = false, onlyEmailNotifications = false } = options;
+    (
+      options: {
+        skipValidation?: boolean;
+        onlyBrowserNotifications?: boolean;
+        onlyEmailNotifications?: boolean;
+      } = {}
+    ) => {
+      const {
+        skipValidation = false,
+        onlyBrowserNotifications = false,
+        onlyEmailNotifications = false,
+      } = options;
       const currentEnabled = emailNotificationsEnabledRef.current;
       const currentEmail = contactEmailRef.current;
       const currentSeverities = notificationSeveritiesRef.current;
@@ -328,19 +334,16 @@ export function AlertNotificationSettingsModal({
           : undefined;
       }
 
-      updateSettingsMutation.mutate(
-        updatePayload,
-        {
-          onSuccess: () => {
-            toast.success("Settings updated successfully");
-          },
-          onError: (error: ApiError) => {
-            const errorMessage = error.message || "Failed to update settings";
-            toast.error(errorMessage);
-            console.error("Failed to update notification settings:", error);
-          },
-        }
-      );
+      updateSettingsMutation.mutate(updatePayload, {
+        onSuccess: () => {
+          toast.success("Settings updated successfully");
+        },
+        onError: (error: ApiError) => {
+          const errorMessage = error.message || "Failed to update settings";
+          toast.error(errorMessage);
+          logger.error({ error }, errorMessage);
+        },
+      });
     },
     [updateSettingsMutation]
   );
@@ -698,9 +701,8 @@ export function AlertNotificationSettingsModal({
               <div>
                 <Label className="text-base">Servers</Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Select which servers you want to receive notifications for.
-                  If none are selected, notifications will be sent for all
-                  servers.
+                  Select which servers you want to receive notifications for. If
+                  none are selected, notifications will be sent for all servers.
                 </p>
               </div>
 
@@ -739,7 +741,10 @@ export function AlertNotificationSettingsModal({
 
               {/* Search Input with Popover */}
               <div className="flex items-center gap-2">
-                <Popover open={serverSearchOpen} onOpenChange={setServerSearchOpen}>
+                <Popover
+                  open={serverSearchOpen}
+                  onOpenChange={setServerSearchOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       type="button"
