@@ -127,8 +127,7 @@ export class WebhookService {
 
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: Error.isError(error) ? error.message : "Unknown error occurred",
         retries,
       };
     }

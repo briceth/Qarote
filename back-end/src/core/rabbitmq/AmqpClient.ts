@@ -493,4 +493,13 @@ export class RabbitMQAmqpClient {
       logger.error({ error }, "Error during AMQP client cleanup:");
     }
   }
+
+  /**
+   * Symbol.asyncDispose for explicit resource management (Node.js 24+)
+   * Allows using: await using client = new RabbitMQAmqpClient(...)
+   * Resources will be automatically cleaned up when the block exits
+   */
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.cleanup();
+  }
 }

@@ -21,7 +21,7 @@
     "infrastructure"
   ],
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=24.0.0",
     "npm": ">=10.0.0"
   },
   "scripts": {
@@ -46,5 +46,8 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7"
+  },
+  "overrides": {
+    "vite": "^7.2.7"
   }
 }
