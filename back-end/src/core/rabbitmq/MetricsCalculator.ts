@@ -269,9 +269,12 @@ export class RabbitMQMetricsCalculator {
 
   static calculateTotalMemoryBytes(nodes: RabbitMQNode[]): number {
     try {
-      if (!nodes?.length) {
+      if (!nodes) {
         logger.warn("No RabbitMQ nodes available for memory calculation");
-        return 0;
+        return 8589934592; // Default fallback: 8GB in bytes
+      }
+      if (!nodes.length) {
+        return 0; // Empty array returns 0
       }
 
       let totalMemory = 0;

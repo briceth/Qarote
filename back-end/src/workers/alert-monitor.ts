@@ -50,21 +50,25 @@ async function shutdown() {
   }
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-
-// Handle uncaught errors
-process.on("uncaughtException", (error) => {
-  logger.error({ error }, "Uncaught exception in Alert Monitor worker");
-  shutdown();
+process.on("SIGINT", async () => {
+  await shutdown();
+});
+process.on("SIGTERM", async () => {
+  await shutdown();
 });
 
-process.on("unhandledRejection", (reason, promise) => {
+// Handle uncaught errors
+process.on("uncaughtException", async (error) => {
+  logger.error({ error }, "Uncaught exception in Alert Monitor worker");
+  await shutdown();
+});
+
+process.on("unhandledRejection", async (reason, promise) => {
   logger.error(
     { reason, promise },
     "Unhandled rejection in Alert Monitor worker"
   );
-  shutdown();
+  await shutdown();
 });
 
 // Start the worker

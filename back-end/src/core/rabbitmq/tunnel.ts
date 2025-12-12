@@ -87,12 +87,12 @@ export function normalizeTunnelCredentials(
   port?: number,
   useHttps?: boolean
 ): { host: string; port: number; useHttps: boolean } {
-  const tunnelConfig = detectTunnel(host, port);
+  const tunnelConfig = detectTunnel(host);
 
   if (tunnelConfig.isTunnel) {
     return {
       host: tunnelConfig.normalizedHost,
-      port: tunnelConfig.recommendedPort,
+      port: 443, // Tunnels always use port 443, ignore provided port
       useHttps: true, // Tunnels always use HTTPS
     };
   }

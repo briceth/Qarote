@@ -9,10 +9,21 @@ export default defineConfig({
     port: 8080,
     allowedHosts: [".ngrok-free.app", ".ngrok.io"],
   },
-  plugins: [react()],
+  plugins: [
+    react({
+      jsxRuntime: "automatic",
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    // Ensure React is properly bundled
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
     },
   },
 });
