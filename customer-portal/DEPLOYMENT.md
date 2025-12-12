@@ -11,6 +11,7 @@ This document explains the necessary steps to deploy the RabbitHQ Customer Porta
 
 Set these environment variables in your Cloudflare Pages project:
 
+- `NODE_VERSION`: **24** (required - ensures Node.js 24 is used for builds)
 - `VITE_API_URL`: The URL of your RabbitHQ backend API (e.g., `https://api.rabbithq.io`)
 
 ## Build Configuration
@@ -28,7 +29,7 @@ The project includes a special build command for Cloudflare Pages which avoids i
    - Build command: `npm run build:cloudflare`
    - Build output directory: `dist`
    - Root directory: `customer-portal` (if deploying from monorepo root)
-   - Node.js version: 18 (or latest LTS)
+   - Node.js version: **24** (required - set via NODE_VERSION environment variable or .nvmrc)
 3. Add your environment variables:
    - `VITE_API_URL`: Your backend API URL
 4. Deploy

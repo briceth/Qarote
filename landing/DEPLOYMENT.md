@@ -11,6 +11,7 @@ This document explains the necessary steps to deploy this application to Cloudfl
 
 Set these environment variables in your Cloudflare Pages project:
 
+- `NODE_VERSION`: **24** (required - ensures Node.js 24 is used for builds)
 - `VITE_FORMSPREE_FORM_ID`: Your Formspree form ID
 
 ## Build Configuration
@@ -27,7 +28,7 @@ The project includes a special build command for Cloudflare Pages which avoids i
 2. Configure the build settings:
    - Build command: `npm run build:cloudflare`
    - Build output directory: `dist`
-   - Node.js version: 18 (or latest LTS)
+   - Node.js version: **24** (required - set via NODE_VERSION environment variable or .nvmrc)
 3. Add your environment variables
 4. Deploy
 

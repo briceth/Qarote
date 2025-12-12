@@ -157,7 +157,7 @@ export class RabbitMQQueueClient extends RabbitMQBaseClient {
         JSON.stringify(publishData, null, 2)
       );
 
-      const result = await this.request(endpoint, {
+      const result = await this.request<PublishResult>(endpoint, {
         method: "POST",
         body: JSON.stringify(publishData),
       });

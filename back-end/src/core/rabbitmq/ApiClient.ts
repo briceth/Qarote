@@ -28,7 +28,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getOverview(): Promise<RabbitMQOverview> {
     try {
       logger.debug("Fetching RabbitMQ overview");
-      const overview = await this.request("/overview");
+      const overview = await this.request<RabbitMQOverview>("/overview");
       logger.debug("RabbitMQ overview fetched successfully");
       return overview;
     } catch (error) {
@@ -67,7 +67,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
           "queue_totals.messages,queue_totals.messages_details,queue_totals.messages_ready,queue_totals.messages_ready_details,queue_totals.messages_unacknowledged,queue_totals.messages_unacknowledged_details,message_stats.publish,message_stats.publish_details,message_stats.deliver,message_stats.deliver_details,message_stats.ack,message_stats.ack_details,message_stats.deliver_get,message_stats.deliver_get_details,message_stats.confirm,message_stats.confirm_details,message_stats.get,message_stats.get_details,message_stats.get_no_ack,message_stats.get_no_ack_details,message_stats.redeliver,message_stats.redeliver_details,message_stats.reject,message_stats.reject_details,message_stats.return_unroutable,message_stats.return_unroutable_details,message_stats.disk_reads,message_stats.disk_reads_details,message_stats.disk_writes,message_stats.disk_writes_details",
       });
 
-      const overview = await this.request(
+      const overview = await this.request<RabbitMQOverview>(
         `/overview?${queryParams.toString()}`
       );
       logger.debug("RabbitMQ overview with time range fetched successfully");
@@ -96,7 +96,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
         ? `/queues/${encodeURIComponent(vhost)}`
         : "/queues";
       logger.debug({ vhost: vhost || "all" }, "Fetching RabbitMQ queues");
-      const queues = await this.request(endpoint);
+      const queues = await this.request<RabbitMQQueue[]>(endpoint);
       logger.debug(
         {
           count: queues?.length || 0,
@@ -146,7 +146,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       const endpoint = vhost
         ? `/queues/${encodeURIComponent(vhost)}`
         : "/queues";
-      const queues = await this.request(
+      const queues = await this.request<RabbitMQQueue[]>(
         `${endpoint}?${queryParams.toString()}`
       );
       logger.debug(
@@ -176,7 +176,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getNodes(): Promise<RabbitMQNode[]> {
     try {
       logger.debug("Fetching RabbitMQ nodes");
-      const nodes = await this.request("/nodes");
+      const nodes = await this.request<RabbitMQNode[]>("/nodes");
       logger.debug(
         {
           count: nodes?.length || 0,
@@ -203,7 +203,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       logger.debug({ queueName, vhost }, "Fetching RabbitMQ queue");
       const encodedQueueName = encodeURIComponent(queueName);
       const encodedVhost = encodeURIComponent(vhost);
-      const queue = await this.request(
+      const queue = await this.request<RabbitMQQueue>(
         `/queues/${encodedVhost}/${encodedQueueName}`
       );
       logger.debug({ queueName, vhost }, "RabbitMQ queue fetched successfully");
@@ -253,7 +253,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
           "name,messages,messages_details,messages_ready,messages_ready_details,messages_unacknowledged,messages_unacknowledged_details,message_stats.publish,message_stats.publish_details,message_stats.deliver,message_stats.deliver_details,message_stats.ack,message_stats.ack_details,message_stats.deliver_get,message_stats.deliver_get_details,message_stats.confirm,message_stats.confirm_details,message_stats.get,message_stats.get_details,message_stats.get_no_ack,message_stats.get_no_ack_details,message_stats.redeliver,message_stats.redeliver_details,message_stats.reject,message_stats.reject_details,message_stats.return_unroutable,message_stats.return_unroutable_details",
       });
 
-      const queue = await this.request(
+      const queue = await this.request<RabbitMQQueue>(
         `/queues/${encodedVhost}/${encodedQueueName}?${queryParams.toString()}`
       );
       logger.debug("RabbitMQ queue with time range fetched successfully", {
@@ -282,7 +282,8 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getConnections(): Promise<RabbitMQConnection[]> {
     try {
       logger.debug("Fetching RabbitMQ connections");
-      const connections = await this.request("/connections");
+      const connections =
+        await this.request<RabbitMQConnection[]>("/connections");
       logger.debug("RabbitMQ connections fetched successfully", {
         count: connections?.length || 0,
       });
@@ -304,7 +305,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getChannels(): Promise<RabbitMQChannel[]> {
     try {
       logger.debug("Fetching RabbitMQ channels");
-      const channels = await this.request("/channels");
+      const channels = await this.request<RabbitMQChannel[]>("/channels");
       logger.debug("RabbitMQ channels fetched successfully", {
         count: channels?.length || 0,
       });
@@ -330,7 +331,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
         ? `/exchanges/${encodeURIComponent(vhost)}`
         : "/exchanges";
       logger.debug({ vhost: vhost || "all" }, "Fetching RabbitMQ exchanges");
-      const exchanges = await this.request(endpoint);
+      const exchanges = await this.request<RabbitMQExchange[]>(endpoint);
       logger.debug("RabbitMQ exchanges fetched successfully", {
         count: exchanges?.length || 0,
       });
@@ -356,7 +357,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
         ? `/bindings/${encodeURIComponent(vhost)}`
         : "/bindings";
       logger.debug({ vhost: vhost || "all" }, "Fetching RabbitMQ bindings");
-      const bindings = await this.request(endpoint);
+      const bindings = await this.request<RabbitMQBinding[]>(endpoint);
       logger.debug("RabbitMQ bindings fetched successfully", {
         count: bindings?.length || 0,
       });
@@ -378,7 +379,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getConsumers(): Promise<RabbitMQConsumer[]> {
     try {
       logger.debug("Fetching RabbitMQ consumers");
-      const consumers = await this.request("/consumers");
+      const consumers = await this.request<RabbitMQConsumer[]>("/consumers");
       logger.debug("RabbitMQ consumers fetched successfully", {
         count: consumers?.length || 0,
       });
@@ -442,7 +443,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
       logger.debug("Fetching RabbitMQ queue bindings", { queueName, vhost });
       const encodedQueueName = encodeURIComponent(queueName);
       const encodedVhost = encodeURIComponent(vhost);
-      const bindings = await this.request(
+      const bindings = await this.request<RabbitMQBinding[]>(
         `/queues/${encodedVhost}/${encodedQueueName}/bindings`
       );
       logger.debug("RabbitMQ queue bindings fetched successfully", {
@@ -630,7 +631,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getVHosts(): Promise<RabbitMQVHost[]> {
     try {
       logger.debug("Fetching RabbitMQ VHosts");
-      const vhosts = await this.request("/vhosts");
+      const vhosts = await this.request<RabbitMQVHost[]>("/vhosts");
       logger.debug("RabbitMQ VHosts fetched successfully", {
         count: vhosts?.length || 0,
       });
@@ -653,7 +654,9 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     try {
       const encodedVHostName = encodeURIComponent(vhostName);
       logger.debug("Fetching RabbitMQ VHost", { vhostName });
-      const vhost = await this.request(`/vhosts/${encodedVHostName}`);
+      const vhost = await this.request<RabbitMQVHost>(
+        `/vhosts/${encodedVHostName}`
+      );
       logger.debug("RabbitMQ VHost fetched successfully", { vhostName });
       return vhost;
     } catch (error) {
@@ -762,7 +765,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     try {
       const encodedVHostName = encodeURIComponent(vhostName);
       logger.debug("Fetching VHost permissions", { vhostName });
-      const permissions = await this.request(
+      const permissions = await this.request<VHostPermissions[]>(
         `/vhosts/${encodedVHostName}/permissions`
       );
       logger.debug("VHost permissions fetched successfully", {
@@ -872,7 +875,9 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     try {
       const encodedVHostName = encodeURIComponent(vhostName);
       logger.debug("Fetching VHost limits", { vhostName });
-      const limits = await this.request(`/vhost-limits/${encodedVHostName}`);
+      const limits = await this.request<VHostLimits>(
+        `/vhost-limits/${encodedVHostName}`
+      );
       logger.debug("VHost limits fetched successfully", { vhostName });
       return limits;
     } catch (error) {
@@ -965,7 +970,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     try {
       const encodedVHostName = encodeURIComponent(vhostName);
       logger.debug("Fetching VHost topic permissions", { vhostName });
-      const permissions = await this.request(
+      const permissions = await this.request<VHostTopicPermissions[]>(
         `/vhosts/${encodedVHostName}/topic-permissions`
       );
       logger.debug("VHost topic permissions fetched successfully", {
@@ -1093,7 +1098,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
   async getUsers(): Promise<RabbitMQUser[]> {
     try {
       logger.debug("Fetching RabbitMQ users");
-      const users = await this.request("/users");
+      const users = await this.request<RabbitMQUser[]>("/users");
       logger.debug("RabbitMQ users fetched successfully", {
         count: users?.length || 0,
       });
@@ -1116,7 +1121,9 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     try {
       const encodedUsername = encodeURIComponent(username);
       logger.debug("Fetching RabbitMQ user", { username });
-      const user = await this.request(`/users/${encodedUsername}`);
+      const user = await this.request<RabbitMQUser>(
+        `/users/${encodedUsername}`
+      );
       logger.debug("RabbitMQ user fetched successfully", { username });
       return user;
     } catch (error) {
@@ -1139,7 +1146,7 @@ export class RabbitMQApiClient extends RabbitMQBaseClient {
     try {
       const encodedUsername = encodeURIComponent(username);
       logger.debug("Fetching user permissions", { username });
-      const permissions = await this.request(
+      const permissions = await this.request<RabbitMQUserPermission[]>(
         `/users/${encodedUsername}/permissions`
       );
       logger.debug("User permissions fetched successfully", { username });

@@ -2,6 +2,8 @@
  * Utility functions for routing visualization
  */
 
+import { escapeRegex } from "@/lib/regexp-escape";
+
 import {
   Binding,
   ExchangeNode,
@@ -239,10 +241,23 @@ export const matchesRoutingPattern = (
 
     case "topic": {
       // Convert topic pattern to regex
-      const regexPattern = pattern
-        .replace(/\./g, "\\.")
-        .replace(/\*/g, "[^.]*")
-        .replace(/#/g, ".*");
+      // RabbitMQ topic patterns use: . (separator), * (single word), # (zero or more words)
+      // We need to escape regex special chars EXCEPT * and # (which are RabbitMQ wildcards)
+      // Then convert RabbitMQ wildcards to regex patterns
+      let regexPattern = pattern
+        // First, temporarily replace RabbitMQ wildcards with placeholders
+        .replace(/#/g, "__RABBITMQ_HASH__")
+        .replace(/\*/g, "__RABBITMQ_STAR__");
+
+      // Now escape all regex special characters
+      regexPattern = escapeRegex(regexPattern);
+
+      // Restore and convert RabbitMQ wildcards to regex patterns
+      regexPattern = regexPattern
+        .replace(/__RABBITMQ_HASH__/g, ".*") // Convert # to multi-word wildcard
+        .replace(/__RABBITMQ_STAR__/g, "[^.]*") // Convert * to single word wildcard
+        .replace(/\\\./g, "\\."); // Keep dots as literal separators
+
       const regex = new RegExp(`^${regexPattern}$`);
       return regex.test(routingKey);
     }

@@ -7,13 +7,15 @@
   "author": "La Griffe",
   "license": "ISC",
   "engines": {
-    "node": ">=22.17.0",
-    "npm": ">=10.9.2"
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:alert": "tsx watch src/workers/alert-monitor.ts",
     "build": "prisma generate && tsc && tsc-alias",
     "start": "node --require tsconfig-paths/register dist/index.js",
+    "start:alert": "node --require tsconfig-paths/register dist/workers/alert-monitor.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -53,7 +55,10 @@
     "stripe:test": "tsx scripts/stripe/setup-stripe.ts test",
     "stripe:login": "stripe login",
     "webhook:secret": "stripe listen --print-secret",
-    "notion:sync": "tsx scripts/notion/sync-users.ts"
+    "notion:sync": "tsx scripts/notion/sync-users.ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
@@ -83,7 +88,7 @@
     "hono": "^4.7.11",
     "hono-rate-limiter": "^0.4.2",
     "is-valid-hostname": "^1.0.2",
-    "nodemailer": "^6.9.8",
+    "nodemailer": "^7.0.11",
     "pg": "^8.16.3",
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
@@ -91,13 +96,12 @@
     "resend": "^4.6.0",
     "stripe": "^17.7.0",
     "tsconfig-paths": "^4.2.0",
-    "undici": "^7.12.0",
     "uuid": "^11.1.0",
     "zod": "^3.25.56"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
-    "@react-email/preview-server": "^4.2.8",
+    "@react-email/preview-server": "^5.0.6",
     "@types/amqplib": "^0.10.7",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
@@ -111,6 +115,7 @@
     "tsc-alias": "^1.8.16",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.0.1"
+    "typescript-eslint": "^8.0.1",
+    "vitest": "^2.1.9"
   }
 }

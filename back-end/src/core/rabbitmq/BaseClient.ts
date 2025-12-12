@@ -1,16 +1,8 @@
-import { Agent } from "undici";
-
 import type { RabbitMQCredentials } from "@/types/rabbitmq";
 
 import { captureRabbitMQError } from "../../services/sentry";
 import { logger } from "../logger";
 import { normalizeTunnelCredentials } from "./tunnel";
-
-// Define extended RequestInit type to include dispatcher
-// Alternative: Extend the RequestInit interface (cleaner TypeScript approach)
-interface UndiciRequestInit extends RequestInit {
-  dispatcher?: Agent;
-}
 
 /**
  * Base RabbitMQ Client
@@ -78,10 +70,13 @@ export class RabbitMQBaseClient {
     this.versionMajorMinor = credentials.versionMajorMinor;
   }
 
-  protected async request(endpoint: string, options?: RequestInit) {
+  protected async request<T = unknown>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<T> {
     try {
       // Configure base fetch options
-      const fetchOptions: UndiciRequestInit = {
+      const fetchOptions: RequestInit = {
         headers: {
           Authorization: this.authHeader,
           "Content-Type": "application/json",
@@ -93,7 +88,7 @@ export class RabbitMQBaseClient {
       const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       if (!response.ok) {
-        const payload = await response.json();
+        const payload = (await response.json()) as { reason?: string };
         const error = new Error(
           `RabbitMQ API error: ${response.status} ${response.statusText}`,
           { cause: payload.reason }
@@ -116,18 +111,18 @@ export class RabbitMQBaseClient {
       const contentType = response.headers.get("content-type");
 
       if (contentType?.includes("application/json")) {
-        return response.json();
+        return response.json() as Promise<T>;
       } else {
         // Some endpoints return text or empty responses
         const text = await response.text();
-        return text ? { message: text } : {};
+        return (text ? { message: text } : {}) as T;
       }
     } catch (error) {
       logger.error({ error }, `Error fetching from RabbitMQ API (${endpoint})`);
 
       // Capture network/connection error in Sentry if not already captured
       if (
-        error instanceof Error &&
+        Error.isError(error) &&
         !error.message.includes("RabbitMQ API error:")
       ) {
         captureRabbitMQError(error, {

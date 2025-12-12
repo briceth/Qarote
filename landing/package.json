@@ -3,11 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "npm install --no-package-lock && vite build",
     "build:dev": "vite build --mode development",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=-1",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -43,7 +51,7 @@
     "@swc/core": "^1.11.31",
     "@tanstack/react-query": "^5.56.2",
     "@tawk.to/tawk-messenger-react": "^2.0.2",
-    "@vitejs/plugin-react": "^4.5.1",
+    "@vitejs/plugin-react": "^5.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -69,19 +77,21 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
-    "@types/node": "^22.5.5",
+    "@types/node": "^24.0.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^15.9.0",
     "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^7.2.7"
   },
   "optionalDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.41.1",
