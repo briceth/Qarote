@@ -12,8 +12,10 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:alert": "tsx watch src/workers/alert-monitor.ts",
     "build": "prisma generate && tsc && tsc-alias",
     "start": "node --require tsconfig-paths/register dist/index.js",
+    "start:alert": "node --require tsconfig-paths/register dist/workers/alert-monitor.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

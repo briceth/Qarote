@@ -1,0 +1,13 @@
+---
+# Staging Environment Variables
+
+staging_dokku_host: "5.75.164.253"
+ssh_key_path: "~/.ssh/id_rsa"
+
+# App names
+backend_app_name: rabbit-hq-staging
+worker_app_name: rabbithq-worker-staging
+
+# Worker configuration
+worker_start_command: "npm run start:alert"
+create_worker_app: true

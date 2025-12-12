@@ -3,3 +3,8 @@ environments/.env
 
 environments/staging/.frontend.env
 environments/production/.frontend.env
+
+# Ansible
+ansible/.vault_pass
+ansible/vault.yml
+ansible/*.retry

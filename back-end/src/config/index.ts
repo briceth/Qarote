@@ -78,6 +78,10 @@ const envSchema = z.object({
   NOTION_SYNC_ENABLED: z.coerce.boolean().default(false),
   ENABLE_NOTION: z.coerce.boolean().default(false),
 
+  // Alert Monitoring Configuration
+  ALERT_CHECK_INTERVAL_MS: z.coerce.number().int().positive().default(300000), // 5 minutes
+  ALERT_CHECK_CONCURRENCY: z.coerce.number().int().positive().default(10),
+
   // NPM package version (for Sentry releases)
   npm_package_version: z.string().describe("1.0.0"),
 });
@@ -190,6 +194,11 @@ export const notionConfig = {
   databaseId: config.NOTION_DATABASE_ID,
   syncEnabled: config.NOTION_SYNC_ENABLED && config.ENABLE_NOTION,
   enabled: config.ENABLE_NOTION,
+} as const;
+
+export const alertConfig = {
+  checkIntervalMs: config.ALERT_CHECK_INTERVAL_MS,
+  concurrency: config.ALERT_CHECK_CONCURRENCY,
 } as const;
 
 export const deploymentConfig = {
