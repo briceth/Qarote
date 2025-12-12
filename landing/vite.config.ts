@@ -18,12 +18,49 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ["react", "react-dom"],
   },
   build: {
+    target: "esnext",
+    minify: "esbuild",
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunk for React and related libraries - ensures single React instance
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          // UI components chunk
+          "vendor-ui": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+            "@radix-ui/react-slot",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-toast",
+            "@radix-ui/react-tooltip",
+          ],
+          // Data fetching and state management
+          "vendor-data": ["@tanstack/react-query"],
+          // Icons
+          "vendor-icons": ["lucide-react"],
+          // Form and validation
+          "vendor-forms": ["react-hook-form", "@hookform/resolvers"],
+          // Date and time utilities
+          "vendor-utils": [
+            "date-fns",
+            "clsx",
+            "class-variance-authority",
+            "tailwind-merge",
+          ],
+        },
+      },
+    },
     // Ensure React is properly bundled
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,
     },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
   },
 });
