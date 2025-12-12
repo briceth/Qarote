@@ -8,4 +8,3 @@ declare module "@tawk.to/tawk-messenger-react" {
 
   export default class TawkMessengerReact extends Component<TawkMessengerReactProps> {}
 }
-

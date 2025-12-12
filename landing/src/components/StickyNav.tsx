@@ -19,7 +19,7 @@ const StickyNav = ({ onVideoClick }: StickyNavProps) => {
         top: offsetTop,
         behavior: "smooth",
       });
-      
+
       // If it's the video section, launch the video after scrolling
       if (id === "video" && onVideoClick) {
         setTimeout(() => {

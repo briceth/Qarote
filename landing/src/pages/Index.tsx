@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   Activity,
   BarChart3,
@@ -13,20 +14,21 @@ import {
   X,
 } from "lucide-react";
 
+import { trackSignUpClick } from "@/lib/gtm";
+
 import AuthButtons from "@/components/AuthButtons";
 import FeatureCard from "@/components/FeatureCard";
 import SEO from "@/components/SEO";
 import StickyNav from "@/components/StickyNav";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { trackSignUpClick } from "@/lib/gtm";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(

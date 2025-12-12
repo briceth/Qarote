@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+
 import { trackSignUpClick } from "@/lib/gtm";
 
 interface AuthButtonsProps {

@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+import { useForm, ValidationError } from "@formspree/react";
+import { ArrowRight, Mail } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import { toast } from "@/hooks/use-toast";
-import { Mail, ArrowRight } from "lucide-react";
-import { useForm, ValidationError } from "@formspree/react";
 
 // Function to get user's country information
 const getUserCountry = (): { country: string } => {
@@ -18,7 +21,6 @@ const getUserCountry = (): { country: string } => {
       country: countryCode,
     };
   } catch (error) {
-    console.log("Location detection not available:", error);
     return {
       country: "Unknown",
     };
@@ -80,8 +82,6 @@ const WaitingListForm = () => {
       });
       setEmail("");
     } catch (error) {
-      console.error("Error submitting to waitlist:", error);
-
       toast({
         title: "Email saved locally! 📝",
         description:

@@ -6,11 +6,7 @@ interface FeatureCardProps {
   description: string;
 }
 
-const FeatureCard = ({
-  icon: Icon,
-  title,
-  description,
-}: FeatureCardProps) => {
+const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => {
   return (
     <div className="group relative p-6 bg-transparent border border-border rounded-xl transition-all duration-300 hover:-translate-y-1 shadow-soft">
       <div className="inline-flex p-3 rounded-lg bg-orange-100 mb-4">
