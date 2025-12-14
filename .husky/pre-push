@@ -28,15 +28,15 @@ if git diff --name-only $remote_branch...HEAD | grep -q "^apps/customer-portal/"
 fi
 
 # Run type-check for landing if any landing files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^landing/"; then
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/landing/"; then
   echo "📦 Checking landing types..."
-  npm run type-check --workspace=landing || exit 1
+  npm run type-check --workspace=apps/landing || exit 1
 fi
 
 # Run type-check for customer-portal if any customer-portal files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^customer-portal/"; then
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/customer-portal/"; then
   echo "📦 Checking customer-portal types..."
-  npm run type-check --workspace=customer-portal || exit 1
+  npm run type-check --workspace=apps/customer-portal || exit 1
 fi
 
 echo "✅ All type checks passed!"

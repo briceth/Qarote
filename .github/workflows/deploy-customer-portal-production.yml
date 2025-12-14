@@ -27,16 +27,16 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm run lint
         continue-on-error: false
 
       - name: 💅 Format Check
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm run format
 
   deploy-customer-portal:
@@ -60,11 +60,11 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: 🏗️ Build customer portal for production
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -77,7 +77,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy customer-portal/dist --project-name=rabbithq-customer-portal --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/customer-portal/dist --project-name=rabbithq-customer-portal --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |
@@ -85,4 +85,3 @@ jobs:
           echo "🌐 Production URL: https://rabbithq-customer-portal.pages.dev"
           echo "🔗 Custom Domain: https://portal.rabbithq.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"
-

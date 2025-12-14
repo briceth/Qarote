@@ -1,4 +1,17 @@
+import * as React from "react";
+
+import type { LucideProps } from "lucide-react";
 import { Check, X } from "lucide-react";
+
+// Type-safe helper to work around React type conflicts between lucide-react and @types/react
+const createIconComponent = (Icon: unknown, className: string): React.FC => {
+  return () => {
+    // Double assertion to resolve React type definition conflicts
+    // This is safe because lucide-react icons are valid React components
+    const IconComponent = Icon as React.ComponentType<LucideProps>;
+    return <IconComponent className={className} />;
+  };
+};
 
 const ComparisonTable = () => {
   const features = [
@@ -52,8 +65,11 @@ const ComparisonTable = () => {
     },
   ];
 
-  const CheckIcon = () => <Check className="h-5 w-5 text-green-500 mx-auto" />;
-  const XIcon = () => <X className="h-5 w-5 text-red-400 mx-auto" />;
+  const CheckIcon = createIconComponent(
+    Check,
+    "h-5 w-5 text-green-500 mx-auto"
+  );
+  const XIcon = createIconComponent(X, "h-5 w-5 text-red-400 mx-auto");
 
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">

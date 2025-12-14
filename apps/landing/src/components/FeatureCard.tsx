@@ -1,3 +1,6 @@
+import * as React from "react";
+
+import type { LucideProps } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 interface FeatureCardProps {
@@ -7,10 +10,13 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => {
+  // Type-safe workaround for React type conflicts between lucide-react and @types/react
+  const IconComponent = Icon as unknown as React.ComponentType<LucideProps>;
+
   return (
     <div className="group relative p-6 bg-transparent border border-border rounded-xl transition-all duration-300 hover:-translate-y-1 shadow-soft">
       <div className="inline-flex p-3 rounded-lg bg-orange-100 mb-4">
-        <Icon className="h-6 w-6 text-orange-600" />
+        <IconComponent className="h-6 w-6 text-orange-600" />
       </div>
       <h3 className="text-xl font-semibold text-card-foreground mb-2">
         {title}

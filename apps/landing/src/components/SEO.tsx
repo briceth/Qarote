@@ -1,3 +1,4 @@
+import React, { type ComponentType } from "react";
 import { Helmet } from "react-helmet-async";
 
 interface SEOProps {
@@ -64,8 +65,12 @@ export const SEO = ({
       }
     : null;
 
+  const HelmetComponent = Helmet as unknown as ComponentType<{
+    children?: React.ReactNode;
+  }>;
+
   return (
-    <Helmet>
+    <HelmetComponent>
       {/* Basic Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
@@ -120,7 +125,7 @@ export const SEO = ({
           {JSON.stringify(structuredData)}
         </script>
       )}
-    </Helmet>
+    </HelmetComponent>
   );
 };
 

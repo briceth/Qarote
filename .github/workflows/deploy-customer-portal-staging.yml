@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "customer-portal/**"
+      - "apps/customer-portal/**"
       - ".github/workflows/deploy-customer-portal-staging.yml"
   workflow_dispatch:
 
@@ -27,16 +27,16 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm run lint
         continue-on-error: false
 
       - name: 💅 Format Check
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm run format
 
   deploy-customer-portal:
@@ -57,11 +57,11 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: 🏗️ Build customer portal
-        working-directory: customer-portal
+        working-directory: apps/customer-portal
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -74,7 +74,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy customer-portal/dist --project-name=rabbithq-customer-portal-staging --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/customer-portal/dist --project-name=rabbithq-customer-portal-staging --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |

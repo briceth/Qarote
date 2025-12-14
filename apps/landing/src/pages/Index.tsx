@@ -1,5 +1,7 @@
+import * as React from "react";
 import { useState } from "react";
 
+import type { LucideProps } from "lucide-react";
 import {
   Activity,
   BarChart3,
@@ -35,6 +37,16 @@ const Index = () => {
     "yearly"
   );
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  // Type-safe workaround for React type conflicts between lucide-react and @types/react
+  const PlayIcon = Play as unknown as React.ComponentType<LucideProps>;
+  const XIcon = X as unknown as React.ComponentType<LucideProps>;
+  const CheckIcon = Check as unknown as React.ComponentType<LucideProps>;
+  const MailIcon = Mail as unknown as React.ComponentType<LucideProps>;
+  const ServerIcon = Server as unknown as React.ComponentType<LucideProps>;
+  const ActivityIcon = Activity as unknown as React.ComponentType<LucideProps>;
+  const BarChart3Icon =
+    BarChart3 as unknown as React.ComponentType<LucideProps>;
 
   const features = [
     {
@@ -321,7 +333,7 @@ const Index = () => {
                       type="button"
                       className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/90 hover:bg-white flex items-center justify-center transition-all hover:scale-110 pointer-events-none shadow-soft"
                     >
-                      <Play
+                      <PlayIcon
                         className="w-10 h-10 md:w-12 md:h-12 text-orange-600 ml-1"
                         fill="currentColor"
                       />
@@ -365,28 +377,28 @@ const Index = () => {
                 </h3>
                 <div className="space-y-5 mb-16">
                   <div className="flex gap-4 items-start">
-                    <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <XIcon className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       An outdated UI that slows you down
                     </p>
                   </div>
 
                   <div className="flex gap-4 items-start">
-                    <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <XIcon className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       No unified view across servers or environments
                     </p>
                   </div>
 
                   <div className="flex gap-4 items-start">
-                    <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <XIcon className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       No reliable, actionable alerts
                     </p>
                   </div>
 
                   <div className="flex gap-4 items-start">
-                    <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <XIcon className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       DIY dashboards and scripts everywhere
                     </p>
@@ -413,28 +425,28 @@ const Index = () => {
                 </h3>
                 <div className="space-y-5 mb-16">
                   <div className="flex gap-4 items-start">
-                    <Check className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       A clean, modern UI built for speed and clarity
                     </p>
                   </div>
 
                   <div className="flex gap-4 items-start">
-                    <Check className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       A unified dashboard for all your servers and environments
                     </p>
                   </div>
 
                   <div className="flex gap-4 items-start">
-                    <Check className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       Smart, actionable alerts that catch issues early
                     </p>
                   </div>
 
                   <div className="flex gap-4 items-start">
-                    <Check className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
                     <p className="text-foreground">
                       Zero-setup monitoring, no scripts, no maintenance
                     </p>
@@ -583,7 +595,7 @@ const Index = () => {
                         }}
                         className="w-full bg-background border border-border rounded-lg p-3 flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
                       >
-                        <Mail className="w-5 h-5 text-orange-600" />
+                        <MailIcon className="w-5 h-5 text-orange-600" />
                         <span className="text-sm font-medium text-foreground">
                           Continue with Email
                         </span>
@@ -657,7 +669,7 @@ const Index = () => {
                     <div className="space-y-3">
                       <div className="bg-background border border-border rounded-lg p-4 flex items-center gap-4">
                         <div className="flex-shrink-0">
-                          <Server className="w-6 h-6 text-orange-600" />
+                          <ServerIcon className="w-6 h-6 text-orange-600" />
                         </div>
                         <div className="flex-1">
                           <div className="font-semibold text-foreground mb-1">
@@ -670,7 +682,7 @@ const Index = () => {
                       </div>
                       <div className="bg-background border border-border rounded-lg p-4 flex items-center gap-4">
                         <div className="flex-shrink-0">
-                          <Server className="w-6 h-6 text-orange-600" />
+                          <ServerIcon className="w-6 h-6 text-orange-600" />
                         </div>
                         <div className="flex-1">
                           <div className="font-semibold text-foreground mb-1">
@@ -683,7 +695,7 @@ const Index = () => {
                       </div>
                       <div className="bg-background border border-border rounded-lg p-4 flex items-center gap-4">
                         <div className="flex-shrink-0">
-                          <Server className="w-6 h-6 text-orange-600" />
+                          <ServerIcon className="w-6 h-6 text-orange-600" />
                         </div>
                         <div className="flex-1">
                           <div className="font-semibold text-foreground mb-1">
@@ -724,7 +736,7 @@ const Index = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-background border border-border rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-2">
-                            <Activity className="w-4 h-4 text-orange-600" />
+                            <ActivityIcon className="w-4 h-4 text-orange-600" />
                             <span className="text-xs text-muted-foreground">
                               Messages/sec
                             </span>
@@ -735,7 +747,7 @@ const Index = () => {
                         </div>
                         <div className="bg-background border border-border rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-2">
-                            <BarChart3 className="w-4 h-4 text-orange-600" />
+                            <BarChart3Icon className="w-4 h-4 text-orange-600" />
                             <span className="text-xs text-muted-foreground">
                               Queues
                             </span>
@@ -794,7 +806,7 @@ const Index = () => {
                               All systems operational
                             </span>
                           </div>
-                          <Check className="w-4 h-4 text-green-600" />
+                          <CheckIcon className="w-4 h-4 text-green-600" />
                         </div>
                       </div>
                     </div>
@@ -915,7 +927,7 @@ const Index = () => {
                           <ul className="space-y-2">
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -931,7 +943,7 @@ const Index = () => {
                             </li>
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -944,7 +956,7 @@ const Index = () => {
                             </li>
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -960,7 +972,7 @@ const Index = () => {
                             </li>
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -976,7 +988,7 @@ const Index = () => {
                             </li>
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -990,9 +1002,9 @@ const Index = () => {
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
                                 {plan.features.queueManagement ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <CheckIcon className="w-4 h-4 text-green-500" />
                                 ) : (
-                                  <X className="w-4 h-4 text-muted-foreground" />
+                                  <XIcon className="w-4 h-4 text-muted-foreground" />
                                 )}
                               </div>
                               <div className="flex-1">
@@ -1011,9 +1023,9 @@ const Index = () => {
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
                                 {plan.features.exchangeManagement ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <CheckIcon className="w-4 h-4 text-green-500" />
                                 ) : (
-                                  <X className="w-4 h-4 text-muted-foreground" />
+                                  <XIcon className="w-4 h-4 text-muted-foreground" />
                                 )}
                               </div>
                               <div className="flex-1">
@@ -1032,9 +1044,9 @@ const Index = () => {
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
                                 {plan.features.virtualHostManagement ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <CheckIcon className="w-4 h-4 text-green-500" />
                                 ) : (
-                                  <X className="w-4 h-4 text-muted-foreground" />
+                                  <XIcon className="w-4 h-4 text-muted-foreground" />
                                 )}
                               </div>
                               <div className="flex-1">
@@ -1053,9 +1065,9 @@ const Index = () => {
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
                                 {plan.features.rabbitMQUserManagement ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <CheckIcon className="w-4 h-4 text-green-500" />
                                 ) : (
-                                  <X className="w-4 h-4 text-muted-foreground" />
+                                  <XIcon className="w-4 h-4 text-muted-foreground" />
                                 )}
                               </div>
                               <div className="flex-1">
@@ -1073,7 +1085,7 @@ const Index = () => {
                             </li>
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -1087,9 +1099,9 @@ const Index = () => {
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
                                 {plan.features.alertsNotification ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <CheckIcon className="w-4 h-4 text-green-500" />
                                 ) : (
-                                  <X className="w-4 h-4 text-muted-foreground" />
+                                  <XIcon className="w-4 h-4 text-muted-foreground" />
                                 )}
                               </div>
                               <div className="flex-1">
@@ -1116,7 +1128,7 @@ const Index = () => {
                           <ul className="space-y-2">
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Check className="w-4 h-4 text-green-500" />
+                                <CheckIcon className="w-4 h-4 text-green-500" />
                               </div>
                               <div className="flex-1">
                                 <span className="text-sm text-foreground">
@@ -1130,9 +1142,9 @@ const Index = () => {
                             <li className="flex items-start gap-3">
                               <div className="mt-1">
                                 {plan.features.prioritySupport ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <CheckIcon className="w-4 h-4 text-green-500" />
                                 ) : (
-                                  <X className="w-4 h-4 text-muted-foreground" />
+                                  <XIcon className="w-4 h-4 text-muted-foreground" />
                                 )}
                               </div>
                               <div className="flex-1">
@@ -1201,130 +1213,133 @@ const Index = () => {
             </p>
           </div>
 
-          <Accordion type="single" collapsible className="space-y-4">
-            <AccordionItem
-              value="item-1"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                What is RabbitHQ?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                RabbitHQ is a modern, user-friendly dashboard that helps you
-                monitor and manage your RabbitMQ servers effortlessly. Instead
-                of using the outdated RabbitMQ admin panel or command line,
-                RabbitHQ gives you a clean, visual interface to see your queues,
-                messages, and system health in real time.
-              </AccordionContent>
-            </AccordionItem>
+          <div className="space-y-4">
+            <Accordion type="single" collapsible>
+              <AccordionItem
+                value="item-1"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  What is RabbitHQ?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  RabbitHQ is a modern, user-friendly dashboard that helps you
+                  monitor and manage your RabbitMQ servers effortlessly. Instead
+                  of using the outdated RabbitMQ admin panel or command line,
+                  RabbitHQ gives you a clean, visual interface to see your
+                  queues, messages, and system health in real time.
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem
-              value="item-2"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                Who is RabbitHQ for?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                RabbitHQ is designed for developers, DevOps engineers, and teams
-                who use RabbitMQ and want better visibility, easier monitoring,
-                and faster troubleshooting. Whether you're running one broker or
-                dozens, RabbitHQ helps you save time and prevent message
-                bottlenecks.
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem
+                value="item-2"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  Who is RabbitHQ for?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  RabbitHQ is designed for developers, DevOps engineers, and
+                  teams who use RabbitMQ and want better visibility, easier
+                  monitoring, and faster troubleshooting. Whether you're running
+                  one broker or dozens, RabbitHQ helps you save time and prevent
+                  message bottlenecks.
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem
-              value="item-3"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                Is RabbitHQ secure?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                Absolutely. All connections to your RabbitMQ servers are
-                encrypted (TLS), and no sensitive data is stored on our servers.
-                You stay in full control of your credentials, and RabbitHQ only
-                reads the metrics and management data needed for your dashboard.
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem
+                value="item-3"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  Is RabbitHQ secure?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Absolutely. All connections to your RabbitMQ servers are
+                  encrypted (TLS), and no sensitive data is stored on our
+                  servers. You stay in full control of your credentials, and
+                  RabbitHQ only reads the metrics and management data needed for
+                  your dashboard.
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem
-              value="item-4"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                What can I do with RabbitHQ?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                With RabbitHQ, you can:
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>
-                    View all your queues, exchanges, and bindings at a glance
-                  </li>
-                  <li>
-                    Monitor message rates, errors, and consumer activity in real
-                    time
-                  </li>
-                  <li>Create alerts for blocked or overloaded queues</li>
-                  <li>Manage users, vhosts, and permissions visually</li>
-                  <li>Connect multiple RabbitMQ instances in one place</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem
+                value="item-4"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  What can I do with RabbitHQ?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  With RabbitHQ, you can:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>
+                      View all your queues, exchanges, and bindings at a glance
+                    </li>
+                    <li>
+                      Monitor message rates, errors, and consumer activity in
+                      real time
+                    </li>
+                    <li>Create alerts for blocked or overloaded queues</li>
+                    <li>Manage users, vhosts, and permissions visually</li>
+                    <li>Connect multiple RabbitMQ instances in one place</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem
-              value="item-5"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                How is RabbitHQ different from the RabbitMQ Management UI?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                The built-in RabbitMQ Management Plugin works, but it's slow,
-                cluttered, and hard to scale across multiple brokers. RabbitHQ
-                provides:
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>A modern, intuitive interface</li>
-                  <li>Centralized monitoring across environments</li>
-                  <li>Powerful search and filters</li>
-                  <li>Smart alerts and reporting</li>
-                  <li>A clean experience designed for teams</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem
+                value="item-5"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  How is RabbitHQ different from the RabbitMQ Management UI?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  The built-in RabbitMQ Management Plugin works, but it's slow,
+                  cluttered, and hard to scale across multiple brokers. RabbitHQ
+                  provides:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>A modern, intuitive interface</li>
+                    <li>Centralized monitoring across environments</li>
+                    <li>Powerful search and filters</li>
+                    <li>Smart alerts and reporting</li>
+                    <li>A clean experience designed for teams</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem
-              value="item-6"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                Is RabbitHQ a better monitoring tool than Prometheus and
-                Grafana?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                RabbitHQ offers purpose-built monitoring specifically for
-                RabbitMQ with zero configuration. While Prometheus and Grafana
-                are powerful, they require significant setup and maintenance.
-                RabbitHQ provides comparable insights with much less overhead.
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem
+                value="item-6"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  Is RabbitHQ a better monitoring tool than Prometheus and
+                  Grafana?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  RabbitHQ offers purpose-built monitoring specifically for
+                  RabbitMQ with zero configuration. While Prometheus and Grafana
+                  are powerful, they require significant setup and maintenance.
+                  RabbitHQ provides comparable insights with much less overhead.
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem
-              value="item-7"
-              className="border border-border rounded-xl px-6 bg-transparent"
-            >
-              <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                Can I try RabbitHQ for free?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                Yes! We offer a free tier that includes 1 server, 1 workspace,
-                and 1 team member. You can start monitoring your RabbitMQ queues
-                right away without a credit card. When you're ready to scale,
-                you can upgrade to a paid plan.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              <AccordionItem
+                value="item-7"
+                className="border border-border rounded-xl px-6 bg-transparent"
+              >
+                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
+                  Can I try RabbitHQ for free?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes! We offer a free tier that includes 1 server, 1 workspace,
+                  and 1 team member. You can start monitoring your RabbitMQ
+                  queues right away without a credit card. When you're ready to
+                  scale, you can upgrade to a paid plan.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
           <div className="text-center mt-16">
             <h3 className="text-2xl font-bold text-foreground mb-4">

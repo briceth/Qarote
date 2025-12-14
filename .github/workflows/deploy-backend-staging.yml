@@ -8,7 +8,7 @@ on:
     branches: [main]
     paths:
       - "apps/back-end/**"
-      - "app.json"
+      - "apps/back-end/app.json"
       - ".github/workflows/deploy-backend-staging.yml"
   workflow_dispatch:
 

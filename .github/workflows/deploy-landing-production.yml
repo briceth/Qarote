@@ -67,7 +67,6 @@ jobs:
         working-directory: apps/landing
         env:
           VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
-          VITE_FORMSPREE_FORM_ID: ${{ secrets.VITE_FORMSPREE_FORM_ID }}
           NODE_ENV: production
         run: npm run build
 
@@ -83,4 +82,3 @@ jobs:
           echo "🌐 Production URL: https://landing-rabbithq.pages.dev"
           echo "🔗 Custom Domain: https://rabbithq.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"
-

@@ -64,7 +64,6 @@ jobs:
         working-directory: apps/landing
         env:
           VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL_STAGING }}
-          VITE_FORMSPREE_FORM_ID: ${{ secrets.VITE_FORMSPREE_FORM_ID }}
           NODE_ENV: production
         run: npm run build
 
@@ -79,4 +78,3 @@ jobs:
           echo "🎉 Landing page deployed successfully to staging!"
           echo "🌐 Staging URL: https://landing-rabbithq-staging.pages.dev"
           echo "📝 Commit: ${{ github.sha }}"
-

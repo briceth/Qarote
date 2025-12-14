@@ -1,3 +1,6 @@
+import * as React from "react";
+
+import type { LucideProps } from "lucide-react";
 import { Play } from "lucide-react";
 
 import { trackSignUpClick } from "@/lib/gtm";
@@ -58,6 +61,9 @@ const AuthButtons = ({
   const widthClass = align === "left" ? "w-auto" : "w-full max-w-md";
   const paddingClass = align === "left" ? "pl-0" : "px-4";
 
+  // Type-safe workaround for React type conflicts between lucide-react and @types/react
+  const PlayIcon = Play as unknown as React.ComponentType<LucideProps>;
+
   return (
     <div
       className={`flex ${alignClass} items-center gap-6 ${widthClass} ${marginClass} ${paddingClass}`}
@@ -73,7 +79,7 @@ const AuthButtons = ({
           onClick={handleHowItWorks}
           className={`${secondaryButtonStyles} px-4 py-3 sm:px-8 sm:py-4 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center gap-2 text-base sm:text-lg`}
         >
-          <Play className="h-[1em] w-[1em] fill-current" />
+          <PlayIcon className="h-[1em] w-[1em] fill-current" />
           <span className="whitespace-nowrap">How it works</span>
         </button>
       )}
