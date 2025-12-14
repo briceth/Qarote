@@ -40,9 +40,9 @@ docker-compose -f docker-compose.standalone-rabbitmq.yml up -d
 
 ### 3. Configure Environment Variables
 
-Create `.env` files in `back-end/` and `front-end/` directories:
+Create `.env` files in `apps/back-end/` and `apps/front-end/` directories:
 
-**Backend (`back-end/.env`):**
+**Backend (`apps/back-end/.env`):**
 ```env
 # Required
 DEPLOYMENT_MODE=self-hosted
@@ -58,7 +58,7 @@ ENABLE_EMAIL=false
 ENABLE_OAUTH=false
 ```
 
-**Frontend (`front-end/.env`):**
+**Frontend (`apps/front-end/.env`):**
 ```env
 VITE_API_URL=http://localhost:3000
 VITE_DEPLOYMENT_MODE=self-hosted
@@ -67,7 +67,7 @@ VITE_DEPLOYMENT_MODE=self-hosted
 ### 4. Run Database Migrations
 
 ```bash
-cd back-end
+cd apps/back-end
 npm run prisma:migrate
 ```
 

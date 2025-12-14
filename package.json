@@ -14,10 +14,10 @@
     "url": "https://github.com/LaGriffe/rabbit-dash-board.git"
   },
   "workspaces": [
-    "front-end",
-    "back-end",
-    "landing",
-    "customer-portal",
+    "apps/front-end",
+    "apps/back-end",
+    "apps/landing",
+    "apps/customer-portal",
     "infrastructure"
   ],
   "engines": {
@@ -25,31 +25,31 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "dev:front": "npm run dev --workspace=front-end",
-    "dev:back": "npm run dev --workspace=back-end",
-    "dev:back:alert": "npm run dev:alert --workspace=back-end",
-    "dev:landing": "npm run dev --workspace=landing",
-    "dev:customer-portal": "npm run dev --workspace=customer-portal",
-    "build": "npm run build --workspace=back-end",
-    "start": "npm run start --workspace=back-end",
+    "dev:front": "npm run dev --workspace=apps/front-end",
+    "dev:back": "npm run dev --workspace=apps/back-end",
+    "dev:back:alert": "npm run dev:alert --workspace=apps/back-end",
+    "dev:landing": "npm run dev --workspace=apps/landing",
+    "dev:customer-portal": "npm run dev --workspace=apps/customer-portal",
+    "build": "npm run build --workspace=apps/back-end",
+    "start": "npm run start --workspace=apps/back-end",
     "prepare": "husky || true"
   },
   "lint-staged": {
-    "back-end/**/*.{ts,tsx}": [
-      "bash -c 'cd back-end && npx eslint --fix \"$@\"' _",
-      "bash -c 'cd back-end && npx prettier --write \"$@\"' _"
+    "apps/back-end/**/*.{ts,tsx}": [
+      "bash -c 'cd apps/back-end && npx eslint --fix \"$@\"' _",
+      "bash -c 'cd apps/back-end && npx prettier --write \"$@\"' _"
     ],
-    "front-end/**/*.{ts,tsx,js,jsx}": [
-      "bash -c 'cd front-end && npx eslint --fix --max-warnings=-1 \"$@\"' _",
-      "bash -c 'cd front-end && npx prettier --write \"$@\"' _"
+    "apps/front-end/**/*.{ts,tsx,js,jsx}": [
+      "bash -c 'cd apps/front-end && npx eslint --fix --max-warnings=-1 \"$@\"' _",
+      "bash -c 'cd apps/front-end && npx prettier --write \"$@\"' _"
     ],
-    "landing/**/*.{ts,tsx,js,jsx}": [
-      "bash -c 'cd landing && npx eslint --fix --max-warnings=-1 \"$@\"' _",
-      "bash -c 'cd landing && npx prettier --write \"$@\"' _"
+    "apps/landing/**/*.{ts,tsx,js,jsx}": [
+      "bash -c 'cd apps/landing && npx eslint --fix --max-warnings=-1 \"$@\"' _",
+      "bash -c 'cd apps/landing && npx prettier --write \"$@\"' _"
     ],
-    "customer-portal/**/*.{ts,tsx,js,jsx}": [
-      "bash -c 'cd customer-portal && npx eslint --fix --max-warnings=-1 \"$@\"' _",
-      "bash -c 'cd customer-portal && npx prettier --write \"$@\"' _"
+    "apps/customer-portal/**/*.{ts,tsx,js,jsx}": [
+      "bash -c 'cd apps/customer-portal && npx eslint --fix --max-warnings=-1 \"$@\"' _",
+      "bash -c 'cd apps/customer-portal && npx prettier --write \"$@\"' _"
     ]
   },
   "devDependencies": {
@@ -57,6 +57,10 @@
     "lint-staged": "^16.2.7"
   },
   "overrides": {
-    "vite": "^7.2.7"
+    "vite": "7.2.7",
+    "next": "16.0.10",
+    "@react-email/preview-server": {
+      "next": "16.0.10"
+    }
   }
 }
