@@ -3,7 +3,8 @@ import path from "node:path";
 import dotenv from "dotenv";
 import { z } from "zod/v4";
 
-dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
+// Load .env file from the back-end directory (where process.cwd() points when running from apps/back-end)
+dotenv.config({ path: path.join(process.cwd(), ".env") });
 
 // Environment validation schema
 const envSchema = z.object({

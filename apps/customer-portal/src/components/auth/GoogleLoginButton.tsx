@@ -26,19 +26,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Check if OAuth is enabled
-  const deploymentMode = import.meta.env.VITE_DEPLOYMENT_MODE || "cloud";
-  const enableOAuth =
-    import.meta.env.VITE_ENABLE_OAUTH !== "false" &&
-    (deploymentMode === "cloud" ||
-      import.meta.env.VITE_ENABLE_OAUTH === "true");
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-  // Don't render if OAuth is disabled or client ID is missing
-  if (!enableOAuth || !googleClientId) {
-    return null;
-  }
-
+  // Hooks must be called before any early returns
   const googleLoginMutation = useMutation({
     mutationFn: async (credentialResponse: CredentialResponse) => {
       if (!credentialResponse.credential) {
@@ -60,6 +48,19 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       onError?.(errorMessage);
     },
   });
+
+  // Check if OAuth is enabled
+  const deploymentMode = import.meta.env.VITE_DEPLOYMENT_MODE || "cloud";
+  const enableOAuth =
+    import.meta.env.VITE_ENABLE_OAUTH !== "false" &&
+    (deploymentMode === "cloud" ||
+      import.meta.env.VITE_ENABLE_OAUTH === "true");
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  // Don't render if OAuth is disabled or client ID is missing
+  if (!enableOAuth || !googleClientId) {
+    return null;
+  }
 
   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
     if (credentialResponse.credential) {
@@ -93,4 +94,3 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
     </div>
   );
 };
-

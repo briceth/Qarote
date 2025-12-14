@@ -49,13 +49,13 @@ This directory contains Docker configuration files for running a complete develo
 5. **Start your backend API** (in another terminal):
 
    ```bash
-   cd back-end
+   cd apps/back-end
    npm run dev
    ```
 
 6. **Start your frontend** (in another terminal):
    ```bash
-   cd front-end
+   cd apps/front-end
    npm run dev
    ```
 

@@ -11,6 +11,7 @@ import {
   Section,
   Text,
 } from "@react-email/components";
+import type { JSX } from "react";
 
 import {
   baseStyles,

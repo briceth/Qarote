@@ -1,14 +1,13 @@
-name: Deploy Backend & Worker to Staging
+name: Deploy Backend to Staging
 
 env:
   APP_NAME: rabbit-hq-staging
-  WORKER_APP_NAME: rabbithq-worker-staging
 
 on:
   push:
     branches: [main]
     paths:
-      - "back-end/**"
+      - "apps/back-end/**"
       - "app.json"
       - ".github/workflows/deploy-backend-staging.yml"
   workflow_dispatch:
@@ -32,19 +31,19 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: back-end
+        working-directory: apps/back-end
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: back-end
+        working-directory: apps/back-end
         run: npm run lint
 
       - name: 💅 Format Check
-        working-directory: back-end
+        working-directory: apps/back-end
         run: npm run format
 
       - name: 🧪 Run Tests
-        working-directory: back-end
+        working-directory: apps/back-end
         run: npm run test:run
 
   deploy-backend:
@@ -129,76 +128,4 @@ jobs:
           echo "🎉 Deployment to staging completed successfully!"
           echo "🔍 Backend URL: https://${{ vars.DOMAIN_BACKEND }}"
           echo "🔍 Health check: https://${{ vars.DOMAIN_BACKEND }}/health"
-          echo "📝 Commit: ${{ github.sha }}"
-
-  deploy-worker:
-    name: Deploy Worker to Dokku - Staging
-    runs-on: ubuntu-latest
-    environment: staging
-    needs: deploy-backend
-
-    steps:
-      - name: 🔍 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 🔑 Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
-
-      - name: 🏗️ Add SSH known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
-
-      - name: 🏗️ Ensure worker app exists
-        run: |
-          if ! ssh dokku@${{ vars.DOKKU_HOST }} apps:exists ${{ env.WORKER_APP_NAME }}; then
-            echo "Creating worker app..."
-            ssh dokku@${{ vars.DOKKU_HOST }} apps:create ${{ env.WORKER_APP_NAME }}
-          else
-            echo "Worker app already exists"
-          fi
-
-      - name: 📋 Copy config from backend app
-        run: |
-          echo "Exporting config from backend app..."
-          CONFIG=$(ssh dokku@${{ vars.DOKKU_HOST }} config:export ${{ env.APP_NAME }})
-          echo "Importing config to worker app..."
-          ssh dokku@${{ vars.DOKKU_HOST }} config:set ${{ env.WORKER_APP_NAME }} "$CONFIG"
-
-      - name: ⚙️ Set start command for worker
-        run: |
-          ssh dokku@${{ vars.DOKKU_HOST }} ps:set ${{ env.WORKER_APP_NAME }} start-cmd "npm run start:alert" || \
-            echo "Note: Start command may already be set or format differs"
-
-      - name: 🐳 Deploy worker to Dokku
-        uses: dokku/github-action@master
-        with:
-          git_remote_url: "ssh://dokku@${{ vars.DOKKU_HOST }}:22/${{ env.WORKER_APP_NAME }}"
-          ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
-          git_push_flags: "--force"
-
-      - name: 📈 Scale worker process
-        run: |
-          echo "Scaling worker process to 1..."
-          ssh dokku@${{ vars.DOKKU_HOST }} ps:scale ${{ env.WORKER_APP_NAME }} worker=1 || \
-            echo "Note: Worker process may need to be scaled manually"
-
-      - name: 🔍 Verify worker app status
-        run: |
-          echo "Checking worker app status..."
-          ssh dokku@${{ vars.DOKKU_HOST }} ps:report ${{ env.WORKER_APP_NAME }}
-
-      - name: 📋 Show worker logs
-        run: |
-          echo "Recent worker logs:"
-          ssh dokku@${{ vars.DOKKU_HOST }} logs ${{ env.WORKER_APP_NAME }} --tail 20 || true
-
-      - name: ✅ Worker deployment complete
-        run: |
-          echo "🎉 Worker deployment to staging completed successfully!"
-          echo "🔍 Worker app: ${{ env.WORKER_APP_NAME }}"
           echo "📝 Commit: ${{ github.sha }}"

@@ -25,7 +25,7 @@ services:
 
   backend:
     build:
-      context: ./back-end
+      context: ./apps/back-end
       dockerfile: Dockerfile
     container_name: rabbithq_backend
     restart: unless-stopped
@@ -65,12 +65,12 @@ services:
     networks:
       - rabbithq_network
     volumes:
-      - ./back-end:/app
+      - ./apps/back-end:/app
       - /app/node_modules
 
   frontend:
     build:
-      context: ./front-end
+      context: ./apps/front-end
       dockerfile: Dockerfile
     container_name: rabbithq_frontend
     restart: unless-stopped
@@ -93,4 +93,3 @@ volumes:
 networks:
   rabbithq_network:
     driver: bridge
-

@@ -10,6 +10,7 @@ import {
   Section,
   Text,
 } from "@react-email/components";
+import type { JSX } from "react";
 
 import { RabbitMQAlert } from "@/services/alerts/alert.interfaces";
 

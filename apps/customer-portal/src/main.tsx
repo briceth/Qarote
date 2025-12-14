@@ -3,9 +3,8 @@ import "./index.css";
 import { createRoot } from "react-dom/client";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import { logger } from "./lib/logger";
-
 import App from "./App.tsx";
+import { logger } from "./lib/logger";
 
 // Get Google OAuth client ID from environment variables
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
