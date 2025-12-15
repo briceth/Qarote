@@ -7,12 +7,13 @@ import { zValidator } from "@hono/zod-validator";
 import { UserPlan } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
 import { licenseService } from "@/services/license/license.service";
 import { stripe, StripeService } from "@/services/stripe/stripe.service";
+
+import { authenticate } from "@/middlewares/auth";
 
 import { purchaseLicenseSchema } from "@/schemas/portal";
 

@@ -1,9 +1,11 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+
+import { authenticate } from "@/middlewares/auth";
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
 import {
   CreateSlackConfigSchema,
@@ -15,6 +17,9 @@ const slackController = new Hono();
 // All Slack routes require authentication
 slackController.use("*", authenticate);
 
+// All Slack routes require workspace access
+slackController.use("/workspaces/:workspaceId/*", checkWorkspaceAccess);
+
 /**
  * Slack API routes
  * Base path: /api/slack/workspaces/:workspaceId/slack-configs
@@ -24,12 +29,6 @@ slackController.use("*", authenticate);
 // List all Slack configurations for a workspace
 slackController.get("/workspaces/:workspaceId/slack-configs", async (c) => {
   const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify workspace access
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     // Verify workspace exists
@@ -59,12 +58,6 @@ slackController.get("/workspaces/:workspaceId/slack-configs", async (c) => {
 slackController.get("/workspaces/:workspaceId/slack-configs/:id", async (c) => {
   const workspaceId = c.req.param("workspaceId");
   const slackConfigId = c.req.param("id");
-  const user = c.get("user");
-
-  // Verify workspace access
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     const slackConfig = await prisma.slackConfig.findFirst({
@@ -92,13 +85,7 @@ slackController.post(
   zValidator("json", CreateSlackConfigSchema),
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
     const data = c.req.valid("json");
-
-    // Verify workspace access
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify workspace exists
@@ -136,13 +123,7 @@ slackController.put(
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
     const slackConfigId = c.req.param("id");
-    const user = c.get("user");
     const data = c.req.valid("json");
-
-    // Verify workspace access
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify Slack config exists and belongs to workspace
@@ -183,12 +164,6 @@ slackController.delete(
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
     const slackConfigId = c.req.param("id");
-    const user = c.get("user");
-
-    // Verify workspace access
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify Slack config exists and belongs to workspace

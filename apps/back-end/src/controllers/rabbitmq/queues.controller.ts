@@ -2,7 +2,6 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 import { RabbitMQAmqpClient } from "@/core/rabbitmq/AmqpClient";
@@ -14,6 +13,8 @@ import {
   getUserResourceCounts,
   validateQueueCreationOnServer,
 } from "@/services/plan/plan.service";
+
+import { authorize } from "@/middlewares/auth";
 
 import {
   CreateQueueSchema,
@@ -36,6 +37,7 @@ import { createErrorResponse } from "../shared";
 import {
   createAmqpClient,
   createRabbitMQClient,
+  getWorkspaceId,
   verifyServerAccess,
 } from "./shared";
 
@@ -50,13 +52,8 @@ queuesController.get(
   zValidator("query", VHostOptionalQuerySchema),
   async (c) => {
     const id = c.req.param("id");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify the server belongs to the user's workspace and get over-limit info
@@ -194,13 +191,7 @@ queuesController.get(
   async (c) => {
     const id = c.req.param("id");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     // Verify the server belongs to the user's workspace and get over-limit info
     const server = await verifyServerAccess(id, workspaceId, true);
@@ -241,13 +232,7 @@ queuesController.get(
   async (c) => {
     const id = c.req.param("id");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     const server = await verifyServerAccess(id, workspaceId, true);
 
@@ -297,13 +282,7 @@ queuesController.get(
   async (c) => {
     const id = c.req.param("id");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     const server = await verifyServerAccess(id, workspaceId, true);
 
@@ -354,14 +333,9 @@ queuesController.post(
   zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const serverId = c.req.param("serverId");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const queueData = c.req.valid("json");
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access and get server details
@@ -470,13 +444,7 @@ queuesController.delete(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     try {
       // Verify server access
@@ -519,13 +487,7 @@ queuesController.delete(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     try {
       // Verify server access
@@ -614,13 +576,8 @@ queuesController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     let amqpClient: RabbitMQAmqpClient | null = null;
 
@@ -681,13 +638,8 @@ queuesController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     let amqpClient: RabbitMQAmqpClient | null = null;
 
@@ -754,13 +706,7 @@ queuesController.get(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     let amqpClient: RabbitMQAmqpClient | null = null;
 

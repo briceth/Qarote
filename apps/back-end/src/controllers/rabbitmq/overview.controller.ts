@@ -13,7 +13,11 @@ import { OverviewResponse } from "@/types/api-responses";
 import { OverviewMapper } from "@/mappers/rabbitmq/OverviewMapper";
 
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createRabbitMQClient,
+  getWorkspaceId,
+  verifyServerAccess,
+} from "./shared";
 
 const overviewController = new Hono();
 
@@ -23,14 +27,8 @@ const overviewController = new Hono();
  */
 overviewController.get("/servers/:id/overview", async (c) => {
   const id = c.req.param("id");
-  const workspaceId = c.req.param("workspaceId");
-
+  const workspaceId = getWorkspaceId(c);
   const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     // Verify the server belongs to the user's workspace and get over-limit info
@@ -53,7 +51,7 @@ overviewController.get("/servers/:id/overview", async (c) => {
 
     // Add warning information if server is over the queue limit
     // Note: We still need the original overview for queue_totals calculation
-    if (server.isOverQueueLimit && server.workspace) {
+    if (server.isOverQueueLimit && server.workspace && user) {
       const userPlan = await getUserPlan(user.id);
       const warningMessage = getOverLimitWarningMessage(
         userPlan,

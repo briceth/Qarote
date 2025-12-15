@@ -26,7 +26,7 @@ import {
 } from "@/types/api-responses";
 
 import { createErrorResponse } from "../shared";
-import { verifyServerAccess } from "./shared";
+import { getWorkspaceId, verifyServerAccess } from "./shared";
 
 const alertsController = new Hono();
 
@@ -40,14 +40,9 @@ alertsController.get(
   zValidator("query", AlertsQuerySchema),
   async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const query = c.req.valid("query");
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       const server = await verifyServerAccess(id, workspaceId);
@@ -156,14 +151,8 @@ alertsController.get(
   zValidator("query", AlertsQuerySchema),
   async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const query = c.req.valid("query");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       const server = await verifyServerAccess(id, workspaceId);
@@ -216,13 +205,7 @@ alertsController.get(
   zValidator("param", ServerParamSchema),
   async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     try {
       // Verify server access
@@ -239,7 +222,7 @@ alertsController.get(
       };
 
       return c.json(response);
-    } catch (error: unknown) {
+    } catch (error) {
       logger.error({ error }, "Error getting health check");
       return createErrorResponse(c, error, 500, "Failed to get health check");
     }
@@ -251,13 +234,7 @@ alertsController.get(
  * GET /workspaces/:workspaceId/thresholds
  */
 alertsController.get("/thresholds", async (c) => {
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
+  const workspaceId = getWorkspaceId(c);
 
   try {
     // Verify workspace exists
@@ -279,7 +256,7 @@ alertsController.get("/thresholds", async (c) => {
       canModify,
       defaults: alertService.getDefaultThresholds(),
     });
-  } catch (error: unknown) {
+  } catch (error) {
     logger.error({ error }, "Error getting thresholds");
     return createErrorResponse(c, error, 500, "Failed to get thresholds");
   }
@@ -293,14 +270,8 @@ alertsController.put(
   "/thresholds",
   zValidator("json", UpdateThresholdsRequestSchema),
   async (c) => {
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
+    const workspaceId = getWorkspaceId(c);
     const { thresholds } = c.req.valid("json");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify workspace exists
@@ -337,7 +308,7 @@ alertsController.put(
         thresholds: updatedThresholds,
       };
       return c.json(response);
-    } catch (error: unknown) {
+    } catch (error) {
       logger.error({ error }, "Error updating thresholds");
       return createErrorResponse(c, error, 500, "Failed to update thresholds");
     }
@@ -349,13 +320,7 @@ alertsController.put(
  * GET /workspaces/:workspaceId/alert-settings
  */
 alertsController.get("/alert-settings", async (c) => {
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
+  const workspaceId = getWorkspaceId(c);
 
   try {
     const workspace = await prisma.workspace.findUnique({
@@ -417,7 +382,7 @@ alertsController.put(
   "/alert-settings",
   zValidator("json", UpdateAlertNotificationSettingsRequestSchema),
   async (c) => {
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
     const {
       emailNotificationsEnabled,
@@ -427,11 +392,6 @@ alertsController.put(
       browserNotificationsEnabled,
       browserNotificationSeverities,
     } = c.req.valid("json");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Check if user is workspace owner (only owners can update settings)

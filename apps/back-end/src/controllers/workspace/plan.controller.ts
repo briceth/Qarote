@@ -25,7 +25,8 @@ planRoutes.get("/plans", async (c) => {
   }
 });
 
-// Get current user's plan features and usage (USER - can only see their own subscription plan)
+// Get current user's plan features and usage
+// Always uses workspace owner's subscription plan for workspace features
 planRoutes.get("/current/plan", async (c) => {
   const user = c.get("user");
 
@@ -44,7 +45,7 @@ planRoutes.get("/current/plan", async (c) => {
           include: {
             _count: {
               select: {
-                users: true,
+                members: true,
                 servers: true,
               },
             },
@@ -57,9 +58,26 @@ planRoutes.get("/current/plan", async (c) => {
       return c.json({ error: "User not found" }, 404);
     }
 
-    // Get plan features from user's subscription
-    const userPlan = userWithSubscription.subscription?.plan || UserPlan.FREE;
-    const planFeatures = getPlanFeatures(userPlan);
+    // Always use workspace owner's subscription plan for workspace features
+    let workspacePlan: UserPlan = UserPlan.FREE;
+    const currentWorkspace = userWithSubscription.workspace;
+
+    if (currentWorkspace?.ownerId) {
+      const ownerSubscription = await prisma.subscription.findUnique({
+        where: { userId: currentWorkspace.ownerId },
+        select: {
+          plan: true,
+          status: true,
+        },
+      });
+
+      if (ownerSubscription) {
+        workspacePlan = ownerSubscription.plan;
+      }
+    }
+
+    // Use workspace plan for all workspace features
+    const planFeatures = getPlanFeatures(workspacePlan);
 
     // Count owned workspaces for workspace usage calculation
     const ownedWorkspaceCount = await prisma.workspace.count({
@@ -67,8 +85,7 @@ planRoutes.get("/current/plan", async (c) => {
     });
 
     // Get current workspace counts
-    const currentWorkspace = userWithSubscription.workspace;
-    const workspaceUsers = currentWorkspace?._count.users || 0;
+    const workspaceUsers = currentWorkspace?._count.members || 0;
     const workspaceServers = currentWorkspace?._count.servers || 0;
 
     // Calculate usage percentages and limits
@@ -116,7 +133,7 @@ planRoutes.get("/current/plan", async (c) => {
       user: {
         id: userWithSubscription.id,
         email: userWithSubscription.email,
-        plan: userPlan,
+        plan: workspacePlan, // Always return workspace plan
         subscriptionStatus: userWithSubscription.subscription?.status || null,
       },
       workspace: currentWorkspace

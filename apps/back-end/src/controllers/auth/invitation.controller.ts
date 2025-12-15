@@ -1,10 +1,11 @@
 import { zValidator } from "@hono/zod-validator";
-import { InvitationStatus } from "@prisma/client";
+import { InvitationStatus, UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
 import { generateToken, hashPassword, SafeUser } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+import { ensureWorkspaceMember } from "@/core/workspace-access";
 
 import { AcceptInvitationSchema } from "@/schemas/auth";
 
@@ -50,17 +51,17 @@ invitationController.post(
         where: { email: invitation.email },
       });
 
-      const _isNewUser = !user; // Track if this is a new user
-
       // Transaction to handle user creation/update and invitation acceptance
       const result = await prisma.$transaction(async (tx) => {
         if (user) {
-          // Update existing user's workspace
+          // Update existing user's workspace (but NOT their global role)
+          // The workspace-specific role is stored in WorkspaceMember.role
           user = await tx.user.update({
             where: { id: user.id },
             data: {
               workspaceId: invitation.workspaceId,
-              role: invitation.role,
+              // Do NOT update User.role - it's for global admin access only
+              // Workspace-specific role is stored in WorkspaceMember.role
             },
           });
         } else {
@@ -79,11 +80,22 @@ invitationController.post(
               firstName,
               lastName,
               workspaceId: invitation.workspaceId,
-              role: invitation.role,
+              role: UserRole.USER, // Default global role - workspace-specific role is in WorkspaceMember
+              isActive: true,
+              emailVerified: true, // Auto-verify since they came from invitation
+              emailVerifiedAt: new Date(),
               lastLogin: new Date(),
             },
           });
         }
+
+        // Add user to WorkspaceMember table
+        await ensureWorkspaceMember(
+          user.id,
+          invitation.workspaceId,
+          invitation.role,
+          tx
+        );
 
         // Update invitation status
         await tx.invitation.update({

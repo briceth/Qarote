@@ -2,7 +2,6 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authenticate, authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
@@ -15,6 +14,9 @@ import {
   PlanValidationError,
   validateUserInvitation,
 } from "@/services/plan/plan.service";
+
+import { authenticate, authorize } from "@/middlewares/auth";
+import { hasWorkspaceAccess } from "@/middlewares/workspace";
 
 import { inviteUserSchema } from "@/schemas/invitation";
 
@@ -110,8 +112,10 @@ invitationController.post(
           id: true,
           name: true,
           ownerId: true,
-          users: {
-            select: { id: true },
+          _count: {
+            select: {
+              members: true,
+            },
           },
         },
       });
@@ -143,7 +147,7 @@ invitationController.post(
       try {
         validateUserInvitation(
           plan,
-          workspace.users.length,
+          workspace._count.members,
           pendingInvitations
         );
       } catch (validationError) {
@@ -154,7 +158,7 @@ invitationController.post(
             planLimits: {
               userLimit: getUserLimitText(plan),
               invitationLimit: getInvitationLimitText(plan),
-              currentUsers: workspace.users.length,
+              currentUsers: workspace._count.members,
               pendingInvitations,
             },
           },
@@ -163,18 +167,24 @@ invitationController.post(
       }
 
       // Check if user is already in workspace or already invited
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          email,
-          workspaceId: workspace.id,
-        },
+      // First, find the user by email
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
       });
 
+      // If user exists, check if they're already a member via WorkspaceMember or owner
       if (existingUser) {
-        return c.json(
-          { error: "User is already a member of this workspace" },
-          400
+        const isMember = await hasWorkspaceAccess(
+          existingUser.id,
+          workspace.id
         );
+        if (isMember) {
+          return c.json(
+            { error: "User is already a member of this workspace" },
+            400
+          );
+        }
       }
 
       const existingInvitation = await prisma.invitation.findFirst({

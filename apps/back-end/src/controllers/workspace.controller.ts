@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
+import { authenticate } from "@/middlewares/auth";
 
 import coreRoutes from "./workspace/core.controller";
 import dataRoutes from "./workspace/data.controller";

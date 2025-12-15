@@ -4,6 +4,10 @@ import { Hono } from "hono";
 
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+import {
+  ensureWorkspaceMember,
+  getUserWorkspaceRole,
+} from "@/core/workspace-access";
 
 import {
   canUserAddWorkspaceWithCount,
@@ -11,6 +15,8 @@ import {
   PlanLimitExceededError,
   validateWorkspaceCreation,
 } from "@/services/plan/plan.service";
+
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
 import {
   CreateWorkspaceSchema,
@@ -24,29 +30,20 @@ workspaceManagementRoutes.get("/workspaces", async (c) => {
   const user = c.get("user");
 
   try {
-    // Get workspaces owned by the user
-    const ownedWorkspaces = await prisma.workspace.findMany({
-      where: { ownerId: user.id },
-      include: {
-        _count: {
-          select: {
-            users: true,
-            servers: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    // Get workspaces where user is a member (through invitations)
-    const memberWorkspaces = await prisma.workspace.findMany({
+    // Get all workspaces where user is a member (via WorkspaceMember or owner)
+    // SECURITY: We only check ownerId and WorkspaceMember relationships.
+    // We do NOT use user.workspaceId for access control, as it could be set
+    // to a workspace the user doesn't actually have access to.
+    const allUserWorkspaces = await prisma.workspace.findMany({
       where: {
-        AND: [
-          { ownerId: { not: user.id } },
+        OR: [
+          // Workspaces owned by the user
+          { ownerId: user.id },
+          // Workspaces where user is a member (via WorkspaceMember)
           {
-            users: {
+            members: {
               some: {
-                id: user.id,
+                userId: user.id,
               },
             },
           },
@@ -55,7 +52,7 @@ workspaceManagementRoutes.get("/workspaces", async (c) => {
       include: {
         _count: {
           select: {
-            users: true,
+            members: true,
             servers: true,
           },
         },
@@ -63,19 +60,22 @@ workspaceManagementRoutes.get("/workspaces", async (c) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Format the response
-    const workspaces = [
-      ...ownedWorkspaces.map((workspace) => ({
-        ...workspace,
-        isOwner: true,
-        userRole: UserRole.ADMIN, // Owner has admin role
-      })),
-      ...memberWorkspaces.map((workspace) => ({
-        ...workspace,
-        isOwner: false,
-        userRole: user.role, // Use user's role in the workspace
-      })),
-    ];
+    // Format the response with user role from WorkspaceMember
+    const workspaces = await Promise.all(
+      allUserWorkspaces.map(async (workspace) => {
+        const isOwner = workspace.ownerId === user.id;
+        const userRole = isOwner
+          ? UserRole.ADMIN
+          : (await getUserWorkspaceRole(user.id, workspace.id)) ||
+            UserRole.USER;
+
+        return {
+          ...workspace,
+          isOwner,
+          userRole,
+        };
+      })
+    );
 
     return c.json({ workspaces });
   } catch (error) {
@@ -203,12 +203,15 @@ workspaceManagementRoutes.post(
           include: {
             _count: {
               select: {
-                users: true,
+                members: true,
                 servers: true,
               },
             },
           },
         });
+
+        // Add owner to WorkspaceMember table with ADMIN role
+        await ensureWorkspaceMember(user.id, workspace.id, UserRole.ADMIN, tx);
 
         // If this is the user's first workspace (they don't have a workspaceId), assign them to it
         if (!user.workspaceId) {
@@ -303,7 +306,7 @@ workspaceManagementRoutes.put(
         include: {
           _count: {
             select: {
-              users: true,
+              members: true,
               servers: true,
             },
           },
@@ -386,55 +389,47 @@ workspaceManagementRoutes.delete("/workspaces/:workspaceId", async (c) => {
 });
 
 // Switch active workspace
-workspaceManagementRoutes.post("/workspaces/:workspaceId/switch", async (c) => {
-  const user = c.get("user");
-  const workspaceId = c.req.param("workspaceId");
+workspaceManagementRoutes.post(
+  "/workspaces/:workspaceId/switch",
+  checkWorkspaceAccess,
+  async (c) => {
+    const user = c.get("user");
+    const workspaceId = c.req.param("workspaceId");
 
-  try {
-    // Check if user has access to this workspace (owner or member)
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: workspaceId,
-        OR: [
-          { ownerId: user.id },
-          {
-            users: {
-              some: {
-                id: user.id,
-              },
-            },
-          },
-        ],
-      },
-    });
+    try {
+      // Verify workspace exists
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+      });
 
-    if (!workspace) {
-      return c.json({ error: "Workspace not found or access denied" }, 404);
+      if (!workspace) {
+        return c.json({ error: "Workspace not found" }, 404);
+      }
+
+      // Update user's active workspace
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { workspaceId },
+      });
+
+      logger.info(
+        {
+          userId: user.id,
+          newWorkspaceId: workspaceId,
+          previousWorkspaceId: user.workspaceId,
+        },
+        "User switched workspace"
+      );
+
+      return c.json({
+        message: "Workspace switched successfully",
+        workspaceId,
+      });
+    } catch (error) {
+      logger.error({ error }, "Error switching workspace:");
+      return c.json({ error: "Failed to switch workspace" }, 500);
     }
-
-    // Update user's active workspace
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { workspaceId },
-    });
-
-    logger.info(
-      {
-        userId: user.id,
-        newWorkspaceId: workspaceId,
-        previousWorkspaceId: user.workspaceId,
-      },
-      "User switched workspace"
-    );
-
-    return c.json({
-      message: "Workspace switched successfully",
-      workspaceId,
-    });
-  } catch (error) {
-    logger.error({ error }, "Error switching workspace:");
-    return c.json({ error: "Failed to switch workspace" }, 500);
   }
-});
+);
 
 export default workspaceManagementRoutes;

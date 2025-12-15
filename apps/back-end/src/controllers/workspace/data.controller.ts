@@ -1,23 +1,24 @@
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authorize, checkWorkspaceAccess } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
+import { authorize } from "@/middlewares/auth";
 import { strictRateLimiter } from "@/middlewares/rateLimiter";
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
 const dataRoutes = new Hono();
 
 // Export all workspace data (ADMIN ONLY)
 dataRoutes.get(
-  "/:id/export",
+  "/:workspaceId/export",
   strictRateLimiter,
   authorize([UserRole.ADMIN]),
   checkWorkspaceAccess,
   async (c) => {
     try {
-      const id = c.req.param("id");
+      const id = c.req.param("workspaceId");
 
       // Get workspace basic info
       const workspace = await prisma.workspace.findUnique({
@@ -33,19 +34,22 @@ dataRoutes.get(
       const fullWorkspace = await prisma.workspace.findUnique({
         where: { id },
         include: {
-          users: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-              role: true,
-              createdAt: true,
-              lastLogin: true,
-              subscription: {
+          members: {
+            include: {
+              user: {
                 select: {
-                  plan: true,
-                  status: true,
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                  createdAt: true,
+                  lastLogin: true,
+                  subscription: {
+                    select: {
+                      plan: true,
+                      status: true,
+                    },
+                  },
                 },
               },
             },
@@ -69,12 +73,23 @@ dataRoutes.get(
       }
 
       // Find workspace owner to get plan information
-      const owner = fullWorkspace.users.find(
-        (user) => user.id === fullWorkspace.ownerId
+      const ownerMember = fullWorkspace.members.find(
+        (member) => member.userId === fullWorkspace.ownerId
       );
-      const ownerPlan = owner?.subscription?.plan || "FREE";
+      const ownerPlan = ownerMember?.user.subscription?.plan || "FREE";
 
-      // Prepare export data
+      // Prepare export data - map members to users format for backward compatibility
+      const users = fullWorkspace.members.map((member) => ({
+        id: member.user.id,
+        email: member.user.email,
+        firstName: member.user.firstName,
+        lastName: member.user.lastName,
+        role: member.role, // Use role from WorkspaceMember
+        createdAt: member.user.createdAt,
+        lastLogin: member.user.lastLogin,
+        subscription: member.user.subscription,
+      }));
+
       const exportData = {
         workspace: {
           id: fullWorkspace.id,
@@ -83,7 +98,7 @@ dataRoutes.get(
           ownerPlan: ownerPlan,
           createdAt: fullWorkspace.createdAt,
         },
-        users: fullWorkspace.users,
+        users,
         servers: fullWorkspace.servers,
         alerts: fullWorkspace.alerts,
         alertRules: fullWorkspace.alertRules,
@@ -103,7 +118,7 @@ dataRoutes.get(
       return c.json(exportData);
     } catch (error) {
       logger.error(
-        { error, workspaceId: c.req.param("id") },
+        { error, workspaceId: c.req.param("workspaceId") },
         "Error exporting data for workspace"
       );
       return c.json({ error: "Failed to export workspace data" }, 500);
@@ -113,12 +128,12 @@ dataRoutes.get(
 
 // Delete all workspace data (ADMIN ONLY)
 dataRoutes.delete(
-  "/:id/data",
+  "/:workspaceId/data",
   authorize([UserRole.ADMIN]),
   checkWorkspaceAccess,
   async (c) => {
     try {
-      const id = c.req.param("id");
+      const id = c.req.param("workspaceId");
 
       // Use a transaction to delete all related data
       await prisma.$transaction(async (tx) => {
@@ -158,10 +173,11 @@ dataRoutes.delete(
         });
 
         // Clean up temporary cache for all users in the workspace
-        const workspaceUsers = await tx.user.findMany({
+        const workspaceMembers = await tx.workspaceMember.findMany({
           where: { workspaceId: id },
-          select: { id: true },
+          select: { userId: true },
         });
+        const workspaceUsers = workspaceMembers.map((m) => ({ id: m.userId }));
 
         // Delete cache entries for all workspace users
         for (const user of workspaceUsers) {
@@ -170,6 +186,11 @@ dataRoutes.delete(
             WHERE key LIKE ${`%${user.id}%`}
           `;
         }
+
+        // Delete workspace members (must be after cache cleanup since we need user IDs)
+        await tx.workspaceMember.deleteMany({
+          where: { workspaceId: id },
+        });
       });
 
       return c.json({
@@ -179,7 +200,7 @@ dataRoutes.delete(
       });
     } catch (error) {
       logger.error(
-        { error, workspaceId: c.req.param("id") },
+        { error, workspaceId: c.req.param("workspaceId") },
         "Error deleting data for workspace"
       );
       return c.json({ error: "Failed to delete workspace data" }, 500);

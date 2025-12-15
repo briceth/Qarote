@@ -2,7 +2,6 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authenticate, authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 import { RabbitMQClient } from "@/core/rabbitmq";
@@ -16,7 +15,8 @@ import {
   validateServerCreation,
 } from "@/services/plan/plan.service";
 
-import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { authenticate, authorize } from "@/middlewares/auth";
+import { planValidationMiddleware } from "@/middlewares/planValidation";
 
 import {
   CreateServerSchema,

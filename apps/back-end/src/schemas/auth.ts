@@ -64,6 +64,16 @@ export const AcceptInvitationWithRegistrationSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
 });
 
+// Schema for Google OAuth request
+export const GoogleAuthSchema = z.object({
+  credential: z.string(),
+});
+
+// Schema for Google OAuth invitation acceptance
+export const GoogleInvitationAcceptSchema = z.object({
+  credential: z.string(),
+});
+
 // Types derived from schemas
 export type RegisterUserInput = z.infer<typeof RegisterUserSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
@@ -77,4 +87,8 @@ export type InviteUserInput = z.infer<typeof InviteUserSchema>;
 export type AcceptInvitationInput = z.infer<typeof AcceptInvitationSchema>;
 export type AcceptInvitationWithRegistrationInput = z.infer<
   typeof AcceptInvitationWithRegistrationSchema
+>;
+export type GoogleAuthInput = z.infer<typeof GoogleAuthSchema>;
+export type GoogleInvitationAcceptInput = z.infer<
+  typeof GoogleInvitationAcceptSchema
 >;

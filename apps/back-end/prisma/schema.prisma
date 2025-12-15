@@ -208,6 +208,7 @@ model User {
   invitationsReceived                       Invitation[]             @relation("Invitation_invitedUserIdToUser")
   passwordResets                             PasswordReset[]
   workspace                                 Workspace?               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceMembers                           WorkspaceMember[]       @relation("WorkspaceMembers")
   payments                                   Payment[]
   subscription                               Subscription?
 }
@@ -232,6 +233,7 @@ model Workspace {
   invitations                   Invitation[]
   servers                       RabbitMQServer[]
   users                         User[]
+  members                       WorkspaceMember[]                  @relation("WorkspaceMembers")
   alertThresholds              WorkspaceAlertThresholds?
   licenses                      License[]
   resolvedAlerts                ResolvedAlert[]
@@ -262,6 +264,21 @@ model WorkspaceAlertThresholds {
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
   workspace                   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  userId      String
+  workspaceId String
+  role        UserRole
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation("WorkspaceMembers", fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation("WorkspaceMembers", fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([userId])
+  @@index([workspaceId])
 }
 
 model License {

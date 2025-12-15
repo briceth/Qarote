@@ -1,16 +1,13 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import {
-  authenticate,
-  comparePassword,
-  generateToken,
-  SafeUser,
-} from "@/core/auth";
+import { comparePassword, generateToken, SafeUser } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
 import { setSentryUser } from "@/services/sentry";
+
+import { authenticate } from "@/middlewares/auth";
 
 import { LoginSchema } from "@/schemas/auth";
 

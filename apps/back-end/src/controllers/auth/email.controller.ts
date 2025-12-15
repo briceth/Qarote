@@ -1,13 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import { authenticate, comparePassword } from "@/core/auth";
+import { comparePassword } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
 import { auditService } from "@/services/audit.service";
 import { EmailVerificationService } from "@/services/email/email-verification.service";
 
+import { authenticate } from "@/middlewares/auth";
 import { strictRateLimiter } from "@/middlewares/rateLimiter";
 
 import { EmailChangeRequestSchema } from "@/schemas/auth";

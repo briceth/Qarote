@@ -1,9 +1,11 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+
+import { authenticate } from "@/middlewares/auth";
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
 import { CreateWebhookSchema, UpdateWebhookSchema } from "@/schemas/webhook";
 
@@ -11,6 +13,9 @@ const webhookController = new Hono();
 
 // All webhook routes require authentication
 webhookController.use("*", authenticate);
+
+// All webhook routes require workspace access
+webhookController.use("/workspaces/:workspaceId/*", checkWorkspaceAccess);
 
 /**
  * Webhook API routes
@@ -21,12 +26,6 @@ webhookController.use("*", authenticate);
 // List all webhooks for a workspace
 webhookController.get("/workspaces/:workspaceId/webhooks", async (c) => {
   const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify workspace access
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     // Verify workspace exists
@@ -56,12 +55,6 @@ webhookController.get("/workspaces/:workspaceId/webhooks", async (c) => {
 webhookController.get("/workspaces/:workspaceId/webhooks/:id", async (c) => {
   const workspaceId = c.req.param("workspaceId");
   const webhookId = c.req.param("id");
-  const user = c.get("user");
-
-  // Verify workspace access
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     const webhook = await prisma.webhook.findFirst({
@@ -89,13 +82,7 @@ webhookController.post(
   zValidator("json", CreateWebhookSchema),
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
     const data = c.req.valid("json");
-
-    // Verify workspace access
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify workspace exists
@@ -134,13 +121,7 @@ webhookController.put(
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
     const webhookId = c.req.param("id");
-    const user = c.get("user");
     const data = c.req.valid("json");
-
-    // Verify workspace access
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify webhook exists and belongs to workspace
@@ -178,12 +159,6 @@ webhookController.put(
 webhookController.delete("/workspaces/:workspaceId/webhooks/:id", async (c) => {
   const workspaceId = c.req.param("workspaceId");
   const webhookId = c.req.param("id");
-  const user = c.get("user");
-
-  // Verify workspace access
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     // Verify webhook exists and belongs to workspace

@@ -2,9 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authorize, checkWorkspaceAccess } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+
+import { authorize } from "@/middlewares/auth";
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
 import {
   CreateWorkspaceSchema,
@@ -20,7 +22,7 @@ coreRoutes.get("/", authorize([UserRole.ADMIN]), async (c) => {
       include: {
         _count: {
           select: {
-            users: true,
+            members: true,
             servers: true,
           },
         },
@@ -49,7 +51,7 @@ coreRoutes.get("/current", async (c) => {
       include: {
         _count: {
           select: {
-            users: true,
+            members: true,
             servers: true,
           },
         },
@@ -68,22 +70,16 @@ coreRoutes.get("/current", async (c) => {
 });
 
 // Get specific workspace by ID
-coreRoutes.get("/:id", async (c) => {
-  const id = c.req.param("id");
-  const user = c.get("user");
+coreRoutes.get("/:workspaceId", checkWorkspaceAccess, async (c) => {
+  const id = c.req.param("workspaceId");
 
   try {
-    // Check if user has access to this workspace
-    if (user.role !== UserRole.ADMIN && user.workspaceId !== id) {
-      return c.json({ error: "Access denied" }, 403);
-    }
-
     const workspace = await prisma.workspace.findUnique({
       where: { id },
       include: {
         _count: {
           select: {
-            users: true,
+            members: true,
             servers: true,
           },
         },
@@ -124,13 +120,13 @@ coreRoutes.post(
 
 // Update workspace (ADMIN ONLY)
 coreRoutes.put(
-  "/:id",
+  "/:workspaceId",
   authorize([UserRole.ADMIN]),
   checkWorkspaceAccess,
   zValidator("json", UpdateWorkspaceSchema),
   async (c) => {
     try {
-      const id = c.req.param("id");
+      const id = c.req.param("workspaceId");
       const data = c.req.valid("json");
 
       const workspace = await prisma.workspace.update({
@@ -140,7 +136,10 @@ coreRoutes.put(
 
       return c.json({ workspace });
     } catch (error) {
-      logger.error({ error }, `Error updating workspace ${c.req.param("id")}:`);
+      logger.error(
+        { error },
+        `Error updating workspace ${c.req.param("workspaceId")}:`
+      );
       return c.json({ error: "Failed to update workspace" }, 500);
     }
   }
@@ -148,12 +147,12 @@ coreRoutes.put(
 
 // Delete workspace (ADMIN ONLY)
 coreRoutes.delete(
-  "/:id",
+  "/:workspaceId",
   authorize([UserRole.ADMIN]),
   checkWorkspaceAccess,
   async (c) => {
     try {
-      const id = c.req.param("id");
+      const id = c.req.param("workspaceId");
 
       await prisma.workspace.delete({
         where: { id },
@@ -161,7 +160,10 @@ coreRoutes.delete(
 
       return c.json({ message: "Workspace deleted successfully" });
     } catch (error) {
-      logger.error({ error }, `Error deleting workspace ${c.req.param("id")}:`);
+      logger.error(
+        { error },
+        `Error deleting workspace ${c.req.param("workspaceId")}:`
+      );
       return c.json({ error: "Failed to delete workspace" }, 500);
     }
   }

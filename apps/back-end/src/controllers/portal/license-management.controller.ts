@@ -5,10 +5,11 @@
 
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
 import { logger } from "@/core/logger";
 
 import { licenseService } from "@/services/license/license.service";
+
+import { authenticate } from "@/middlewares/auth";
 
 const licenseManagementController = new Hono();
 

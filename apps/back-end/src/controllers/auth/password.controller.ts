@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import { authenticate, comparePassword, hashPassword } from "@/core/auth";
+import { comparePassword, hashPassword } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
@@ -9,6 +9,7 @@ import { auditService } from "@/services/audit.service";
 import { passwordResetEmailService } from "@/services/email/password-reset-email.service";
 import { EncryptionService } from "@/services/encryption.service";
 
+import { authenticate } from "@/middlewares/auth";
 import { strictRateLimiter } from "@/middlewares/rateLimiter";
 
 import {
