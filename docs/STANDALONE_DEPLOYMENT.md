@@ -20,7 +20,7 @@ RabbitHQ can be deployed in two modes:
 
 ### 1. Purchase a License
 
-Visit the [Customer Portal](https://portal.rabbithq.io) to purchase a license:
+Visit the [Customer Portal](https://portal.qarote.io) to purchase a license:
 - Developer License: $29/month or $290/year
 - Enterprise License: $99/month or $990/year
 
@@ -47,7 +47,7 @@ Create `.env` files in `apps/back-end/` and `apps/front-end/` directories:
 # Required
 DEPLOYMENT_MODE=self-hosted
 LICENSE_KEY=your-license-key-here
-LICENSE_VALIDATION_URL=https://api.rabbithq.io
+LICENSE_VALIDATION_URL=https://api.qarote.io
 DATABASE_URL=postgres://postgres:changeme@postgres:5432/rabbit_dashboard
 JWT_SECRET=your-jwt-secret-min-32-chars
 ENCRYPTION_KEY=your-encryption-key-min-32-chars
@@ -91,7 +91,7 @@ The license is validated periodically (daily/weekly) with the RabbitHQ license s
 ### Required Configuration
 
 - `LICENSE_KEY`: Your license key from Customer Portal
-- `LICENSE_VALIDATION_URL`: URL for license validation (default: https://api.rabbithq.io)
+- `LICENSE_VALIDATION_URL`: URL for license validation (default: https://api.qarote.io)
 - `DATABASE_URL`: PostgreSQL connection string
 - `JWT_SECRET`: Secret for JWT tokens (min 32 characters)
 - `ENCRYPTION_KEY`: Key for encrypting credentials (min 32 characters)
@@ -162,7 +162,7 @@ For completely offline deployments:
 ## Support
 
 For more information:
-- Documentation: https://rabbithq.io/docs
-- Customer Portal: https://portal.rabbithq.io
-- Support: support@rabbithq.io
+- Documentation: https://qarote.io/docs
+- Customer Portal: https://portal.qarote.io
+- Support: support@qarote.io
 

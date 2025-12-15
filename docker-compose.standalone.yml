@@ -41,7 +41,7 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
       DEPLOYMENT_MODE: self-hosted
       LICENSE_KEY: ${LICENSE_KEY}
-      LICENSE_VALIDATION_URL: ${LICENSE_VALIDATION_URL:-https://api.rabbithq.io}
+      LICENSE_VALIDATION_URL: ${LICENSE_VALIDATION_URL:-https://api.qarote.io}
       # Optional services (can be disabled for air-gapped deployments)
       ENABLE_SENTRY: ${ENABLE_SENTRY:-false}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -56,7 +56,7 @@ services:
       ENABLE_OAUTH: ${ENABLE_OAUTH:-false}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
-      FROM_EMAIL: ${FROM_EMAIL:-noreply@rabbithq.com}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@qarote.io}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     depends_on:

@@ -14,7 +14,7 @@ This directory contains configuration files and examples for deploying RabbitHQ 
    - Update all required values (see below)
 
 3. **Purchase and activate a license:**
-   - Visit the Customer Portal at `portal.rabbithq.io`
+   - Visit the Customer Portal at `portal.qarote.io`
    - Purchase a license
    - Copy your license key
    - Set `LICENSE_KEY` in your backend `.env` file
@@ -34,7 +34,7 @@ This directory contains configuration files and examples for deploying RabbitHQ 
 
 **Mandatory:**
 - `LICENSE_KEY` - Your license key from the Customer Portal
-- `LICENSE_VALIDATION_URL` - URL to validate licenses (default: https://api.rabbithq.io)
+- `LICENSE_VALIDATION_URL` - URL to validate licenses (default: https://api.qarote.io)
 - `JWT_SECRET` - Secret for JWT tokens (min 32 characters)
 - `ENCRYPTION_KEY` - Key for encrypting credentials (min 32 characters)
 - `DATABASE_URL` - PostgreSQL connection string
@@ -70,5 +70,5 @@ For completely offline deployments:
 
 ## Support
 
-For more information, visit: https://rabbithq.io/docs/standalone
+For more information, visit: https://qarote.io/docs/standalone
 

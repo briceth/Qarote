@@ -156,7 +156,7 @@ export async function configureStagingApplicationServer(
     `sudo dokku config:set rabbithq ${Object.entries(envVars)
       .map(([key, value]) => `${key}="${value}"`)
       .join(" ")}`,
-    "sudo dokku domains:add rabbithq staging.rabbithq.io",
+    "sudo dokku domains:add rabbithq staging.qarote.io",
   ]);
 
   Logger.success("Staging application server configuration completed!");

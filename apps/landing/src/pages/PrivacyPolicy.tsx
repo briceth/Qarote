@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
       <SEO
         title="Privacy Policy - RabbitHQ"
         description="Privacy Policy for RabbitHQ - Learn how we collect, use, and protect your data."
-        url="https://rabbithq.io/privacy-policy"
+        url="https://qarote.io/privacy-policy"
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -219,7 +219,7 @@ const PrivacyPolicy = () => {
               </ul>
               <p>
                 To exercise these rights, please contact us at
-                privacy@rabbithq.io
+                privacy@qarote.io
               </p>
             </div>
           </section>
@@ -322,7 +322,7 @@ const PrivacyPolicy = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Email:</strong> support@rabbithq.io
+                  <strong>Email:</strong> support@qarote.io
                 </li>
                 <li>
                   <strong>Address:</strong> 229 rue Saint-Honoré, 75001, Paris,

@@ -9,7 +9,7 @@ const TermsOfService = () => {
       <SEO
         title="Terms of Service - RabbitHQ"
         description="Terms of Service for RabbitHQ - Learn about your rights and responsibilities when using our service."
-        url="https://rabbithq.io/terms-of-service"
+        url="https://qarote.io/terms-of-service"
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -408,7 +408,7 @@ const TermsOfService = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Email:</strong> support@rabbithq.io
+                  <strong>Email:</strong> support@qarote.io
                 </li>
                 <li>
                   <strong>Address:</strong> 229 rue Saint-Honoré, 75001, Paris,

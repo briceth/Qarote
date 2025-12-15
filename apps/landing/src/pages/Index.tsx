@@ -182,7 +182,7 @@ const Index = () => {
       <SEO
         title="RabbitHQ - Best RabbitMQ Monitoring & Management Interface"
         description="The best RabbitMQ monitoring and management interface for developers. Monitor queues, track performance, and manage your message broker with a modern dashboard. Cleaner than Management Plugin, simpler than Prometheus."
-        url="https://rabbithq.io"
+        url="https://qarote.io"
         keywords={[
           "RabbitMQ monitoring",
           "RabbitMQ management",
@@ -256,7 +256,7 @@ const Index = () => {
           },
           description:
             "The modern RabbitMQ management interface your team deserves. Cleaner than Management Plugin. Simpler than Prometheus. Cheaper than Cloud Solutions.",
-          screenshot: "https://rabbithq.io/new_social_card.png",
+          screenshot: "https://qarote.io/new_social_card.png",
           softwareVersion: "1.0",
           aggregateRating: {
             "@type": "AggregateRating",
@@ -591,7 +591,7 @@ const Index = () => {
                       <button
                         onClick={() => {
                           window.location.href =
-                            "https://app.rabbithq.io/auth/sign-up";
+                            "https://app.qarote.io/auth/sign-up";
                         }}
                         className="w-full bg-background border border-border rounded-lg p-3 flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
                       >
@@ -613,7 +613,7 @@ const Index = () => {
                       <button
                         onClick={() => {
                           window.location.href =
-                            "https://app.rabbithq.io/auth/sign-up";
+                            "https://app.qarote.io/auth/sign-up";
                         }}
                         className="w-full bg-background border border-border rounded-lg p-3 flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
                       >

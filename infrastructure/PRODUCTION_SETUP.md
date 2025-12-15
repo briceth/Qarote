@@ -159,8 +159,8 @@ NODE_ENV=production
 
 ### Domain Configuration
 
-- Primary: `rabbithq.io`
-- Secondary: `www.rabbithq.io`
+- Primary: `qarote.io`
+- Secondary: `www.qarote.io`
 
 ## 📊 Network Expansion Plan
 
@@ -245,7 +245,7 @@ dokku postgres:backup rabbithq-db backup-$(date +%Y%m%d)
 | **Server Size**     | cpx31 (larger)             | cpx21 (smaller)      |
 | **Database Access** | Private network only       | Public IP allowed    |
 | **Security**        | Enhanced firewall rules    | Basic configuration  |
-| **Domains**         | rabbithq.io + www          | staging.rabbithq.io  |
+| **Domains**         | qarote.io + www          | staging.qarote.io  |
 | **Credentials**     | GitHub secrets             | Direct configuration |
 
 ## 🚨 Important Notes

@@ -91,15 +91,15 @@ export function HelpSupport() {
 
   const handleEmailCopy = async () => {
     try {
-      await navigator.clipboard.writeText("support@rabbithq.io");
+      await navigator.clipboard.writeText("support@qarote.io");
       toast({
         title: "Email copied!",
-        description: "support@rabbithq.io has been copied to your clipboard.",
+        description: "support@qarote.io has been copied to your clipboard.",
       });
     } catch {
       toast({
         title: "Copy failed",
-        description: "Please manually copy: support@rabbithq.io",
+        description: "Please manually copy: support@qarote.io",
         variant: "destructive",
       });
     }
@@ -216,11 +216,11 @@ export function HelpSupport() {
                       <p className="text-sm font-medium">General Support</p>
                       <div className="flex items-center gap-2">
                         <a
-                          href="mailto:support@rabbithq.io?subject=RabbitHQ Support Request"
+                          href="mailto:support@qarote.io?subject=RabbitHQ Support Request"
                           className="text-sm text-blue-600 hover:text-blue-700"
                           onClick={handleEmailClick}
                         >
-                          support@rabbithq.io
+                          support@qarote.io
                         </a>
                         <Button
                           variant="outline"

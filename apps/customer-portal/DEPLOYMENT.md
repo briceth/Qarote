@@ -12,7 +12,7 @@ This document explains the necessary steps to deploy the RabbitHQ Customer Porta
 Set these environment variables in your Cloudflare Pages project:
 
 - `NODE_VERSION`: **24** (required - ensures Node.js 24 is used for builds)
-- `VITE_API_URL`: The URL of your RabbitHQ backend API (e.g., `https://api.rabbithq.io`)
+- `VITE_API_URL`: The URL of your RabbitHQ backend API (e.g., `https://api.qarote.io`)
 
 ## Build Configuration
 
@@ -38,7 +38,7 @@ The project includes a special build command for Cloudflare Pages which avoids i
 
 After deployment, you can configure a custom domain in Cloudflare Pages:
 
-- Recommended: `portal.rabbithq.io` or `customers.rabbithq.io`
+- Recommended: `portal.qarote.io` or `customers.qarote.io`
 
 ## Troubleshooting
 

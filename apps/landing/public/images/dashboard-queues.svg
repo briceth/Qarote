@@ -13,7 +13,7 @@
   
   <!-- URL Bar -->
   <rect x="100" y="12" width="200" height="16" fill="#E2E8F0" rx="8"/>
-  <text x="110" y="22" font-family="Arial, sans-serif" font-size="10" fill="#64748B">https://app.rabbithq.io</text>
+  <text x="110" y="22" font-family="Arial, sans-serif" font-size="10" fill="#64748B">https://app.qarote.io</text>
   
   <!-- Main Header -->
   <rect x="20" y="60" width="860" height="60" fill="white" rx="8" stroke="#E2E8F0"/>

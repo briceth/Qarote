@@ -83,5 +83,5 @@ jobs:
         run: |
           echo "🎉 Customer Portal deployed successfully to production!"
           echo "🌐 Production URL: https://rabbithq-customer-portal.pages.dev"
-          echo "🔗 Custom Domain: https://portal.rabbithq.io (if configured)"
+          echo "🔗 Custom Domain: https://portal.qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

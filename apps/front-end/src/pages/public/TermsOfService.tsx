@@ -189,10 +189,10 @@ export default function TermsOfService() {
             <p>
               If you have any questions about these Terms, please contact us at{" "}
               <a
-                href="mailto:support@rabbithq.io"
+                href="mailto:support@qarote.io"
                 className="text-blue-600 hover:underline"
               >
-                support@rabbithq.io
+                support@qarote.io
               </a>
               .
             </p>

@@ -147,7 +147,7 @@ To activate this license in your self-hosted RabbitHQ deployment:
 2. Set LICENSE_VALIDATION_URL to your RabbitHQ backend URL
 3. Restart your application
 
-For more information, visit: https://rabbithq.io/docs/standalone
+For more information, visit: https://qarote.io/docs/standalone
 `;
 
     return c.text(licenseContent, 200, {

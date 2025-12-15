@@ -19,4 +19,4 @@ User-agent: WhatsApp
 Allow: /
 
 # Sitemap location
-Sitemap: https://rabbithq.io/sitemap.xml
+Sitemap: https://qarote.io/sitemap.xml

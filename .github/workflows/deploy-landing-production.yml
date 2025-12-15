@@ -80,5 +80,5 @@ jobs:
         run: |
           echo "🎉 Landing page deployed successfully to production!"
           echo "🌐 Production URL: https://landing-rabbithq.pages.dev"
-          echo "🔗 Custom Domain: https://rabbithq.io (if configured)"
+          echo "🔗 Custom Domain: https://qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

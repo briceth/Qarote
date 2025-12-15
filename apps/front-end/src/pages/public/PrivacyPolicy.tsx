@@ -220,8 +220,8 @@ export default function PrivacyPolicy() {
                   If you have any questions about our privacy practices or need
                   help with your data settings, please contact our privacy team
                   at{" "}
-                  <a href="mailto:support@rabbithq.io" className="underline">
-                    support@rabbithq.io
+                  <a href="mailto:support@qarote.io" className="underline">
+                    support@qarote.io
                   </a>
                 </p>
               </div>
