@@ -2,7 +2,6 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import { Hono } from "hono";
-import { z } from "zod/v4";
 
 import { generateToken, SafeUser } from "@/core/auth";
 import { logger } from "@/core/logger";
@@ -11,6 +10,8 @@ import { prisma } from "@/core/prisma";
 import { notionService } from "@/services/integrations/notion.service";
 import { setSentryUser, trackSignUpError } from "@/services/sentry";
 
+import { GoogleAuthSchema } from "@/schemas/auth";
+
 import { googleConfig } from "@/config";
 import { isCloudMode } from "@/config/deployment";
 
@@ -18,11 +19,6 @@ const googleController = new Hono();
 
 // Initialize Google OAuth client
 const client = new OAuth2Client();
-
-// Schema for Google OAuth request
-const GoogleAuthSchema = z.object({
-  credential: z.string(),
-});
 
 // Google OAuth login endpoint
 googleController.post(

@@ -11,6 +11,12 @@ export {
   type PlanFeatures,
 } from "./features.service";
 
+// Error codes enum
+export enum PlanErrorCode {
+  PLAN_RESTRICTION = "PLAN_RESTRICTION",
+  PLAN_LIMIT_EXCEEDED = "PLAN_LIMIT_EXCEEDED",
+}
+
 // Error classes
 export class PlanValidationError extends Error {
   constructor(

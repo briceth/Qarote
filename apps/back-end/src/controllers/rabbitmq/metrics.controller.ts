@@ -16,7 +16,11 @@ import {
 import { NodeMapper, OverviewMapper } from "@/mappers/rabbitmq";
 
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createRabbitMQClient,
+  getWorkspaceId,
+  verifyServerAccess,
+} from "./shared";
 
 const metricsController = new Hono();
 
@@ -38,14 +42,7 @@ type TimeRange = keyof typeof timeRangeConfigs;
  */
 metricsController.get("/servers/:id/metrics", async (c) => {
   const id = c.req.param("id");
-  const workspaceId = c.req.param("workspaceId");
-
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
+  const workspaceId = getWorkspaceId(c);
 
   try {
     // Verify server access
@@ -104,15 +101,8 @@ metricsController.get("/servers/:id/metrics", async (c) => {
  */
 metricsController.get("/servers/:id/metrics/rates", async (c) => {
   const id = c.req.param("id");
-  const workspaceId = c.req.param("workspaceId");
+  const workspaceId = getWorkspaceId(c);
   const timeRange = (c.req.query("timeRange") as TimeRange) || "1m";
-
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     // Verify server access
@@ -203,14 +193,8 @@ metricsController.get(
   async (c) => {
     const id = c.req.param("id");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const timeRange = (c.req.query("timeRange") as TimeRange) || "1m";
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access

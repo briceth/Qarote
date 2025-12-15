@@ -1,6 +1,7 @@
 import { Context, Next } from "hono";
 
 import {
+  PlanErrorCode,
   PlanLimitExceededError,
   PlanValidationError,
 } from "@/services/plan/plan.service";
@@ -22,7 +23,7 @@ export function planValidationMiddleware() {
           {
             error: "Plan restriction",
             message: error.message,
-            code: "PLAN_RESTRICTION",
+            code: PlanErrorCode.PLAN_RESTRICTION,
             details: {
               feature: error.feature,
               currentPlan: error.currentPlan,
@@ -40,7 +41,7 @@ export function planValidationMiddleware() {
           {
             error: "Plan limit exceeded",
             message: error.message,
-            code: "PLAN_LIMIT_EXCEEDED",
+            code: PlanErrorCode.PLAN_LIMIT_EXCEEDED,
             details: {
               feature: error.feature,
               currentCount: error.currentCount,

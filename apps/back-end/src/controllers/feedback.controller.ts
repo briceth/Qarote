@@ -2,9 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authenticate, authorize, SafeUser } from "@/core/auth";
+import { SafeUser } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+
+import { authenticate, authorize } from "@/middlewares/auth";
 
 import { submitFeedbackSchema, updateFeedbackSchema } from "@/schemas/feedback";
 

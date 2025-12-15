@@ -2,8 +2,10 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authenticate, authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
+import { prisma } from "@/core/prisma";
+
+import { authenticate, authorize } from "@/middlewares/auth";
 
 import { ServerParamSchema } from "@/schemas/alerts";
 import {
@@ -30,19 +32,27 @@ usersController.get(
   async (c) => {
     try {
       const serverId = c.req.param("id");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
       const users = await client.getUsers();
 
       // Map users to API response format (only include fields used by front-end)
@@ -64,19 +74,27 @@ usersController.get(
     try {
       const serverId = c.req.param("id");
       const username = c.req.param("username");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
       const userDetails = await client.getUser(username);
       const permissions = await client.getUserPermissions(username);
 
@@ -103,19 +121,27 @@ usersController.post(
     try {
       const serverId = c.req.param("id");
       const userData = c.req.valid("json");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
       await client.createUser(userData.username, {
         password: userData.password,
         tags: userData.tags,
@@ -138,19 +164,27 @@ usersController.put(
       const serverId = c.req.param("id");
       const username = c.req.param("username");
       const updateData = c.req.valid("json");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
 
       const payload: {
         tags?: string;
@@ -220,19 +254,27 @@ usersController.delete(
     try {
       const serverId = c.req.param("id");
       const username = c.req.param("username");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
       await client.deleteUser(username);
 
       return c.json({ message: "User deleted successfully" });
@@ -252,19 +294,27 @@ usersController.put(
       const serverId = c.req.param("id");
       const username = c.req.param("username");
       const permissionData = c.req.valid("json");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
       await client.setUserPermissions(permissionData.vhost, username, {
         user: username,
         configure: permissionData.configure,
@@ -288,19 +338,27 @@ usersController.delete(
       const serverId = c.req.param("id");
       const username = c.req.param("username");
       const vhost = c.req.param("vhost");
-      const user = c.get("user");
 
-      if (!user.workspaceId) {
-        return c.json({ error: "No workspace assigned" }, 400);
+      // Get server to find its workspaceId
+      const server = await prisma.rabbitMQServer.findUnique({
+        where: { id: serverId },
+        select: { workspaceId: true },
+      });
+
+      if (!server || !server.workspaceId) {
+        return c.json({ error: "Server not found" }, 404);
       }
 
-      // Verify server access
-      const server = await verifyServerAccess(serverId, user.workspaceId);
-      if (!server) {
+      // Verify server belongs to the workspace
+      const verifiedServer = await verifyServerAccess(
+        serverId,
+        server.workspaceId
+      );
+      if (!verifiedServer) {
         return c.json({ error: "Server not found or access denied" }, 404);
       }
 
-      const client = await createRabbitMQClient(serverId, user.workspaceId);
+      const client = await createRabbitMQClient(serverId, server.workspaceId);
       await client.deleteUserPermissions(vhost, username);
 
       return c.json({ message: "Permissions deleted successfully" });

@@ -14,7 +14,11 @@ import { NodesResponse } from "@/types/api-responses";
 import { BindingMapper, ExchangeMapper, NodeMapper } from "@/mappers/rabbitmq";
 
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createRabbitMQClient,
+  getWorkspaceId,
+  verifyServerAccess,
+} from "./shared";
 
 const infrastructureController = new Hono();
 
@@ -27,14 +31,7 @@ infrastructureController.get(
   zValidator("param", ServerParamSchema),
   async (c) => {
     const id = c.req.param("id");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
-
+    const workspaceId = getWorkspaceId(c);
     try {
       // Verify server access
       const server = await verifyServerAccess(id, workspaceId);
@@ -80,14 +77,7 @@ infrastructureController.get(
   zValidator("query", VHostOptionalQuerySchema),
   async (c) => {
     const id = c.req.param("id");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
-
+    const workspaceId = getWorkspaceId(c);
     try {
       // Verify server access
       const server = await verifyServerAccess(id, workspaceId);
@@ -156,13 +146,7 @@ infrastructureController.post(
   zValidator("query", VHostRequiredQuerySchema),
   async (c) => {
     const id = c.req.param("id");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     try {
       // Verify server access
@@ -242,15 +226,9 @@ infrastructureController.delete(
     const id = c.req.param("id");
     const exchangeName = c.req.param("exchangeName");
     const { vhost: vhostParam } = c.req.valid("query");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
+    const workspaceId = getWorkspaceId(c);
     const url = new URL(c.req.url);
     const ifUnused = url.searchParams.get("if_unused") === "true";
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access
@@ -304,13 +282,7 @@ infrastructureController.get(
   zValidator("param", ServerParamSchema),
   async (c) => {
     const id = c.req.param("id");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     try {
       // Verify server access
@@ -349,13 +321,7 @@ infrastructureController.get(
   zValidator("param", ServerParamSchema),
   async (c) => {
     const id = c.req.param("id");
-    const workspaceId = c.req.param("workspaceId");
-    const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
+    const workspaceId = getWorkspaceId(c);
 
     try {
       // Verify server access

@@ -6,7 +6,11 @@ import { NodeMemoryDetailsResponse } from "@/types/api-responses";
 import { RabbitMQNode } from "@/types/rabbitmq";
 
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createRabbitMQClient,
+  getWorkspaceId,
+  verifyServerAccess,
+} from "./shared";
 
 const memoryController = new Hono();
 
@@ -17,14 +21,7 @@ const memoryController = new Hono();
 memoryController.get("/servers/:id/nodes/:nodeName/memory", async (c) => {
   const id = c.req.param("id");
   const nodeName = c.req.param("nodeName");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
-
+  const workspaceId = getWorkspaceId(c);
   try {
     logger.info(
       { nodeName, serverId: id },

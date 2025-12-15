@@ -1,14 +1,17 @@
 import { zValidator } from "@hono/zod-validator";
-import { InvitationStatus } from "@prisma/client";
+import { InvitationStatus, UserRole } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import { Hono } from "hono";
-import { z } from "zod/v4";
 
 import { generateToken, hashPassword } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+import { ensureWorkspaceMember } from "@/core/workspace-access";
 
-import { AcceptInvitationWithRegistrationSchema } from "@/schemas/auth";
+import {
+  AcceptInvitationWithRegistrationSchema,
+  GoogleInvitationAcceptSchema,
+} from "@/schemas/auth";
 
 import { googleConfig } from "@/config";
 
@@ -18,11 +21,6 @@ const publicInvitationController = new Hono();
 
 // Initialize Google OAuth client
 const client = new OAuth2Client();
-
-// Schema for Google OAuth invitation acceptance
-const GoogleInvitationAcceptSchema = z.object({
-  credential: z.string(),
-});
 
 /**
  * GET /invitations/:token - Get invitation details for registration (PUBLIC)
@@ -154,22 +152,38 @@ publicInvitationController.post(
 
       const hashedPassword = await hashPassword(password);
 
-      const newUser = await prisma.user.create({
-        data: {
-          email: invitation.email,
-          passwordHash: hashedPassword,
-          firstName,
-          lastName,
-          role: invitation.role,
-          workspaceId: invitation.workspaceId,
-          isActive: true,
-          emailVerified: true, // Auto-verify since they came from invitation
-        },
-      });
+      const newUser = await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            email: invitation.email,
+            passwordHash: hashedPassword,
+            firstName,
+            lastName,
+            role: UserRole.USER, // Default global role - workspace-specific role is in WorkspaceMember
+            workspaceId: invitation.workspaceId,
+            isActive: true,
+            emailVerified: true, // Auto-verify since they came from invitation
+          },
+        });
 
-      await prisma.invitation.update({
-        where: { id: invitation.id },
-        data: { status: InvitationStatus.ACCEPTED },
+        // Add user to WorkspaceMember table
+        await ensureWorkspaceMember(
+          user.id,
+          invitation.workspaceId,
+          invitation.role,
+          tx
+        );
+
+        // Update invitation status
+        await tx.invitation.update({
+          where: { id: invitation.id },
+          data: {
+            status: InvitationStatus.ACCEPTED,
+            invitedUserId: user.id,
+          },
+        });
+
+        return user;
       });
 
       const jwtToken = generateToken(newUser);
@@ -274,12 +288,14 @@ publicInvitationController.post(
       // Transaction to handle user creation/update and invitation acceptance
       const result = await prisma.$transaction(async (tx) => {
         if (user) {
-          // Update existing user's workspace and link Google OAuth
+          // Update existing user's workspace and link Google OAuth (but NOT their global role)
+          // The workspace-specific role is stored in WorkspaceMember.role
           user = await tx.user.update({
             where: { id: user.id },
             data: {
               workspaceId: invitation.workspaceId,
-              role: invitation.role,
+              // Do NOT update User.role - it's for global admin access only
+              // Workspace-specific role is stored in WorkspaceMember.role
               googleId,
               emailVerified: true, // Google emails are verified
               emailVerifiedAt: new Date(),
@@ -295,7 +311,7 @@ publicInvitationController.post(
               lastName: family_name || "",
               googleId,
               workspaceId: invitation.workspaceId,
-              role: invitation.role,
+              role: UserRole.USER, // Default global role - workspace-specific role is in WorkspaceMember
               emailVerified: true, // Google emails are verified
               emailVerifiedAt: new Date(),
               isActive: true,
@@ -303,6 +319,14 @@ publicInvitationController.post(
             },
           });
         }
+
+        // Add user to WorkspaceMember table
+        await ensureWorkspaceMember(
+          user.id,
+          invitation.workspaceId,
+          invitation.role,
+          tx
+        );
 
         // Update invitation status
         await tx.invitation.update({

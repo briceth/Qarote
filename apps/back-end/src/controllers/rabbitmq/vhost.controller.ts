@@ -2,8 +2,9 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
+
+import { authorize } from "@/middlewares/auth";
 
 import {
   CreateVHostSchema,
@@ -15,7 +16,11 @@ import {
 import { VHostMapper } from "@/mappers/rabbitmq/VHostMapper";
 
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createRabbitMQClient,
+  getWorkspaceId,
+  verifyServerAccess,
+} from "./shared";
 
 const vhostController = new Hono();
 
@@ -28,13 +33,7 @@ vhostController.use("*", authorize([UserRole.ADMIN]));
  */
 vhostController.get("/servers/:serverId/vhosts", async (c) => {
   const serverId = c.req.param("serverId");
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
+  const workspaceId = getWorkspaceId(c);
 
   try {
     // Verify server access
@@ -123,13 +122,7 @@ vhostController.get("/servers/:serverId/vhosts", async (c) => {
 vhostController.get("/servers/:serverId/vhosts/:vhostName", async (c) => {
   const serverId = c.req.param("serverId");
   const vhostName = decodeURIComponent(c.req.param("vhostName"));
-  const workspaceId = c.req.param("workspaceId");
-  const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
+  const workspaceId = getWorkspaceId(c);
 
   try {
     // Verify server access
@@ -202,14 +195,9 @@ vhostController.post(
   zValidator("json", CreateVHostSchema),
   async (c) => {
     const serverId = c.req.param("serverId");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const vhostData = c.req.valid("json");
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access
@@ -263,14 +251,9 @@ vhostController.put(
   async (c) => {
     const serverId = c.req.param("serverId");
     const vhostName = decodeURIComponent(c.req.param("vhostName"));
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const vhostData = c.req.valid("json");
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access
@@ -312,13 +295,8 @@ vhostController.put(
 vhostController.delete("/servers/:serverId/vhosts/:vhostName", async (c) => {
   const serverId = c.req.param("serverId");
   const vhostName = decodeURIComponent(c.req.param("vhostName"));
-  const workspaceId = c.req.param("workspaceId");
+  const workspaceId = getWorkspaceId(c);
   const user = c.get("user");
-
-  // Verify user has access to this workspace
-  if (user.workspaceId !== workspaceId) {
-    return c.json({ error: "Access denied to this workspace" }, 403);
-  }
 
   try {
     // Verify server access
@@ -369,14 +347,9 @@ vhostController.put(
     const serverId = c.req.param("serverId");
     const vhostName = decodeURIComponent(c.req.param("vhostName"));
     const username = c.req.param("username");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const permissionData = c.req.valid("json");
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access
@@ -421,13 +394,8 @@ vhostController.delete(
     const serverId = c.req.param("serverId");
     const vhostName = decodeURIComponent(c.req.param("vhostName"));
     const username = c.req.param("username");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access
@@ -468,14 +436,9 @@ vhostController.put(
     const serverId = c.req.param("serverId");
     const vhostName = decodeURIComponent(c.req.param("vhostName"));
     const limitType = c.req.param("limitType");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const limitData = c.req.valid("json");
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access
@@ -517,13 +480,8 @@ vhostController.delete(
     const serverId = c.req.param("serverId");
     const vhostName = decodeURIComponent(c.req.param("vhostName"));
     const limitType = c.req.param("limitType");
-    const workspaceId = c.req.param("workspaceId");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
 
     try {
       // Verify server access

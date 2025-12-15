@@ -1,18 +1,24 @@
 import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
-import { z } from "zod/v4";
 
-import { authenticate, authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+import { getUserWorkspaceRole } from "@/core/workspace-access";
 
 import { EmailVerificationService } from "@/services/email/email-verification.service";
 
-import { planValidationMiddleware } from "@/middlewares/plan-validation";
+import { authenticate, authorize } from "@/middlewares/auth";
+import { planValidationMiddleware } from "@/middlewares/planValidation";
 import { strictRateLimiter } from "@/middlewares/rateLimiter";
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
-import { UpdateProfileSchema, UpdateUserSchema } from "@/schemas/user";
+import {
+  UpdateProfileSchema,
+  UpdateUserSchema,
+  UserIdParamSchema,
+  WorkspaceIdParamSchema,
+} from "@/schemas/user";
 import { UpdateWorkspaceSchema } from "@/schemas/workspace";
 
 const userController = new Hono();
@@ -26,25 +32,44 @@ userController.use("*", planValidationMiddleware());
 // Get users in the same workspace
 userController.get(
   "/workspace/:workspaceId",
-  zValidator("param", z.object({ workspaceId: z.string() })),
+  checkWorkspaceAccess,
+  zValidator("param", WorkspaceIdParamSchema),
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
 
     try {
-      const users = await prisma.user.findMany({
+      // Get all workspace members via WorkspaceMember table
+      const workspaceMembers = await prisma.workspaceMember.findMany({
         where: { workspaceId },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          isActive: true,
-          lastLogin: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              isActive: true,
+              lastLogin: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
         },
+        orderBy: { createdAt: "desc" },
       });
+
+      // Format response to match expected structure
+      const users = workspaceMembers.map((member) => ({
+        id: member.user.id,
+        email: member.user.email,
+        firstName: member.user.firstName,
+        lastName: member.user.lastName,
+        role: member.role, // Use role from WorkspaceMember
+        isActive: member.user.isActive,
+        lastLogin: member.user.lastLogin,
+        createdAt: member.user.createdAt,
+        updatedAt: member.user.updatedAt,
+      }));
 
       return c.json({ users });
     } catch (error) {
@@ -276,7 +301,8 @@ userController.put(
 userController.get(
   "/invitations/workspace/:workspaceId",
   authorize([UserRole.ADMIN]),
-  zValidator("param", z.object({ workspaceId: z.string() })),
+  checkWorkspaceAccess,
+  zValidator("param", WorkspaceIdParamSchema),
   async (c) => {
     const workspaceId = c.req.param("workspaceId");
 
@@ -402,21 +428,41 @@ userController.put(
 userController.get("/profile/workspace/users", async (c) => {
   const user = c.get("user");
 
+  if (!user.workspaceId) {
+    return c.json({ error: "No workspace assigned" }, 404);
+  }
+
   try {
-    const users = await prisma.user.findMany({
+    // Get all workspace members via WorkspaceMember table
+    const workspaceMembers = await prisma.workspaceMember.findMany({
       where: { workspaceId: user.workspaceId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        lastLogin: true,
-        createdAt: true,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            lastLogin: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
+
+    // Format response to match expected structure
+    const users = workspaceMembers.map((member) => ({
+      id: member.user.id,
+      email: member.user.email,
+      firstName: member.user.firstName,
+      lastName: member.user.lastName,
+      role: member.role, // Use role from WorkspaceMember
+      isActive: member.user.isActive,
+      lastLogin: member.user.lastLogin,
+      createdAt: member.user.createdAt,
+    }));
 
     return c.json({ users });
   } catch (error) {
@@ -432,7 +478,7 @@ userController.get("/profile/workspace/users", async (c) => {
 userController.delete(
   "/profile/workspace/users/:userId",
   authorize([UserRole.ADMIN]),
-  zValidator("param", z.object({ userId: z.string() })),
+  zValidator("param", UserIdParamSchema),
   async (c) => {
     const currentUser = c.get("user");
     const userIdToRemove = c.req.param("userId");
@@ -441,24 +487,34 @@ userController.delete(
       return c.json({ error: "No workspace assigned" }, 400);
     }
 
+    const workspaceId = currentUser.workspaceId; // TypeScript now knows this is string
+
     try {
       // Find the user to remove
-      const userToRemove = await prisma.user.findFirst({
+      const userToRemove = await prisma.user.findUnique({
         where: {
           id: userIdToRemove,
-          workspaceId: currentUser.workspaceId,
         },
         select: {
           id: true,
           email: true,
           firstName: true,
           lastName: true,
-          role: true,
         },
       });
 
       if (!userToRemove) {
-        return c.json({ error: "User not found in this workspace" }, 404);
+        return c.json({ error: "User not found" }, 404);
+      }
+
+      // Check if user is a member of this workspace (via WorkspaceMember or as owner)
+      const workspaceRole = await getUserWorkspaceRole(
+        userIdToRemove,
+        workspaceId
+      );
+
+      if (!workspaceRole) {
+        return c.json({ error: "User is not a member of this workspace" }, 404);
       }
 
       // Prevent removing yourself
@@ -470,11 +526,12 @@ userController.delete(
       }
 
       // Prevent removing other admins (only workspace owner can remove admins)
-      if (userToRemove.role === UserRole.ADMIN) {
+      // Check workspace-specific role, not global User.role
+      if (workspaceRole === UserRole.ADMIN) {
         // Check if current user is the workspace owner
         const workspace = await prisma.workspace.findFirst({
           where: {
-            id: currentUser.workspaceId,
+            id: workspaceId,
             ownerId: currentUser.id,
           },
         });
@@ -490,12 +547,24 @@ userController.delete(
       }
 
       // Remove user from workspace by setting workspaceId to null
-      await prisma.user.update({
-        where: { id: userIdToRemove },
-        data: {
-          workspaceId: null,
-          role: UserRole.USER, // Reset role to USER when removed from workspace
-        },
+      // and deleting the WorkspaceMember record to maintain data consistency
+      await prisma.$transaction(async (tx) => {
+        // Delete the WorkspaceMember record
+        await tx.workspaceMember.deleteMany({
+          where: {
+            userId: userIdToRemove,
+            workspaceId,
+          },
+        });
+
+        // Update user's workspaceId and reset role
+        await tx.user.update({
+          where: { id: userIdToRemove },
+          data: {
+            workspaceId: null,
+            role: UserRole.USER, // Reset role to USER when removed from workspace
+          },
+        });
       });
 
       logger.info(
@@ -504,7 +573,7 @@ userController.delete(
           removedUserEmail: userToRemove.email,
           removedByUserId: currentUser.id,
           removedByUserEmail: currentUser.email,
-          workspaceId: currentUser.workspaceId,
+          workspaceId,
         },
         "User removed from workspace"
       );

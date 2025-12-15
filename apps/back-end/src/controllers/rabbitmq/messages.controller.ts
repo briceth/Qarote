@@ -2,10 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import { UserRole } from "@prisma/client";
 import { Hono } from "hono";
 
-import { authorize } from "@/core/auth";
 import { logger } from "@/core/logger";
 
 import { getUserPlan } from "@/services/plan/plan.service";
+
+import { authorize } from "@/middlewares/auth";
 
 import {
   publishMessageToQueueSchema,
@@ -16,7 +17,11 @@ import { PublishMessageResponse } from "@/types/api-responses";
 import type { MessageProperties } from "@/types/rabbitmq";
 
 import { createErrorResponse } from "../shared";
-import { createRabbitMQClient, verifyServerAccess } from "./shared";
+import {
+  createRabbitMQClient,
+  getWorkspaceId,
+  verifyServerAccess,
+} from "./shared";
 
 const messagesController = new Hono();
 
@@ -32,15 +37,9 @@ messagesController.post(
   async (c) => {
     const serverId = c.req.param("serverId");
     const queueName = c.req.param("queueName");
-    const workspaceId = c.req.param("workspaceId");
-    const { message, exchange, routingKey, properties } = c.req.valid("json");
+    const workspaceId = getWorkspaceId(c);
     const user = c.get("user");
-
-    // Verify user has access to this workspace
-    if (user.workspaceId !== workspaceId) {
-      return c.json({ error: "Access denied to this workspace" }, 403);
-    }
-
+    const { message, exchange, routingKey, properties } = c.req.valid("json");
     try {
       // Verify server access
       const server = await verifyServerAccess(serverId, workspaceId);

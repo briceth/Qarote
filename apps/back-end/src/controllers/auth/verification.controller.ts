@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
 
 import { EmailVerificationService } from "@/services/email/email-verification.service";
 import { notionService } from "@/services/integrations/notion.service";
+
+import { authenticate } from "@/middlewares/auth";
 
 const verificationController = new Hono();
 

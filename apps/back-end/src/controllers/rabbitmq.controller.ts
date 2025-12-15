@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
-import { authenticate } from "@/core/auth";
+import { authenticate } from "@/middlewares/auth";
+import { checkWorkspaceAccess } from "@/middlewares/workspace";
 
 import alertsController from "./rabbitmq/alerts.controller";
 import infrastructureController from "./rabbitmq/infrastructure.controller";
@@ -16,6 +17,9 @@ const rabbitmqController = new Hono();
 
 // All RabbitMQ routes require authentication
 rabbitmqController.use("*", authenticate);
+
+// All RabbitMQ routes require workspace access
+rabbitmqController.use("/workspaces/:workspaceId/*", checkWorkspaceAccess);
 
 // Mount all the sub-controllers with workspace-scoped routes
 rabbitmqController.route("/workspaces/:workspaceId", alertsController);

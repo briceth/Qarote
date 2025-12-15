@@ -28,7 +28,19 @@ export const UpdateProfileSchema = z.object({
   email: z.email("Invalid email address").optional(),
 });
 
+// Schema for workspace ID parameter
+export const WorkspaceIdParamSchema = z.object({
+  workspaceId: z.string(),
+});
+
+// Schema for user ID parameter
+export const UserIdParamSchema = z.object({
+  userId: z.string(),
+});
+
 // Types derived from schemas
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+export type WorkspaceIdParam = z.infer<typeof WorkspaceIdParamSchema>;
+export type UserIdParam = z.infer<typeof UserIdParamSchema>;

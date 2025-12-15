@@ -5,9 +5,11 @@
 
 import { Hono } from "hono";
 
-import { authenticate, SafeUser } from "@/core/auth";
+import { SafeUser } from "@/core/auth";
 import { logger } from "@/core/logger";
 import { prisma } from "@/core/prisma";
+
+import { authenticate } from "@/middlewares/auth";
 
 const discordController = new Hono();
 
