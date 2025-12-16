@@ -1,11 +1,11 @@
-# Standalone RabbitHQ Deployment (Minimal)
+# Standalone Qarote Deployment (Minimal)
 # PostgreSQL + Backend + Frontend
 # Customers provide their own RabbitMQ servers
 
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: rabbithq_postgres
+    container_name: qarote_postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: rabbit_dashboard
@@ -16,7 +16,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - rabbithq_network
+      - qarote_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d rabbit_dashboard"]
       interval: 10s
@@ -27,7 +27,7 @@ services:
     build:
       context: ./apps/back-end
       dockerfile: Dockerfile
-    container_name: rabbithq_backend
+    container_name: qarote_backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -41,7 +41,7 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
       DEPLOYMENT_MODE: self-hosted
       LICENSE_KEY: ${LICENSE_KEY}
-      LICENSE_VALIDATION_URL: ${LICENSE_VALIDATION_URL:-https://api.rabbithq.io}
+      LICENSE_VALIDATION_URL: ${LICENSE_VALIDATION_URL:-https://api.qarote.io}
       # Optional services (can be disabled for air-gapped deployments)
       ENABLE_SENTRY: ${ENABLE_SENTRY:-false}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -56,14 +56,14 @@ services:
       ENABLE_OAUTH: ${ENABLE_OAUTH:-false}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
-      FROM_EMAIL: ${FROM_EMAIL:-noreply@rabbithq.com}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@qarote.io}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - rabbithq_network
+      - qarote_network
     volumes:
       - ./apps/back-end:/app
       - /app/node_modules
@@ -72,7 +72,7 @@ services:
     build:
       context: ./apps/front-end
       dockerfile: Dockerfile
-    container_name: rabbithq_frontend
+    container_name: qarote_frontend
     restart: unless-stopped
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
@@ -84,12 +84,12 @@ services:
     depends_on:
       - backend
     networks:
-      - rabbithq_network
+      - qarote_network
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  rabbithq_network:
+  qarote_network:
     driver: bridge

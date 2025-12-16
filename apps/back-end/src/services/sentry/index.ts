@@ -178,7 +178,7 @@ export function initSentry() {
     initialScope: {
       tags: {
         component: "backend",
-        service: "rabbithq-api",
+        service: "qarote-api",
       },
     },
   });

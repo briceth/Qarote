@@ -74,11 +74,11 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/landing/dist --project-name=landing-rabbithq --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/landing/dist --project-name=qarote-landing-production --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |
           echo "🎉 Landing page deployed successfully to production!"
-          echo "🌐 Production URL: https://landing-rabbithq.pages.dev"
-          echo "🔗 Custom Domain: https://rabbithq.io (if configured)"
+          echo "🌐 Production URL: https://qarote-landing-production.pages.dev"
+          echo "🔗 Custom Domain: https://qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

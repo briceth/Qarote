@@ -386,8 +386,8 @@ export async function configureProductionApplicationServer(
 
   await executeRemoteCommands(serverIP, [
     "sudo dokku apps:create rabbithq || true",
-    "sudo dokku domains:add rabbithq rabbithq.io",
-    "sudo dokku domains:add rabbithq www.rabbithq.io",
+    "sudo dokku domains:add rabbithq qarote.io",
+    "sudo dokku domains:add rabbithq www.qarote.io",
   ]);
 
   Logger.success("Production application server configuration completed!");

@@ -30,6 +30,10 @@ terraform {
       source  = "hashicorp/local"
       version = "~> 2.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
   }
 }
 
@@ -50,6 +54,14 @@ provider "google" {
 
 provider "digitalocean" {
   # Token should be set via DIGITALOCEAN_TOKEN environment variable
+}
+
+provider "cloudflare" {
+  # Global API Key authentication
+  # Email and API Key can be set via environment variables:
+  # CLOUDFLARE_EMAIL and CLOUDFLARE_API_KEY
+  # Or via terraform.tfvars: cloudflare_email and cloudflare_api_key
+  # Account ID can be set via CLOUDFLARE_ACCOUNT_ID environment variable or var.cloudflare_account_id
 }
 
 # Variables
@@ -190,10 +202,16 @@ variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
   default = {
-    Project     = "RabbitHQ"
+    Project     = "Qarote"
     Environment = "testing"
     ManagedBy   = "Terraform"
   }
+}
+
+variable "cloudflare_account_id" {
+  description = "Cloudflare Account ID (for Pages projects)"
+  type        = string
+  default     = ""
 }
 
 # Local values

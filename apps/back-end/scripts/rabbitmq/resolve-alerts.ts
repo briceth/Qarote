@@ -442,7 +442,7 @@ async function main() {
     console.log("✨ Alert resolution completed!");
     console.log("\n📋 Next steps:");
     console.log("   1. Wait for next alert check cycle (or trigger manually)");
-    console.log("   2. Check 'Resolved Alerts' tab in RabbitHQ");
+    console.log("   2. Check 'Resolved Alerts' tab in Qarote");
     console.log("   3. Verify ResolvedAlert records in database");
   } catch (error) {
     console.error("\n💥 Error:", error);

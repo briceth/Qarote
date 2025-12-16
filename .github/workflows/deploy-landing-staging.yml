@@ -57,13 +57,12 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: apps/landing
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: 🏗️ Build landing page
         working-directory: apps/landing
         env:
-          VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL_STAGING }}
+          VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
           NODE_ENV: production
         run: npm run build
 
@@ -71,10 +70,10 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/landing/dist --project-name=landing-rabbithq-staging --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/landing/dist --project-name=qarote-landing-staging --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |
           echo "🎉 Landing page deployed successfully to staging!"
-          echo "🌐 Staging URL: https://landing-rabbithq-staging.pages.dev"
+          echo "🌐 Staging URL: https://qarote-landing-staging.pages.dev"
           echo "📝 Commit: ${{ github.sha }}"

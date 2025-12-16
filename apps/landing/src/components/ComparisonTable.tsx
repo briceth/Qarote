@@ -80,7 +80,7 @@ const ComparisonTable = () => {
               Feature
             </th>
             <th className="px-6 py-4 text-center text-sm font-semibold bg-gradient-to-r from-primary to-destructive text-primary-foreground">
-              RabbitHQ
+              Qarote
             </th>
             <th className="px-6 py-4 text-center text-sm font-medium text-gray-600">
               Management Plugin

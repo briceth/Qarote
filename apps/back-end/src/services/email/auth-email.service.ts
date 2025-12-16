@@ -61,7 +61,7 @@ export class AuthEmailService {
 
     return CoreEmailService.sendEmail({
       to,
-      subject: `You're invited to join ${workspaceName} on RabbitHQ`,
+      subject: `You're invited to join ${workspaceName} on Qarote`,
       template,
       emailType: "invitation",
       context: {
@@ -92,7 +92,7 @@ export class AuthEmailService {
 
     return CoreEmailService.sendEmail({
       to,
-      subject: `Welcome to RabbitHQ, ${name}!`,
+      subject: `Welcome to Qarote, ${name}!`,
       template,
       emailType: "welcome",
       context: {
@@ -126,8 +126,8 @@ export class AuthEmailService {
 
     const subject =
       type === "SIGNUP"
-        ? "Please verify your email address - RabbitHQ"
-        : "Verify your new email address - RabbitHQ";
+        ? "Please verify your email address - Qarote"
+        : "Verify your new email address - Qarote";
 
     return await CoreEmailService.sendEmail({
       to,

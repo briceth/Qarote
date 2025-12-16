@@ -48,7 +48,7 @@ export default function WelcomeEmail({
     <Html>
       <Head />
       <Preview>
-        Welcome to RabbitHQ, {name}! Your workspace is ready to go.
+        Welcome to Qarote, {name}! Your workspace is ready to go.
       </Preview>
       <Body style={baseStyles.main}>
         <Container style={baseStyles.container}>
@@ -56,14 +56,14 @@ export default function WelcomeEmail({
 
           {/* Main Content */}
           <Section style={contentStyles.contentPadded}>
-            <Text style={contentStyles.title}>Welcome to RabbitHQ!</Text>
+            <Text style={contentStyles.title}>Welcome to Qarote!</Text>
 
             <Text style={contentStyles.paragraph}>Hi {name},</Text>
 
             <Text style={contentStyles.paragraph}>
-              Welcome to RabbitHQ! Your workspace{" "}
-              <strong>{workspaceName}</strong> has been successfully set up on
-              the <strong>{planDisplayName}</strong> plan.
+              Welcome to Qarote! Your workspace <strong>{workspaceName}</strong>{" "}
+              has been successfully set up on the{" "}
+              <strong>{planDisplayName}</strong> plan.
             </Text>
 
             <Text style={contentStyles.paragraph}>
@@ -141,7 +141,7 @@ export default function WelcomeEmail({
 
             <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

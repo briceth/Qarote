@@ -58,7 +58,7 @@ export default function TrialEndingEmail({
       <Head />
       <Preview>
         Your {planDisplayName} trial ends soon - upgrade to continue using
-        RabbitHQ
+        Qarote
       </Preview>
       <Body style={baseStyles.main}>
         <Container style={baseStyles.container}>
@@ -142,7 +142,7 @@ export default function TrialEndingEmail({
 
             <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

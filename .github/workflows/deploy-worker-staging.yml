@@ -1,8 +1,8 @@
 name: Deploy Worker to Staging
 
 env:
-  APP_NAME: rabbithq-worker-staging
-  BACKEND_APP_NAME: rabbit-hq-staging
+  APP_NAME: qarote-worker-staging
+  BACKEND_APP_NAME: qarote-staging
 
 on:
   push:

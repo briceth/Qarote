@@ -1,5 +1,5 @@
 /**
- * Discord Controller for RabbitHQ Backend
+ * Discord Controller for Qarote Backend
  * Handles Discord community integration
  */
 

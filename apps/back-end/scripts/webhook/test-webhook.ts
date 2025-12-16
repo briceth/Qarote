@@ -149,7 +149,7 @@ async function testWebhookWithSecret() {
     console.log(`   Status Code: ${result.statusCode}`);
     console.log(`   Retries: ${result.retries || 0}`);
     console.log(`\n💡 Check the webhook.site page to verify:`);
-    console.log(`   - X-RabbitHQ-Signature header is present`);
+    console.log(`   - X-Qarote-Signature header is present`);
     console.log(`   - Signature format: sha256=<hex-string>`);
   } else {
     console.log(`❌ Webhook failed:`);

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * RabbitHQ Status Check Script
+ * Qarote Status Check Script
  * Check the status of deployed applications
  */
 

@@ -1,6 +1,6 @@
 # Production Infrastructure Setup with Private Networking
 
-This document explains the production server setup for RabbitHQ using Hetzner Cloud with private networking for enhanced security and performance.
+This document explains the production server setup for Qarote using Hetzner Cloud with private networking for enhanced security and performance.
 
 ## 🏗️ Architecture Overview
 
@@ -123,7 +123,7 @@ After setup completion, you'll see:
 ```
 🔐 DATABASE_URL for GitHub Secrets:
 
-postgres://postgres:auto_generated_password@10.0.0.10:5432/rabbithq_db
+postgres://postgres:auto_generated_password@10.0.0.10:5432/qarote_db
 
 📝 Next Steps:
 1. Copy the DATABASE_URL above
@@ -137,7 +137,7 @@ postgres://postgres:auto_generated_password@10.0.0.10:5432/rabbithq_db
 2. Navigate to **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
 4. Name: `DATABASE_URL`
-5. Value: `postgres://postgres:password@10.0.0.10:5432/rabbithq_db`
+5. Value: `postgres://postgres:password@10.0.0.10:5432/qarote_db`
 
 ## 🔄 Application Configuration
 
@@ -159,8 +159,8 @@ NODE_ENV=production
 
 ### Domain Configuration
 
-- Primary: `rabbithq.io`
-- Secondary: `www.rabbithq.io`
+- Primary: `qarote.io`
+- Secondary: `www.qarote.io`
 
 ## 📊 Network Expansion Plan
 
@@ -203,13 +203,13 @@ ping -c 3 10.0.0.10  # From app server to database
 
 ```bash
 # Connect to database
-dokku postgres:connect rabbithq-db
+dokku postgres:connect qarote-db
 
 # View database info
-dokku postgres:info rabbithq-db
+dokku postgres:info qarote-db
 
 # Create backup
-dokku postgres:backup rabbithq-db backup-$(date +%Y%m%d)
+dokku postgres:backup qarote-db backup-$(date +%Y%m%d)
 ```
 
 ## 🎯 Benefits of This Setup
@@ -245,7 +245,7 @@ dokku postgres:backup rabbithq-db backup-$(date +%Y%m%d)
 | **Server Size**     | cpx31 (larger)             | cpx21 (smaller)      |
 | **Database Access** | Private network only       | Public IP allowed    |
 | **Security**        | Enhanced firewall rules    | Basic configuration  |
-| **Domains**         | rabbithq.io + www          | staging.rabbithq.io  |
+| **Domains**         | qarote.io + www            | staging.qarote.io    |
 | **Credentials**     | GitHub secrets             | Direct configuration |
 
 ## 🚨 Important Notes
@@ -285,10 +285,10 @@ sudo cat /etc/postgresql/*/main/pg_hba.conf | grep 10.0.0
 
 ```bash
 # Check Dokku database status
-dokku postgres:info rabbithq-db
+dokku postgres:info qarote-db
 
 # Restart database if needed
-dokku postgres:restart rabbithq-db
+dokku postgres:restart qarote-db
 ```
 
-This setup provides a robust, secure, and scalable foundation for your production RabbitHQ deployment! 🚀
+This setup provides a robust, secure, and scalable foundation for your production Qarote deployment! 🚀

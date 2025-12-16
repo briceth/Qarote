@@ -1,6 +1,6 @@
-# RabbitHQ Standalone Deployment
+# Qarote Standalone Deployment
 
-This directory contains configuration files and examples for deploying RabbitHQ as a standalone, self-hosted application.
+This directory contains configuration files and examples for deploying Qarote as a standalone, self-hosted application.
 
 ## Quick Start
 
@@ -14,12 +14,13 @@ This directory contains configuration files and examples for deploying RabbitHQ 
    - Update all required values (see below)
 
 3. **Purchase and activate a license:**
-   - Visit the Customer Portal at `portal.rabbithq.io`
+   - Visit the Customer Portal at `portal.qarote.io`
    - Purchase a license
    - Copy your license key
    - Set `LICENSE_KEY` in your backend `.env` file
 
 4. **Deploy:**
+
    ```bash
    # Minimal deployment
    docker-compose -f docker-compose.standalone.yml up -d
@@ -33,13 +34,15 @@ This directory contains configuration files and examples for deploying RabbitHQ 
 ### Backend (.env)
 
 **Mandatory:**
+
 - `LICENSE_KEY` - Your license key from the Customer Portal
-- `LICENSE_VALIDATION_URL` - URL to validate licenses (default: https://api.rabbithq.io)
+- `LICENSE_VALIDATION_URL` - URL to validate licenses (default: https://api.qarote.io)
 - `JWT_SECRET` - Secret for JWT tokens (min 32 characters)
 - `ENCRYPTION_KEY` - Key for encrypting credentials (min 32 characters)
 - `DATABASE_URL` - PostgreSQL connection string
 
 **Optional (can be disabled for air-gapped deployments):**
+
 - `ENABLE_SENTRY` - Enable error tracking
 - `ENABLE_EMAIL` - Enable email notifications
 - `ENABLE_OAUTH` - Enable OAuth authentication
@@ -47,9 +50,11 @@ This directory contains configuration files and examples for deploying RabbitHQ 
 ### Frontend (.env)
 
 **Mandatory:**
+
 - `VITE_API_URL` - Backend API URL
 
 **Optional:**
+
 - `VITE_ENABLE_SENTRY` - Enable error tracking
 
 ## License Activation
@@ -59,16 +64,16 @@ This directory contains configuration files and examples for deploying RabbitHQ 
 3. Set `LICENSE_KEY` in your backend environment
 4. Restart the backend service
 
-The license will be validated periodically (daily/weekly) with the RabbitHQ license server.
+The license will be validated periodically (daily/weekly) with the Qarote license server.
 
 ## Air-Gapped Deployments
 
 For completely offline deployments:
+
 - Set all `ENABLE_*` flags to `false`
 - Use SMTP for email (if needed) instead of Resend
 - License validation will use a grace period for offline periods
 
 ## Support
 
-For more information, visit: https://rabbithq.io/docs/standalone
-
+For more information, visit: https://qarote.io/docs/standalone

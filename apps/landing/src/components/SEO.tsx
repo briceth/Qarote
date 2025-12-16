@@ -18,10 +18,10 @@ interface FAQItem {
 }
 
 export const SEO = ({
-  title = "RabbitHQ - Best RabbitMQ Monitoring & Management Interface",
+  title = "Qarote - Best RabbitMQ Monitoring & Management Interface",
   description = "The best RabbitMQ monitoring and management interface for developers. Monitor queues, track performance, and manage your message broker with a modern dashboard. Cleaner than Management Plugin, simpler than Prometheus.",
-  image = "https://rabbithq.io/new_social_card.png",
-  url = "https://rabbithq.io",
+  image = "https://qarote.io/new_social_card.png",
+  url = "https://qarote.io",
   type = "website",
   keywords = [
     "RabbitMQ",
@@ -46,7 +46,7 @@ export const SEO = ({
   faq,
   structuredData,
 }: SEOProps) => {
-  const siteTitle = "RabbitHQ";
+  const siteTitle = "Qarote";
   const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
 
   // Generate FAQ schema if FAQs are provided
@@ -75,7 +75,7 @@ export const SEO = ({
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords.join(", ")} />
-      <meta name="author" content="RabbitHQ Team" />
+      <meta name="author" content="Qarote Team" />
       <meta name="robots" content="index, follow" />
       <meta name="googlebot" content="index, follow" />
 
@@ -100,7 +100,7 @@ export const SEO = ({
       <meta property="og:image:type" content="image/png" />
       <meta property="og:image:alt" content={title} />
       <meta property="og:locale" content="en_US" />
-      <meta property="og:site_name" content="RabbitHQ" />
+      <meta property="og:site_name" content="Qarote" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -108,8 +108,8 @@ export const SEO = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
-      <meta name="twitter:site" content="@RabbitHQ" />
-      <meta name="twitter:creator" content="@RabbitHQ" />
+      <meta name="twitter:site" content="@Qarote" />
+      <meta name="twitter:creator" content="@Qarote" />
 
       {/* Canonical URL */}
       <link rel="canonical" href={url} />

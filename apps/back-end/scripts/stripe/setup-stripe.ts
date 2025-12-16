@@ -25,7 +25,7 @@ class StripeSetup {
   async run() {
     const command = process.argv[2] || "create";
 
-    console.log("🚀 RabbitHQ - Stripe Setup\n");
+    console.log("🚀 Qarote - Stripe Setup\n");
 
     try {
       switch (command) {
@@ -304,7 +304,7 @@ class StripeSetup {
     this.checkStripeCli();
     this.checkLogin();
 
-    console.log("🧹 Cleaning up RabbitHQ test products...\n");
+    console.log("🧹 Cleaning up Qarote test products...\n");
 
     try {
       // List products with metadata
@@ -524,7 +524,7 @@ class StripeSetup {
 
   private showHelp() {
     console.log(`
-🎯 Stripe Setup for RabbitHQ
+🎯 Stripe Setup for Qarote
 
 Usage: npm run setup-stripe [command]
 

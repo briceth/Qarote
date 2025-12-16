@@ -1423,11 +1423,11 @@ export function AlertNotificationSettingsModal({
               <div className="p-4 bg-muted rounded-lg">
                 <pre className="text-xs overflow-x-auto">
                   {`Content-Type: application/json
-User-Agent: RabbitHQ-Webhook/1.0
-X-RabbitHQ-Event: alert.notification
-X-RabbitHQ-Version: ${webhookExampleVersion}
-X-RabbitHQ-Timestamp: 2024-01-15T10:30:00.000Z
-X-RabbitHQ-Signature: sha256=abc123... (if secret is configured)`}
+User-Agent: Qarote-Webhook/1.0
+X-Qarote-Event: alert.notification
+X-Qarote-Version: ${webhookExampleVersion}
+X-Qarote-Timestamp: 2024-01-15T10:30:00.000Z
+X-Qarote-Signature: sha256=abc123... (if secret is configured)`}
                 </pre>
               </div>
             </div>
@@ -1514,7 +1514,7 @@ X-RabbitHQ-Signature: sha256=abc123... (if secret is configured)`}
               <p className="text-sm text-blue-900 dark:text-blue-100">
                 <strong>Note:</strong> If you configure a secret, the payload
                 will include an{" "}
-                <code className="font-mono">X-RabbitHQ-Signature</code> header
+                <code className="font-mono">X-Qarote-Signature</code> header
                 with an HMAC-SHA256 signature. You can use this to verify the
                 authenticity of the webhook request.
               </p>

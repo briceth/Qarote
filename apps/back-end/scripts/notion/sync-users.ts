@@ -12,7 +12,7 @@ import { logger } from "../../src/core/logger";
  * 3. Create or update the user in Notion as needed
  */
 async function syncUsersToNotion() {
-  console.log("🚀 RabbitHQ - Notion User Sync\n");
+  console.log("🚀 Qarote - Notion User Sync\n");
 
   try {
     // Fetch all users

@@ -38,7 +38,7 @@ export default function TermsOfService() {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p>
-              By accessing or using RabbitHQ Dashboard, you agree to be bound by
+              By accessing or using Qarote Dashboard, you agree to be bound by
               these Terms of Service. If you do not agree with any part of these
               terms, you may not use our service.
             </p>
@@ -51,7 +51,7 @@ export default function TermsOfService() {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p>
-              RabbitHQ Dashboard provides a monitoring and management interface
+              Qarote Dashboard provides a monitoring and management interface
               for RabbitMQ message brokers. Our service allows users to connect
               to their RabbitMQ servers, view queues, exchanges, and monitor
               system performance.
@@ -91,7 +91,7 @@ export default function TermsOfService() {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p>
-              RabbitHQ Dashboard offers various subscription plans. Payment for
+              Qarote Dashboard offers various subscription plans. Payment for
               subscription services is due at the time of purchase. Subscription
               fees are non-refundable except as expressly provided in these
               Terms.
@@ -129,11 +129,10 @@ export default function TermsOfService() {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p>
-              All content, features, and functionality of the RabbitHQ
-              Dashboard, including but not limited to text, graphics, logos,
-              icons, and code, are owned by RabbitHQ and are protected by
-              international copyright, trademark, and other intellectual
-              property laws.
+              All content, features, and functionality of the Qarote Dashboard,
+              including but not limited to text, graphics, logos, icons, and
+              code, are owned by Qarote and are protected by international
+              copyright, trademark, and other intellectual property laws.
             </p>
           </CardContent>
         </Card>
@@ -144,7 +143,7 @@ export default function TermsOfService() {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p>
-              In no event shall RabbitHQ be liable for any indirect, incidental,
+              In no event shall Qarote be liable for any indirect, incidental,
               special, consequential, or punitive damages, including without
               limitation, loss of profits, data, use, goodwill, or other
               intangible losses, resulting from your use or inability to use the
@@ -189,10 +188,10 @@ export default function TermsOfService() {
             <p>
               If you have any questions about these Terms, please contact us at{" "}
               <a
-                href="mailto:support@rabbithq.io"
+                href="mailto:support@qarote.io"
                 className="text-blue-600 hover:underline"
               >
-                support@rabbithq.io
+                support@qarote.io
               </a>
               .
             </p>
@@ -201,7 +200,7 @@ export default function TermsOfService() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} RabbitHQ. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Qarote. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-2">
             <a href="/" className="hover:underline">
               Home

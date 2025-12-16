@@ -34,19 +34,22 @@ ssh_public_key = ""
 # 1. Create a hosted zone in Route 53 for your domain (e.g., example.com)
 # 2. Get the hosted zone ID from Route 53 console
 # 3. Update your domain's nameservers to point to Route 53 nameservers
-aws_domain_name      = ""  # e.g., "rabbitmq-aws.rabbithq.com"
+aws_domain_name      = ""  # e.g., "rabbitmq-aws.qarote.io"
 aws_route53_zone_id  = ""  # e.g., "Z1234567890ABC" (Route 53 hosted zone ID)
 
 # For GCP Cloud DNS:
 # 1. Create a managed zone in Cloud DNS for your domain (e.g., example.com)
 # 2. Get the zone name from Cloud DNS console
 # 3. Update your domain's nameservers to point to Cloud DNS nameservers
-gcp_domain_name      = ""  # e.g., "rabbitmq-gcp.rabbithq.com"
-gcp_dns_zone_name    = ""  # e.g., "rabbithq-zone" (Cloud DNS managed zone name)
+gcp_domain_name      = ""  # e.g., "rabbitmq-gcp.qarote.io"
+gcp_dns_zone_name    = ""  # e.g., "qarote-zone" (Cloud DNS managed zone name)
+
+# Cloudflare Configuration (for Pages projects)
+cloudflare_account_id = ""  # e.g., "e504d80e71a9d2fdb39d6eb30dff16cc"
 
 # Tags
 tags = {
-  Project     = "RabbitHQ"
+  Project     = "Qarote"
   Environment = "testing"
   ManagedBy   = "Terraform"
 }

@@ -1,7 +1,7 @@
 {
-  "name": "rabbithq-infrastructure",
+  "name": "qarote-infrastructure",
   "version": "1.0.0",
-  "description": "Docker-based infrastructure for RabbitHQ",
+  "description": "Docker-based infrastructure for Qarote",
   "keywords": [
     "docker",
     "deployment",
@@ -9,7 +9,7 @@
     "cloudflare",
     "postgres"
   ],
-  "author": "RabbitHQ Team",
+  "author": "Qarote Team",
   "license": "MIT",
   "engines": {
     "node": ">=24.0.0",

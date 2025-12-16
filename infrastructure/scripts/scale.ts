@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * RabbitHQ Scale Script
+ * Qarote Scale Script
  * Scale application processes
  */
 

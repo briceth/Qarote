@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "apps/customer-portal/**"
-      - ".github/workflows/deploy-customer-portal-staging.yml"
+      - ".github/workflows/deploy-portal-staging.yml"
   workflow_dispatch:
 
 jobs:
@@ -74,11 +74,11 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/customer-portal/dist --project-name=customer-portal-staging --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/customer-portal/dist --project-name=qarote-portal-staging --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |
           echo "🎉 Customer Portal deployed successfully to staging!"
-          echo "🌐 Staging URL: https://customer-portal-staging.pages.dev"
-          echo "🔗 Custom Domain: https://portal.yourdomain.com (if configured)"
+          echo "🌐 Staging URL: https://qarote-portal-staging.pages.dev"
+          echo "🔗 Custom Domain: https://portal.qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

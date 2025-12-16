@@ -51,7 +51,7 @@ licenseManagementController.get("/:id/download", async (c) => {
     }
 
     // Generate license file content
-    const licenseContent = `RabbitHQ License
+    const licenseContent = `Qarote License
 ================
 
 License Key: ${license.licenseKey}
@@ -60,17 +60,17 @@ Customer Email: ${license.customerEmail}
 Expires: ${license.expiresAt ? license.expiresAt.toISOString() : "Never"}
 Issued: ${license.createdAt.toISOString()}
 
-To activate this license in your self-hosted RabbitHQ deployment:
+To activate this license in your self-hosted Qarote deployment:
 1. Set the LICENSE_KEY environment variable to the license key above
-2. Set LICENSE_VALIDATION_URL to your RabbitHQ backend URL
+2. Set LICENSE_VALIDATION_URL to your Qarote backend URL
 3. Restart your application
 
-For more information, visit: https://rabbithq.io/docs/standalone
+For more information, visit: https://qarote.io/docs/standalone
 `;
 
     return c.text(licenseContent, 200, {
       "Content-Type": "text/plain",
-      "Content-Disposition": `attachment; filename="rabbithq-license-${licenseId}.txt"`,
+      "Content-Disposition": `attachment; filename="qarote-license-${licenseId}.txt"`,
     });
   } catch (error) {
     logger.error({ error }, "Error downloading license");

@@ -46,7 +46,7 @@ export const GoogleInvitationButton: React.FC<GoogleInvitationButtonProps> = ({
 
       // Show success message
       toast({
-        title: "Welcome to RabbitHQ!",
+        title: "Welcome to Qarote!",
         description: `You've successfully joined ${data.workspace.name}${data.isNewUser ? " with Google" : ""}`,
       });
 

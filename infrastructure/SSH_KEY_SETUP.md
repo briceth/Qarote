@@ -1,17 +1,17 @@
-# SSH Key Management for RabbitHQ Deployment
+# SSH Key Management for Qarote Deployment
 
 ## Overview
 
-RabbitHQ uses a dedicated SSH key for deployment operations to maintain security separation between personal and deployment access.
+Qarote uses a dedicated SSH key for deployment operations to maintain security separation between personal and deployment access.
 
 ## SSH Key Structure
 
 ### Deployment Key: `id_rsa_deploy`
 
-- **Purpose**: Dedicated key for RabbitHQ infrastructure deployment
+- **Purpose**: Dedicated key for Qarote infrastructure deployment
 - **Location**: `~/.ssh/id_rsa_deploy` (private) / `~/.ssh/id_rsa_deploy.pub` (public)
 - **Passphrase**: None (passwordless for automated deployment)
-- **Users**: Used by both `rabbithq` and `dokku` users on servers
+- **Users**: Used by both `qarote` and `dokku` users on servers
 
 ### Personal Key: `id_rsa`
 
@@ -41,7 +41,7 @@ This will:
 2. Go to [Hetzner Cloud Console](https://console.hetzner.cloud/)
 3. Navigate to Security → SSH Keys
 4. Click "Add SSH Key"
-5. Paste the public key and name it `rabbithq-deployment`
+5. Paste the public key and name it `qarote-deployment`
 
 ### 3. Configure Server Users
 
@@ -54,7 +54,7 @@ bun run ssh-keys.ts <server-ip>
 
 This will:
 
-- Add the deployment key to both `rabbithq` and `dokku` users
+- Add the deployment key to both `qarote` and `dokku` users
 - Test connections to both users
 - Ensure proper permissions are set
 
@@ -72,8 +72,8 @@ All infrastructure scripts automatically use `id_rsa_deploy`:
 ### Manual SSH Access
 
 ```bash
-# Connect as rabbithq user (for server management)
-ssh -i ~/.ssh/id_rsa_deploy rabbithq@<server-ip>
+# Connect as qarote user (for server management)
+ssh -i ~/.ssh/id_rsa_deploy qarote@<server-ip>
 
 # Connect as dokku user (for git operations)
 ssh -i ~/.ssh/id_rsa_deploy dokku@<server-ip>
@@ -83,7 +83,7 @@ ssh -i ~/.ssh/id_rsa_deploy dokku@<server-ip>
 
 ```bash
 # Add dokku remote using deployment key
-git remote add production dokku@<server-ip>:rabbithq
+git remote add production dokku@<server-ip>:qarote
 
 # Deploy (uses deployment key automatically)
 git push production main

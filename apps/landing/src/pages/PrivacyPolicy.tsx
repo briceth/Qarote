@@ -7,9 +7,9 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Privacy Policy - RabbitHQ"
-        description="Privacy Policy for RabbitHQ - Learn how we collect, use, and protect your data."
-        url="https://rabbithq.io/privacy-policy"
+        title="Privacy Policy - Qarote"
+        description="Privacy Policy for Qarote - Learn how we collect, use, and protect your data."
+        url="https://qarote.io/privacy-policy"
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -41,7 +41,7 @@ const PrivacyPolicy = () => {
               <h3 className="text-xl font-medium text-foreground">
                 1.1 Account Information
               </h3>
-              <p>When you create an account with RabbitHQ, we collect:</p>
+              <p>When you create an account with Qarote, we collect:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Email address</li>
                 <li>First and last name</li>
@@ -218,8 +218,7 @@ const PrivacyPolicy = () => {
                 </li>
               </ul>
               <p>
-                To exercise these rights, please contact us at
-                privacy@rabbithq.io
+                To exercise these rights, please contact us at privacy@qarote.io
               </p>
             </div>
           </section>
@@ -322,7 +321,7 @@ const PrivacyPolicy = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Email:</strong> support@rabbithq.io
+                  <strong>Email:</strong> support@qarote.io
                 </li>
                 <li>
                   <strong>Address:</strong> 229 rue Saint-Honoré, 75001, Paris,

@@ -84,13 +84,13 @@ export function initSentry() {
     },
 
     // Set release information
-    release: `rabbithq-frontend@${import.meta.env.VITE_APP_VERSION}`,
+    release: `qarote-frontend@${import.meta.env.VITE_APP_VERSION}`,
 
     // Configure tags
     initialScope: {
       tags: {
         component: "frontend",
-        service: "rabbithq-front",
+        service: "qarote-front",
       },
     },
   });

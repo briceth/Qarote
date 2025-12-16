@@ -124,7 +124,7 @@ const AcceptInvitation = () => {
       {
         onSuccess: () => {
           toast({
-            title: "Welcome to RabbitHQ!",
+            title: "Welcome to Qarote!",
             description: `You've successfully joined ${invitation?.workspace.name}`,
           });
           // Redirect to dashboard
@@ -186,7 +186,7 @@ const AcceptInvitation = () => {
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
             <Mail className="h-6 w-6 text-blue-600" />
           </div>
-          <CardTitle>Join RabbitHQ</CardTitle>
+          <CardTitle>Join Qarote</CardTitle>
           <CardDescription>
             You've been invited to join{" "}
             <strong>{invitation?.workspace.name}</strong>

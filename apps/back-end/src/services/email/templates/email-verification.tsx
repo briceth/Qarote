@@ -45,8 +45,8 @@ export const EmailVerification = ({
   const greeting = userName ? `Hi ${userName},` : "Hello,";
 
   const mainText = isSignup
-    ? "Thank you for signing up for RabbitHQ! To complete your registration and access your account, please verify your email address by clicking the button below."
-    : "You've requested to change your email address on RabbitHQ. To confirm this change, please verify your new email address by clicking the button below.";
+    ? "Thank you for signing up for Qarote! To complete your registration and access your account, please verify your email address by clicking the button below."
+    : "You've requested to change your email address on Qarote. To confirm this change, please verify your new email address by clicking the button below.";
 
   const supportUrl = `${frontendUrl}/help`;
   const verificationUrl = `${frontendUrl}/verify-email?token=${token}`;
@@ -56,7 +56,7 @@ export const EmailVerification = ({
       <Head />
       <Preview>
         {isSignup
-          ? "Verify your email to get started with RabbitHQ"
+          ? "Verify your email to get started with Qarote"
           : "Confirm your new email address"}
       </Preview>
       <Body style={baseStyles.main}>
@@ -116,7 +116,7 @@ export const EmailVerification = ({
 
             <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

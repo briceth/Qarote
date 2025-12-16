@@ -61,9 +61,7 @@ export const PaymentConfirmationEmail: React.FC<
   return (
     <Html>
       <Head />
-      <Preview>
-        Payment Confirmed - Your RabbitHQ subscription is active
-      </Preview>
+      <Preview>Payment Confirmed - Your Qarote subscription is active</Preview>
       <Body style={baseStyles.main}>
         <Container style={baseStyles.container}>
           <Section style={headerStyles.header}></Section>
@@ -77,7 +75,7 @@ export const PaymentConfirmationEmail: React.FC<
 
             <Text style={contentStyles.paragraph}>
               Great news! Your payment has been successfully processed and your
-              RabbitHQ subscription is now active.
+              Qarote subscription is now active.
             </Text>
 
             <Section style={sectionStyles.successSection}>
@@ -106,9 +104,9 @@ export const PaymentConfirmationEmail: React.FC<
             </Section>
 
             <Text style={contentStyles.paragraph}>
-              Thank you for your payment! You can continue using RabbitHQ
-              without any interruptions. Your subscription is now active and you
-              have full access to all features.
+              Thank you for your payment! You can continue using Qarote without
+              any interruptions. Your subscription is now active and you have
+              full access to all features.
             </Text>
 
             <Section style={buttonStyles.buttonSection}>
@@ -135,7 +133,7 @@ export const PaymentConfirmationEmail: React.FC<
 
             <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

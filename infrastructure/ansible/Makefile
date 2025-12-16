@@ -1,7 +1,7 @@
 .PHONY: help worker-staging worker-production check-staging check-production
 
 help:
-	@echo "Ansible Makefile for RabbitHQ"
+	@echo "Ansible Makefile for Qarote"
 	@echo ""
 	@echo "Available targets:"
 	@echo "  worker-staging      - Create/update worker app in staging"

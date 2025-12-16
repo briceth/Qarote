@@ -17,5 +17,5 @@ This Ansible role manages the creation and configuration of Dokku worker apps fo
     - role: dokku-worker
       vars:
         backend_app_name: rabbithq-backend-staging
-        worker_app_name: rabbithq-worker-staging
+        worker_app_name: qarote-worker-staging
 ```

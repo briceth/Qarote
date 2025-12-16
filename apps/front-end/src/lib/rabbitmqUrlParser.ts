@@ -15,7 +15,7 @@ export interface ParsedRabbitMQUrl {
 /**
  * Parses a RabbitMQ URL and extracts connection details
  * Supports formats like:
- * - https://rabbitmq.aws-rabbithq.com (Management API)
+ * - https://rabbitmq.aws-qarote.com (Management API)
  * - http://localhost:15672 (Management API)
  * - https://user:pass@rabbitmq.example.com:443 (Management API)
  * - https://rabbitmq.example.com/path (Management API with vhost)
@@ -131,7 +131,7 @@ export function parseRabbitMQUrl(url: string): ParsedRabbitMQUrl | null {
     let suggestedName: string | undefined;
     if (host) {
       // Extract meaningful parts from hostname
-      // e.g., "rabbitmq.aws-rabbithq.com" -> "AWS RabbitMQ"
+      // e.g., "rabbitmq.aws-qarote.com" -> "AWS RabbitMQ"
       const parts = host.split(".");
       if (parts.length > 0) {
         const firstPart = parts[0];

@@ -7,9 +7,9 @@ const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Terms of Service - RabbitHQ"
-        description="Terms of Service for RabbitHQ - Learn about your rights and responsibilities when using our service."
-        url="https://rabbithq.io/terms-of-service"
+        title="Terms of Service - Qarote"
+        description="Terms of Service for Qarote - Learn about your rights and responsibilities when using our service."
+        url="https://qarote.io/terms-of-service"
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -39,14 +39,14 @@ const TermsOfService = () => {
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                By accessing and using RabbitHQ ("the Service"), you accept and
+                By accessing and using Qarote ("the Service"), you accept and
                 agree to be bound by the terms and provision of this agreement.
                 If you do not agree to abide by the above, please do not use
                 this service.
               </p>
               <p>
                 These Terms of Service ("Terms") govern your use of our RabbitMQ
-                monitoring and management platform operated by RabbitHQ ("us",
+                monitoring and management platform operated by Qarote ("us",
                 "we", or "our").
               </p>
             </div>
@@ -58,8 +58,8 @@ const TermsOfService = () => {
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                RabbitHQ provides a modern, web-based interface for monitoring
-                and managing RabbitMQ message brokers. Our service includes:
+                Qarote provides a modern, web-based interface for monitoring and
+                managing RabbitMQ message brokers. Our service includes:
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Live queue monitoring and analytics</li>
@@ -266,7 +266,7 @@ const TermsOfService = () => {
             <div className="space-y-4 text-muted-foreground">
               <p>
                 The service and its original content, features, and
-                functionality are owned by RabbitHQ and are protected by
+                functionality are owned by Qarote and are protected by
                 international copyright, trademark, patent, trade secret, and
                 other intellectual property laws.
               </p>
@@ -286,7 +286,7 @@ const TermsOfService = () => {
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                To the maximum extent permitted by law, RabbitHQ shall not be
+                To the maximum extent permitted by law, Qarote shall not be
                 liable for any indirect, incidental, special, consequential, or
                 punitive damages, including without limitation, loss of profits,
                 data, use, goodwill, or other intangible losses, resulting from
@@ -306,9 +306,9 @@ const TermsOfService = () => {
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                You agree to defend, indemnify, and hold harmless RabbitHQ and
-                its officers, directors, employees, and agents from and against
-                any claims, damages, obligations, losses, liabilities, costs, or
+                You agree to defend, indemnify, and hold harmless Qarote and its
+                officers, directors, employees, and agents from and against any
+                claims, damages, obligations, losses, liabilities, costs, or
                 debt, and expenses (including attorney's fees) arising from:
               </p>
               <ul className="list-disc pl-6 space-y-2">
@@ -408,7 +408,7 @@ const TermsOfService = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Email:</strong> support@rabbithq.io
+                  <strong>Email:</strong> support@qarote.io
                 </li>
                 <li>
                   <strong>Address:</strong> 229 rue Saint-Honoré, 75001, Paris,

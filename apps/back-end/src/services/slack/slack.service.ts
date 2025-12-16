@@ -175,7 +175,7 @@ export class SlackService {
 
     const message: SlackMessage = {
       text: summaryText,
-      username: "RabbitHQ Alerts",
+      username: "Qarote Alerts",
       icon_emoji: ":rabbit:",
       blocks,
       attachments: [

@@ -72,7 +72,7 @@ export const WelcomeBackEmail = ({
               </Text>
               <Text style={styles.highlightSubtext}>
                 Your feedback and loyalty mean the world to us. We've been
-                working hard to improve RabbitHQ based on user feedback like
+                working hard to improve Qarote based on user feedback like
                 yours.
               </Text>
             </Section>
@@ -118,7 +118,7 @@ export const WelcomeBackEmail = ({
 
             <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

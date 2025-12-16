@@ -38,9 +38,9 @@ export default function PrivacyPolicy() {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p>
-              At RabbitHQ Dashboard, we take your privacy seriously. This
-              Privacy Policy explains how we collect, use, disclose, and
-              safeguard your information when you use our service.
+              At Qarote Dashboard, we take your privacy seriously. This Privacy
+              Policy explains how we collect, use, disclose, and safeguard your
+              information when you use our service.
             </p>
             <p>
               Please read this privacy policy carefully. If you disagree with
@@ -181,7 +181,7 @@ export default function PrivacyPolicy() {
           <CardContent className="prose max-w-none">
             <p>
               Our service may contain links to third-party websites or services
-              that are not owned or controlled by RabbitHQ Dashboard. We have no
+              that are not owned or controlled by Qarote Dashboard. We have no
               control over and assume no responsibility for the content, privacy
               policies, or practices of any third-party websites or services.
             </p>
@@ -220,8 +220,8 @@ export default function PrivacyPolicy() {
                   If you have any questions about our privacy practices or need
                   help with your data settings, please contact our privacy team
                   at{" "}
-                  <a href="mailto:support@rabbithq.io" className="underline">
-                    support@rabbithq.io
+                  <a href="mailto:support@qarote.io" className="underline">
+                    support@qarote.io
                   </a>
                 </p>
               </div>
@@ -231,7 +231,7 @@ export default function PrivacyPolicy() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} RabbitHQ. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Qarote. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-2">
             <a href="/" className="hover:underline">
               Home

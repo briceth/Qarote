@@ -74,7 +74,7 @@ const LicensePurchase = () => {
       <div>
         <h1 className="text-3xl font-bold">Purchase License</h1>
         <p className="text-muted-foreground mt-2">
-          Choose a license tier for your self-hosted RabbitHQ deployment
+          Choose a license tier for your self-hosted Qarote deployment
         </p>
       </div>
 

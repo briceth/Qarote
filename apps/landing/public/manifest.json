@@ -1,10 +1,10 @@
 {
   "short_name": "RabbitMQ Next",
-  "name": "RabbitHQ",
+  "name": "Qarote",
   "description": "Modern RabbitMQ Management Interface",
   "icons": [
     {
-      "src": "new_icon_rabbit.svg",
+      "src": "new_icon_qarote.svg",
       "type": "image/svg+xml",
       "sizes": "180x180"
     },

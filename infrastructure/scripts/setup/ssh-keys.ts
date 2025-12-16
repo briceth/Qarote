@@ -34,7 +34,7 @@ async function setupSSHKeysOnServer(serverIp: string): Promise<void> {
       "-o",
       "ConnectTimeout=10",
       `rabbithq@${serverIp}`,
-      "echo 'RabbitHQ user connection works'",
+      "echo 'Qarote user connection works'",
     ]);
 
     if (testResult.exitCode !== 0) {
@@ -45,7 +45,7 @@ async function setupSSHKeysOnServer(serverIp: string): Promise<void> {
       return;
     }
 
-    Logger.success("RabbitHQ user connection works");
+    Logger.success("Qarote user connection works");
 
     // Add deployment SSH key to dokku user
     Logger.info("Adding deployment SSH key to dokku user...");

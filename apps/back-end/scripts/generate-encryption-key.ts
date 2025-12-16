@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Generate a secure encryption key for the RabbitHQ application
+ * Generate a secure encryption key for the Qarote application
  *
  * Usage: npx tsx scripts/generate-encryption-key.ts
  */

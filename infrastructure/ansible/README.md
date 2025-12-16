@@ -110,7 +110,7 @@ Reusable role for managing Dokku worker apps.
     - role: dokku-worker
       vars:
         backend_app_name: rabbithq-backend-staging
-        worker_app_name: rabbithq-worker-staging
+        worker_app_name: qarote-worker-staging
 ```
 
 ## Environment Variables
@@ -190,5 +190,5 @@ ssh dokku@your-server "dokku config:export rabbithq-backend-staging"
 After creating the worker app:
 
 1. Deploy your application code to the worker app
-2. Scale the worker process: `dokku ps:scale rabbithq-worker-staging worker=1`
-3. Monitor logs: `dokku logs rabbithq-worker-staging`
+2. Scale the worker process: `dokku ps:scale qarote-worker-staging worker=1`
+3. Monitor logs: `dokku logs qarote-worker-staging`

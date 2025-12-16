@@ -40,17 +40,17 @@ export const InvitationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>You've been invited to join {workspaceName} on RabbitHQ</Preview>
+      <Preview>You've been invited to join {workspaceName} on Qarote</Preview>
       <Body style={baseStyles.main}>
         <Container style={baseStyles.container}>
           <Section style={headerStyles.header}></Section>
 
           <Section style={contentStyles.contentPadded}>
-            <Text style={contentStyles.title}>You're invited to RabbitHQ!</Text>
+            <Text style={contentStyles.title}>You're invited to Qarote!</Text>
 
             <Text style={contentStyles.paragraph}>
               <strong>{inviterName}</strong> ({inviterEmail}) has invited you to
-              join <strong>{workspaceName}</strong> on RabbitHQ.
+              join <strong>{workspaceName}</strong> on Qarote.
             </Text>
 
             <Section style={buttonStyles.buttonSection}>
@@ -72,7 +72,7 @@ export const InvitationEmail = ({
 
             <Text style={contentStyles.paragraph}>Happy monitoring! 🐰</Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

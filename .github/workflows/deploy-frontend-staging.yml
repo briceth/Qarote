@@ -72,9 +72,6 @@ jobs:
           VITE_SENTRY_ENABLED: ${{ vars.VITE_SENTRY_ENABLED }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           VITE_APP_VERSION: ${{ vars.VITE_APP_VERSION }}
-          VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
-          VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
-          VITE_POSTHOG_ENABLED: ${{ vars.VITE_POSTHOG_ENABLED }}
           NODE_ENV: production
         run: npm run build
 
@@ -82,11 +79,11 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/front-end/dist --project-name=rabbithq-staging --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/front-end/dist --project-name=qarote-app-staging --branch=main --commit-hash=${{ github.sha }}
 
       - name: Deployment Success
         run: |
           echo "🎉 Frontend deployed successfully to staging!"
-          echo "🌐 Staging URL: https://rabbithq-staging.pages.dev"
-          echo "🔗 Custom Domain: https://app.yourdomain.com (if configured)"
+          echo "🌐 Staging URL: https://qarote-app-staging.pages.dev"
+          echo "🔗 Custom Domain: https://app.qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

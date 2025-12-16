@@ -40,7 +40,7 @@ User plan service is located in:
 
 RabbitMQ core functionality is located in:
 
-- `/Users/brice/Code/Personal/Active/RabbitHQ/back-end/src/core/rabbitmq`
+- `/Users/brice/Code/Personal/Active/Qarote/back-end/src/core/rabbitmq`
 
 ## Backend Types
 

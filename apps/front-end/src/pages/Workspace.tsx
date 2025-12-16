@@ -99,15 +99,13 @@ const Workspace = () => {
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
                 <img
-                  src="/new_icon_rabbit.svg"
+                  src="/new_icon_qarote.svg"
                   alt="Rabbit"
                   className="w-4 h-4"
                 />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  RabbitHQ
-                </h1>
+                <h1 className="text-xl font-semibold text-gray-900">Qarote</h1>
                 <p className="text-sm text-gray-500">
                   The next GUI for RabbitMQ
                 </p>
@@ -144,9 +142,9 @@ const Workspace = () => {
                 Create Your Workspace
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Welcome to RabbitHQ! Let's start by creating your first
-                workspace. Workspaces help you organize your RabbitMQ servers
-                and collaborate with your team.
+                Welcome to Qarote! Let's start by creating your first workspace.
+                Workspaces help you organize your RabbitMQ servers and
+                collaborate with your team.
               </p>
             </div>
 

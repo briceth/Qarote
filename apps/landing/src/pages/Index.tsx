@@ -180,9 +180,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <StickyNav onVideoClick={() => setIsVideoPlaying(true)} />
       <SEO
-        title="RabbitHQ - Best RabbitMQ Monitoring & Management Interface"
+        title="Qarote - Best RabbitMQ Monitoring & Management Interface"
         description="The best RabbitMQ monitoring and management interface for developers. Monitor queues, track performance, and manage your message broker with a modern dashboard. Cleaner than Management Plugin, simpler than Prometheus."
-        url="https://rabbithq.io"
+        url="https://qarote.io"
         keywords={[
           "RabbitMQ monitoring",
           "RabbitMQ management",
@@ -205,39 +205,39 @@ const Index = () => {
         ]}
         faq={[
           {
-            question: "What is RabbitHQ?",
+            question: "What is Qarote?",
             answer:
-              "RabbitHQ is a modern, user-friendly dashboard that helps you monitor and manage your RabbitMQ servers effortlessly. Instead of using the outdated RabbitMQ admin panel or command line, RabbitHQ gives you a clean, visual interface to see your queues, messages, and system health in real time.",
+              "Qarote is a modern, user-friendly dashboard that helps you monitor and manage your RabbitMQ servers effortlessly. Instead of using the outdated RabbitMQ admin panel or command line, Qarote gives you a clean, visual interface to see your queues, messages, and system health in real time.",
           },
           {
-            question: "Who is RabbitHQ for?",
+            question: "Who is Qarote for?",
             answer:
-              "RabbitHQ is designed for developers, DevOps engineers, and teams who use RabbitMQ and want better visibility, easier monitoring, and faster troubleshooting. Whether you're running one broker or dozens, RabbitHQ helps you save time and prevent message bottlenecks.",
+              "Qarote is designed for developers, DevOps engineers, and teams who use RabbitMQ and want better visibility, easier monitoring, and faster troubleshooting. Whether you're running one broker or dozens, Qarote helps you save time and prevent message bottlenecks.",
           },
           {
-            question: "Is RabbitHQ secure?",
+            question: "Is Qarote secure?",
             answer:
-              "Absolutely. All connections to your RabbitMQ servers are encrypted (TLS), and no sensitive data is stored on our servers. You stay in full control of your credentials, and RabbitHQ only reads the metrics and management data needed for your dashboard.",
+              "Absolutely. All connections to your RabbitMQ servers are encrypted (TLS), and no sensitive data is stored on our servers. You stay in full control of your credentials, and Qarote only reads the metrics and management data needed for your dashboard.",
           },
           {
-            question: "What can I do with RabbitHQ?",
+            question: "What can I do with Qarote?",
             answer:
-              "With RabbitHQ, you can: View all your queues, exchanges, and bindings at a glance; Monitor message rates, errors, and consumer activity in real time; Create alerts for blocked or overloaded queues; Manage users, vhosts, and permissions visually; Connect multiple RabbitMQ instances in one place.",
-          },
-          {
-            question:
-              "How is RabbitHQ different from the RabbitMQ Management UI?",
-            answer:
-              "The built-in RabbitMQ Management Plugin works, but it's slow, cluttered, and hard to scale across multiple brokers. RabbitHQ provides: A modern, intuitive interface; Centralized monitoring across environments; Powerful search and filters; Smart alerts and reporting; A clean experience designed for teams.",
+              "With Qarote, you can: View all your queues, exchanges, and bindings at a glance; Monitor message rates, errors, and consumer activity in real time; Create alerts for blocked or overloaded queues; Manage users, vhosts, and permissions visually; Connect multiple RabbitMQ instances in one place.",
           },
           {
             question:
-              "Is RabbitHQ a better monitoring tool than Prometheus and Grafana?",
+              "How is Qarote different from the RabbitMQ Management UI?",
             answer:
-              "RabbitHQ offers purpose-built monitoring specifically for RabbitMQ with zero configuration. While Prometheus and Grafana are powerful, they require significant setup and maintenance. RabbitHQ provides comparable insights with much less overhead.",
+              "The built-in RabbitMQ Management Plugin works, but it's slow, cluttered, and hard to scale across multiple brokers. Qarote provides: A modern, intuitive interface; Centralized monitoring across environments; Powerful search and filters; Smart alerts and reporting; A clean experience designed for teams.",
           },
           {
-            question: "Can I try RabbitHQ for free?",
+            question:
+              "Is Qarote a better monitoring tool than Prometheus and Grafana?",
+            answer:
+              "Qarote offers purpose-built monitoring specifically for RabbitMQ with zero configuration. While Prometheus and Grafana are powerful, they require significant setup and maintenance. Qarote provides comparable insights with much less overhead.",
+          },
+          {
+            question: "Can I try Qarote for free?",
             answer:
               "Yes! We offer a free tier that includes 1 server, 1 workspace, and 1 team member. You can start monitoring your RabbitMQ queues right away without a credit card. When you're ready to scale, you can upgrade to a paid plan.",
           },
@@ -245,7 +245,7 @@ const Index = () => {
         structuredData={{
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          name: "RabbitHQ",
+          name: "Qarote",
           applicationCategory: "DeveloperApplication",
           operatingSystem: "Any",
           offers: {
@@ -256,7 +256,7 @@ const Index = () => {
           },
           description:
             "The modern RabbitMQ management interface your team deserves. Cleaner than Management Plugin. Simpler than Prometheus. Cheaper than Cloud Solutions.",
-          screenshot: "https://rabbithq.io/new_social_card.png",
+          screenshot: "https://qarote.io/new_social_card.png",
           softwareVersion: "1.0",
           aggregateRating: {
             "@type": "AggregateRating",
@@ -286,7 +286,7 @@ const Index = () => {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-12 leading-relaxed max-w-3xl mx-auto px-2">
-              RabbitHQ gives you a clean, unified view of your queues, exchanges
+              Qarote gives you a clean, unified view of your queues, exchanges
               and messages, with real monitoring, alerts and multi-workspace
               support.
             </p>
@@ -324,8 +324,8 @@ const Index = () => {
               {!isVideoPlaying ? (
                 <>
                   <img
-                    src={"/images/rabbithq.png"}
-                    alt={"RabbitHQ Dashboard Interface"}
+                    src={"/images/qarote.png"}
+                    alt={"Qarote Dashboard Interface"}
                     className="w-full h-full object-contain bg-card"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/15 group-hover:bg-black/20 transition-colors">
@@ -343,7 +343,7 @@ const Index = () => {
               ) : (
                 <iframe
                   src="https://www.youtube.com/embed/YhsU_QFkGUE?autoplay=1"
-                  title="RabbitHQ Video"
+                  title="Qarote Video"
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -418,10 +418,10 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Right Column - RabbitHQ */}
+              {/* Right Column - Qarote */}
               <div className="pt-8 lg:pt-12 px-8 lg:px-12 pb-0 flex flex-col relative overflow-visible">
                 <h3 className="text-2xl font-bold text-foreground mb-8">
-                  RabbitHQ
+                  Qarote
                 </h3>
                 <div className="space-y-5 mb-16">
                   <div className="flex gap-4 items-start">
@@ -463,11 +463,11 @@ const Index = () => {
                   <div className="bg-background rounded p-3 space-y-2 flex-1 flex flex-col justify-between overflow-hidden min-h-0">
                     <div className="flex items-center gap-2">
                       <img
-                        src="/new_icon_rabbit.svg"
-                        alt="RabbitHQ"
+                        src="/new_icon_qarote.svg"
+                        alt="Qarote"
                         className="w-6 h-6"
                       />
-                      <span className="font-semibold text-sm">RabbitHQ</span>
+                      <span className="font-semibold text-sm">Qarote</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-muted/30 rounded p-1.5">
@@ -544,7 +544,7 @@ const Index = () => {
                 Connect easily with your RabbitMQ servers
               </h2>
               <p className="text-lg text-muted-foreground">
-                Don't change the way your RabbitMQ servers work, RabbitHQ is
+                Don't change the way your RabbitMQ servers work, Qarote is
                 specially made for this message broker.
               </p>
             </div>
@@ -573,16 +573,16 @@ const Index = () => {
                   <div className="bg-card border-t border-l border-r border-border rounded-t-xl p-6 max-w-sm mx-auto">
                     <div className="flex items-center justify-center gap-2 mb-6">
                       <img
-                        src="/new_icon_rabbit.svg"
-                        alt="RabbitHQ"
+                        src="/new_icon_qarote.svg"
+                        alt="Qarote"
                         className="w-8 h-8"
                       />
                       <span className="font-bold text-xl text-foreground">
-                        RabbitHQ
+                        Qarote
                       </span>
                     </div>
                     <h4 className="text-lg font-bold text-foreground text-center mb-2">
-                      Create your RabbitHQ account
+                      Create your Qarote account
                     </h4>
                     <p className="text-sm text-muted-foreground text-center mb-6">
                       Transform the way you monitor RabbitMQ.
@@ -591,7 +591,7 @@ const Index = () => {
                       <button
                         onClick={() => {
                           window.location.href =
-                            "https://app.rabbithq.io/auth/sign-up";
+                            "https://app.qarote.io/auth/sign-up";
                         }}
                         className="w-full bg-background border border-border rounded-lg p-3 flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
                       >
@@ -613,7 +613,7 @@ const Index = () => {
                       <button
                         onClick={() => {
                           window.location.href =
-                            "https://app.rabbithq.io/auth/sign-up";
+                            "https://app.qarote.io/auth/sign-up";
                         }}
                         className="w-full bg-background border border-border rounded-lg p-3 flex items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
                       >
@@ -1209,7 +1209,7 @@ const Index = () => {
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-muted-foreground">
-              Everything you need to know about RabbitHQ
+              Everything you need to know about Qarote
             </p>
           </div>
 
@@ -1220,14 +1220,14 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  What is RabbitHQ?
+                  What is Qarote?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  RabbitHQ is a modern, user-friendly dashboard that helps you
+                  Qarote is a modern, user-friendly dashboard that helps you
                   monitor and manage your RabbitMQ servers effortlessly. Instead
                   of using the outdated RabbitMQ admin panel or command line,
-                  RabbitHQ gives you a clean, visual interface to see your
-                  queues, messages, and system health in real time.
+                  Qarote gives you a clean, visual interface to see your queues,
+                  messages, and system health in real time.
                 </AccordionContent>
               </AccordionItem>
 
@@ -1236,13 +1236,13 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Who is RabbitHQ for?
+                  Who is Qarote for?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  RabbitHQ is designed for developers, DevOps engineers, and
-                  teams who use RabbitMQ and want better visibility, easier
+                  Qarote is designed for developers, DevOps engineers, and teams
+                  who use RabbitMQ and want better visibility, easier
                   monitoring, and faster troubleshooting. Whether you're running
-                  one broker or dozens, RabbitHQ helps you save time and prevent
+                  one broker or dozens, Qarote helps you save time and prevent
                   message bottlenecks.
                 </AccordionContent>
               </AccordionItem>
@@ -1252,13 +1252,13 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Is RabbitHQ secure?
+                  Is Qarote secure?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
                   Absolutely. All connections to your RabbitMQ servers are
                   encrypted (TLS), and no sensitive data is stored on our
                   servers. You stay in full control of your credentials, and
-                  RabbitHQ only reads the metrics and management data needed for
+                  Qarote only reads the metrics and management data needed for
                   your dashboard.
                 </AccordionContent>
               </AccordionItem>
@@ -1268,10 +1268,10 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  What can I do with RabbitHQ?
+                  What can I do with Qarote?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  With RabbitHQ, you can:
+                  With Qarote, you can:
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>
                       View all your queues, exchanges, and bindings at a glance
@@ -1292,11 +1292,11 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  How is RabbitHQ different from the RabbitMQ Management UI?
+                  How is Qarote different from the RabbitMQ Management UI?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
                   The built-in RabbitMQ Management Plugin works, but it's slow,
-                  cluttered, and hard to scale across multiple brokers. RabbitHQ
+                  cluttered, and hard to scale across multiple brokers. Qarote
                   provides:
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>A modern, intuitive interface</li>
@@ -1313,14 +1313,14 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Is RabbitHQ a better monitoring tool than Prometheus and
+                  Is Qarote a better monitoring tool than Prometheus and
                   Grafana?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  RabbitHQ offers purpose-built monitoring specifically for
+                  Qarote offers purpose-built monitoring specifically for
                   RabbitMQ with zero configuration. While Prometheus and Grafana
                   are powerful, they require significant setup and maintenance.
-                  RabbitHQ provides comparable insights with much less overhead.
+                  Qarote provides comparable insights with much less overhead.
                 </AccordionContent>
               </AccordionItem>
 
@@ -1329,7 +1329,7 @@ const Index = () => {
                 className="border border-border rounded-xl px-6 bg-transparent"
               >
                 <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Can I try RabbitHQ for free?
+                  Can I try Qarote for free?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
                   Yes! We offer a free tier that includes 1 server, 1 workspace,
@@ -1405,7 +1405,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <h3 className="text-xl font-bold">RabbitHQ</h3>
+              <h3 className="text-xl font-bold">Qarote</h3>
             </div>
 
             <div className="flex items-center gap-6">

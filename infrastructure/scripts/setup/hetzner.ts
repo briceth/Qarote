@@ -116,7 +116,7 @@ export async function ensureSSHKey(): Promise<HetznerSSHKey> {
     for (const key of response.ssh_keys) {
       if (key.name.includes("rabbithq") || key.name.startsWith("rabbithq")) {
         Logger.success(
-          `Found existing RabbitHQ SSH key: ${key.name} (ID: ${key.id})`
+          `Found existing Qarote SSH key: ${key.name} (ID: ${key.id})`
         );
         Logger.info("Using this key for infrastructure setup.");
         return key;

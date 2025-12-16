@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /
 
 # This is a staging environment - do not index
-# Staging URL: https://rabbithq-staging.pages.dev
+# Staging URL: https://qarote-staging.pages.dev

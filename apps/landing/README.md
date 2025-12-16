@@ -1,4 +1,4 @@
-# Welcome to RabbitHQ
+# Welcome to Qarote
 
 ## Project info
 

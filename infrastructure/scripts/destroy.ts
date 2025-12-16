@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * RabbitHQ Destroy Script
+ * Qarote Destroy Script
  * Remove applications and databases (BE CAREFUL!)
  */
 

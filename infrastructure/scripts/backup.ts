@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * RabbitHQ Backup Script
+ * Qarote Backup Script
  * Backup PostgreSQL database
  */
 

@@ -4,7 +4,7 @@ const tseslint = require("typescript-eslint");
 const simpleImportSort = require("eslint-plugin-simple-import-sort");
 
 module.exports = tseslint.config(
-  { ignores: ["dist", "node_modules", "scripts"] },
+  { ignores: ["dist", "node_modules", "scripts", "vitest.config.ts"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -14,6 +14,10 @@ module.exports = tseslint.config(
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
+      },
     },
     rules: {
       "@typescript-eslint/no-unused-vars": [

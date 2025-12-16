@@ -11,12 +11,12 @@ Instead of accessing RabbitMQ via IP addresses like:
 
 You can use friendly hostnames like:
 
-- `http://rabbitmq-aws.rabbithq.com:15672` (AWS)
-- `http://rabbitmq-gcp.rabbithq.com:15672` (GCP)
+- `http://rabbitmq-aws.qarote.io:15672` (AWS)
+- `http://rabbitmq-gcp.qarote.io:15672` (GCP)
 
 ## Prerequisites
 
-- A domain name you own (e.g., `rabbithq.com`)
+- A domain name you own (e.g., `qarote.io`)
 - Access to your domain registrar to update nameservers
 
 ## AWS Route 53 Setup
@@ -27,7 +27,7 @@ You can use friendly hostnames like:
 
 ```bash
 aws route53 create-hosted-zone \
-  --name rabbithq.com \
+  --name qarote.io \
   --caller-reference $(date +%s)
 ```
 
@@ -35,7 +35,7 @@ aws route53 create-hosted-zone \
 
 1. Go to Route 53 → Hosted zones
 2. Click "Create hosted zone"
-3. Enter your domain name (e.g., `rabbithq.com`)
+3. Enter your domain name (e.g., `qarote.io`)
 4. Click "Create hosted zone"
 
 ### Step 2: Get the Hosted Zone ID
@@ -44,7 +44,7 @@ aws route53 create-hosted-zone \
 
 ```bash
 aws route53 list-hosted-zones \
-  --query "HostedZones[?Name=='rabbithq.com.'].Id" \
+  --query "HostedZones[?Name=='qarote.io.'].Id" \
   --output text
 ```
 
@@ -65,7 +65,7 @@ aws route53 list-hosted-zones \
 Add to your `terraform.tfvars`:
 
 ```hcl
-aws_domain_name      = "rabbitmq-aws.rabbithq.com"
+aws_domain_name      = "rabbitmq-aws.qarote.io"
 aws_route53_zone_id  = "Z1234567890ABC"  # Your hosted zone ID
 ```
 
@@ -76,8 +76,8 @@ aws_route53_zone_id  = "Z1234567890ABC"  # Your hosted zone ID
 **Via gcloud CLI:**
 
 ```bash
-gcloud dns managed-zones create rabbithq-zone \
-  --dns-name=rabbithq.com \
+gcloud dns managed-zones create qarote-zone \
+  --dns-name=qarote.io \
   --description="RabbitMQ DNS zone" \
   --project=rabbithq
 ```
@@ -87,18 +87,18 @@ gcloud dns managed-zones create rabbithq-zone \
 1. Go to Cloud DNS → Zones
 2. Click "Create zone"
 3. Zone type: Public
-4. Zone name: `rabbithq-zone` (or any name you prefer)
-5. DNS name: `rabbithq.com`
+4. Zone name: `qarote-zone` (or any name you prefer)
+5. DNS name: `qarote.io`
 6. Click "Create"
 
 ### Step 2: Get the Zone Name
 
-The zone name is what you specified when creating the zone (e.g., `rabbithq-zone`).
+The zone name is what you specified when creating the zone (e.g., `qarote-zone`).
 
 **Via gcloud CLI:**
 
 ```bash
-gcloud dns managed-zones list --filter="dnsName:rabbithq.com"
+gcloud dns managed-zones list --filter="dnsName:qarote.io"
 ```
 
 ### Step 3: Update Domain Nameservers
@@ -114,8 +114,8 @@ gcloud dns managed-zones list --filter="dnsName:rabbithq.com"
 Add to your `terraform.tfvars`:
 
 ```hcl
-gcp_domain_name      = "rabbitmq-gcp.rabbithq.com"
-gcp_dns_zone_name    = "rabbithq-zone"  # Your managed zone name
+gcp_domain_name      = "rabbitmq-gcp.qarote.io"
+gcp_dns_zone_name    = "qarote-zone"  # Your managed zone name
 ```
 
 ## Apply DNS Configuration
@@ -150,10 +150,10 @@ Test that DNS is working:
 
 ```bash
 # Test AWS hostname
-nslookup rabbitmq-aws.rabbithq.com
+nslookup rabbitmq-aws.qarote.io
 
 # Test GCP hostname
-nslookup rabbitmq-gcp.rabbithq.com
+nslookup rabbitmq-gcp.qarote.io
 ```
 
 Both should resolve to the respective instance IP addresses.
@@ -162,8 +162,8 @@ Both should resolve to the respective instance IP addresses.
 
 Once DNS is configured and propagated, you can access:
 
-- **AWS Management UI:** `http://rabbitmq-aws.rabbithq.com:15672`
-- **GCP Management UI:** `http://rabbitmq-gcp.rabbithq.com:15672`
+- **AWS Management UI:** `http://rabbitmq-aws.qarote.io:15672`
+- **GCP Management UI:** `http://rabbitmq-gcp.qarote.io:15672`
 
 ## Notes
 

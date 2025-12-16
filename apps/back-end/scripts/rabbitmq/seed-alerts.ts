@@ -255,7 +255,7 @@ async function main() {
       console.log("\n" + "=".repeat(60));
       console.log("✨ Alerts generated!");
       console.log("\n📋 Next steps:");
-      console.log("   1. Visit your Alerts page in RabbitHQ");
+      console.log("   1. Visit your Alerts page in Qarote");
       console.log("   2. Check webhook.site (if configured)");
       console.log("   3. Check Slack channel (if configured)");
       console.log("   4. Check email inbox (if configured)");

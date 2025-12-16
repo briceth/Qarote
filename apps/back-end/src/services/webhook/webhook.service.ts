@@ -40,16 +40,16 @@ export class WebhookService {
     const payloadString = JSON.stringify(payload);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      "User-Agent": "RabbitHQ-Webhook/1.0",
-      "X-RabbitHQ-Event": payload.event,
-      "X-RabbitHQ-Version": payload.version,
-      "X-RabbitHQ-Timestamp": payload.timestamp,
+      "User-Agent": "Qarote-Webhook/1.0",
+      "X-Qarote-Event": payload.event,
+      "X-Qarote-Version": payload.version,
+      "X-Qarote-Timestamp": payload.timestamp,
     };
 
     // Add signature if secret is provided
     if (secret) {
       const signature = this.generateSignature(payloadString, secret);
-      headers["X-RabbitHQ-Signature"] = `sha256=${signature}`;
+      headers["X-Qarote-Signature"] = `sha256=${signature}`;
     }
 
     try {

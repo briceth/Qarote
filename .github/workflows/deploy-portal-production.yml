@@ -77,11 +77,11 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/customer-portal/dist --project-name=rabbithq-customer-portal --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/customer-portal/dist --project-name=qarote-customer-portal --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |
           echo "🎉 Customer Portal deployed successfully to production!"
-          echo "🌐 Production URL: https://rabbithq-customer-portal.pages.dev"
-          echo "🔗 Custom Domain: https://portal.rabbithq.io (if configured)"
+          echo "🌐 Production URL: https://qarote-customer-portal.pages.dev"
+          echo "🔗 Custom Domain: https://portal.qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

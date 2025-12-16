@@ -1,5 +1,5 @@
 {
-  "name": "rabbithq-landing",
+  "name": "qarote-landing",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm install --no-package-lock && vite build",
+    "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint . --max-warnings=-1",
     "lint:fix": "eslint . --fix",

@@ -41,7 +41,7 @@ const envSchema = z.object({
 
   // Email Configuration
   RESEND_API_KEY: z.string().optional(),
-  FROM_EMAIL: z.email().describe("noreply@rabbithq.com"),
+  FROM_EMAIL: z.email().describe("noreply@qarote.io"),
   FRONTEND_URL: z.url("FRONTEND_URL must be a valid URL"),
   ENABLE_EMAIL: z.coerce.boolean().default(true),
   EMAIL_PROVIDER: z.enum(["resend", "smtp"]).default("resend"),
@@ -175,7 +175,7 @@ export const sentryConfig = {
   dsn: config.SENTRY_DSN,
   enabled: config.SENTRY_ENABLED && config.ENABLE_SENTRY,
   environment: config.NODE_ENV,
-  release: `rabbithq-backend@${config.npm_package_version || "unknown"}`,
+  release: `qarote-backend@${config.npm_package_version || "unknown"}`,
   tracesSampleRate: isProduction() ? 0.1 : 1.0,
   profilesSampleRate: isProduction() ? 0.05 : 1.0,
 } as const;
@@ -187,7 +187,7 @@ export const googleConfig = {
 
 export const licenseConfig = {
   licenseKey: config.LICENSE_KEY,
-  validationUrl: config.LICENSE_VALIDATION_URL || "https://api.rabbithq.io",
+  validationUrl: config.LICENSE_VALIDATION_URL || "https://api.qarote.io",
 } as const;
 
 export const notionConfig = {

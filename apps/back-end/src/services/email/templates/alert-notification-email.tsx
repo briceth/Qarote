@@ -248,11 +248,11 @@ export default function AlertNotificationEmail({
             <Hr style={utilityStyles.hr} />
 
             <Text style={contentStyles.paragraph}>
-              This is an automated notification from RabbitHQ. You're receiving
+              This is an automated notification from Qarote. You're receiving
               this because new alerts were detected on your monitored server.
             </Text>
 
-            <Text style={contentStyles.signature}>The RabbitHQ Team</Text>
+            <Text style={contentStyles.signature}>The Qarote Team</Text>
           </Section>
         </Container>
       </Body>

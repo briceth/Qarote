@@ -1,9 +1,9 @@
 {
-  "name": "rabbithq-front-end",
+  "name": "qarote-front-end",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "RabbitHQ Frontend",
+  "description": "Qarote Frontend",
   "main": "index.html",
   "keywords": [],
   "author": "",

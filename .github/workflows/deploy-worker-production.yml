@@ -1,8 +1,8 @@
 name: Deploy Worker to Production
 
 env:
-  APP_NAME: rabbithq-worker-production
-  BACKEND_APP_NAME: rabbithq
+  APP_NAME: qarote-worker-production
+  BACKEND_APP_NAME: qarote
 
 on:
   workflow_dispatch:

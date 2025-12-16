@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * RabbitHQ Logs Script
+ * Qarote Logs Script
  * View application logs
  */
 

@@ -89,7 +89,7 @@ export class BillingEmailService {
 
     const result = await CoreEmailService.sendEmail({
       to,
-      subject: `🎉 Welcome Back to RabbitHQ - ${plan} Plan Renewed!`,
+      subject: `🎉 Welcome Back to Qarote - ${plan} Plan Renewed!`,
       template,
       emailType: "welcome_back",
       context: {

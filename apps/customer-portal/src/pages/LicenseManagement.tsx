@@ -61,7 +61,7 @@ const LicenseManagement = () => {
         <div>
           <h1 className="text-3xl font-bold">My Licenses</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your RabbitHQ self-hosted licenses
+            Manage your Qarote self-hosted licenses
           </p>
         </div>
         <Link to="/purchase">

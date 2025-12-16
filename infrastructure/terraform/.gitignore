@@ -16,6 +16,10 @@ crash.*.log
 # ... but do commit .tfvars.example files
 !*.tfvars.example
 
+# Exclude Cloudflare environment setup script (contains API token)
+set-cloudflare-env.sh
+disable-cloudflare-auto-deploy.sh
+
 # Ignore override files
 override.tf
 override.tf.json
