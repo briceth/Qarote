@@ -72,6 +72,30 @@ jobs:
         run: |
           ssh dokku@${{ vars.DOKKU_HOST_APP1 }} apps:exists ${{ env.APP_NAME }}
 
+      - name: 🔍 Verify GitHub Variables (non-sensitive)
+        run: |
+          echo "📋 Verifying GitHub Variables that will be set:"
+          echo "DOMAIN_BACKEND: ${{ vars.DOMAIN_BACKEND }}"
+          echo "DOMAIN_FRONTEND: ${{ vars.DOMAIN_FRONTEND }}"
+          echo "CORS_ORIGIN: ${{ vars.CORS_ORIGIN }}"
+          echo "FRONTEND_URL: ${{ vars.FRONTEND_URL }}"
+          echo "FROM_EMAIL: ${{ vars.FROM_EMAIL }}"
+          echo "LOG_LEVEL: ${{ vars.LOG_LEVEL }}"
+          echo "NODE_ENV: ${{ vars.NODE_ENV }}"
+          echo "PORT: ${{ vars.PORT }}"
+          echo "HOST: ${{ vars.HOST }}"
+          echo "SENTRY_DSN: ${{ vars.SENTRY_DSN }}"
+          echo "SENTRY_ENABLED: ${{ vars.SENTRY_ENABLED }}"
+          echo "STRIPE_DEVELOPER_MONTHLY_PRICE_ID: ${{ vars.STRIPE_DEVELOPER_MONTHLY_PRICE_ID }}"
+          echo "STRIPE_DEVELOPER_YEARLY_PRICE_ID: ${{ vars.STRIPE_DEVELOPER_YEARLY_PRICE_ID }}"
+          echo "STRIPE_ENTERPRISE_MONTHLY_PRICE_ID: ${{ vars.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID }}"
+          echo "STRIPE_ENTERPRISE_YEARLY_PRICE_ID: ${{ vars.STRIPE_ENTERPRISE_YEARLY_PRICE_ID }}"
+          echo "NOTION_DATABASE_ID: ${{ vars.NOTION_DATABASE_ID }}"
+          echo "NOTION_SYNC_ENABLED: ${{ vars.NOTION_SYNC_ENABLED }}"
+          echo "ENABLE_NOTION: ${{ vars.ENABLE_NOTION }}"
+          echo ""
+          echo "⚠️  If any values above are incorrect, update them in GitHub Repository Settings > Secrets and variables > Actions > Variables tab"
+
       # Configure all environment variables
       - name: 📝 Configure Environment Variables
         run: |

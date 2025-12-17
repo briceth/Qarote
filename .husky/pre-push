@@ -21,10 +21,10 @@ if git diff --name-only $remote_branch...HEAD | grep -q "^apps/landing/"; then
   npm run type-check --workspace=apps/landing || exit 1
 fi
 
-# Run type-check for customer-portal if any customer-portal files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/customer-portal/"; then
-  echo "📦 Checking customer-portal types..."
-  npm run type-check --workspace=apps/customer-portal || exit 1
+# Run type-check for portal if any portal files changed
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/portal/"; then
+  echo "📦 Checking portal types..."
+  npm run type-check --workspace=apps/portal || exit 1
 fi
 
 # Run type-check for landing if any landing files changed
@@ -33,10 +33,10 @@ if git diff --name-only $remote_branch...HEAD | grep -q "^apps/landing/"; then
   npm run type-check --workspace=apps/landing || exit 1
 fi
 
-# Run type-check for customer-portal if any customer-portal files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/customer-portal/"; then
-  echo "📦 Checking customer-portal types..."
-  npm run type-check --workspace=apps/customer-portal || exit 1
+# Run type-check for portal if any portal files changed
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/portal/"; then
+  echo "📦 Checking portal types..."
+  npm run type-check --workspace=apps/portal || exit 1
 fi
 
 echo "✅ All type checks passed!"

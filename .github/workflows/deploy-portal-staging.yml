@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "apps/customer-portal/**"
+      - "apps/portal/**"
       - ".github/workflows/deploy-portal-staging.yml"
   workflow_dispatch:
 
@@ -27,20 +27,20 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: apps/customer-portal
+        working-directory: apps/portal
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: apps/customer-portal
+        working-directory: apps/portal
         run: npm run lint
         continue-on-error: false
 
       - name: 💅 Format Check
-        working-directory: apps/customer-portal
+        working-directory: apps/portal
         run: npm run format
 
-  deploy-customer-portal:
-    name: Deploy Customer Portal to Cloudflare Pages - Staging
+  deploy-portal:
+    name: Deploy Portal to Cloudflare Pages - Staging
     environment: staging
     runs-on: ubuntu-latest
     needs: quality-checks
@@ -57,11 +57,11 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: apps/customer-portal
+        working-directory: apps/portal
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
-      - name: 🏗️ Build customer portal
-        working-directory: apps/customer-portal
+      - name: 🏗️ Build portal
+        working-directory: apps/portal
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -74,11 +74,11 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/customer-portal/dist --project-name=qarote-portal-staging --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/portal/dist --project-name=qarote-portal-staging --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |
-          echo "🎉 Customer Portal deployed successfully to staging!"
+          echo "🎉 Portal deployed successfully to staging!"
           echo "🌐 Staging URL: https://qarote-portal-staging.pages.dev"
           echo "🔗 Custom Domain: https://portal.qarote.io (if configured)"
           echo "📝 Commit: ${{ github.sha }}"

@@ -1,6 +1,6 @@
-# Deploying Customer Portal to Cloudflare Pages
+# Deploying Portal to Cloudflare Pages
 
-This document explains the necessary steps to deploy the Qarote Customer Portal to Cloudflare Pages.
+This document explains the necessary steps to deploy the Qarote Portal to Cloudflare Pages.
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ The project includes a special build command for Cloudflare Pages which avoids i
 2. Configure the build settings:
    - Build command: `npm run build:cloudflare`
    - Build output directory: `dist`
-   - Root directory: `customer-portal` (if deploying from monorepo root)
+   - Root directory: `portal` (if deploying from monorepo root)
    - Node.js version: **24** (required - set via NODE_VERSION environment variable or .nvmrc)
 3. Add your environment variables:
    - `VITE_API_URL`: Your backend API URL

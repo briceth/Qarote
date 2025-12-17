@@ -17,7 +17,7 @@
     "apps/front-end",
     "apps/back-end",
     "apps/landing",
-    "apps/customer-portal",
+    "apps/portal",
     "infrastructure"
   ],
   "engines": {
@@ -29,7 +29,7 @@
     "dev:back": "npm run dev --workspace=apps/back-end",
     "dev:back:alert": "npm run dev:alert --workspace=apps/back-end",
     "dev:landing": "npm run dev --workspace=apps/landing",
-    "dev:customer-portal": "npm run dev --workspace=apps/customer-portal",
+    "dev:portal": "npm run dev --workspace=apps/portal",
     "build": "npm run build --workspace=apps/back-end",
     "start": "npm run start --workspace=apps/back-end",
     "prepare": "husky || true"
@@ -47,9 +47,9 @@
       "bash -c 'cd apps/landing && npx eslint --fix --max-warnings=-1 \"$@\"' _",
       "bash -c 'cd apps/landing && npx prettier --write \"$@\"' _"
     ],
-    "apps/customer-portal/**/*.{ts,tsx,js,jsx}": [
-      "bash -c 'cd apps/customer-portal && npx eslint --fix --max-warnings=-1 \"$@\"' _",
-      "bash -c 'cd apps/customer-portal && npx prettier --write \"$@\"' _"
+    "apps/portal/**/*.{ts,tsx,js,jsx}": [
+      "bash -c 'cd apps/portal && npx eslint --fix --max-warnings=-1 \"$@\"' _",
+      "bash -c 'cd apps/portal && npx prettier --write \"$@\"' _"
     ]
   },
   "devDependencies": {
