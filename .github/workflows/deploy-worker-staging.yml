@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "apps/back-end/**"
-      - "apps/back-end/app.worker.json"
+      - "apps/api/**"
+      - "apps/api/app.worker.json"
       - ".github/workflows/deploy-worker-staging.yml"
   workflow_dispatch:
 
@@ -32,19 +32,19 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run lint
 
       - name: 💅 Format Check
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run format
 
       - name: 🧪 Run Tests
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run test:run
 
   configure-worker-app:

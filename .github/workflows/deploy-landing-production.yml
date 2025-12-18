@@ -27,16 +27,16 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: apps/landing
+        working-directory: apps/web
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: apps/landing
+        working-directory: apps/web
         run: npm run lint
         continue-on-error: false
 
       - name: 💅 Format Check
-        working-directory: apps/landing
+        working-directory: apps/web
         run: npm run format
 
   deploy-landing:
@@ -60,11 +60,11 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: apps/landing
+        working-directory: apps/web
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: 🏗️ Build landing page for production
-        working-directory: apps/landing
+        working-directory: apps/web
         env:
           VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
           NODE_ENV: production
@@ -74,7 +74,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/landing/dist --project-name=qarote-landing-production --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/web/dist --project-name=qarote-landing-production --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |

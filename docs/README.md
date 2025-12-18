@@ -9,8 +9,8 @@ This directory contains configuration files and examples for deploying Qarote as
    - **With RabbitMQ**: `docker-compose.standalone-rabbitmq.yml` - Includes a RabbitMQ instance
 
 2. **Set up environment variables:**
-   - Copy `.env.example.backend` to `apps/back-end/.env`
-   - Copy `.env.example.frontend` to `apps/front-end/.env`
+   - Copy `.env.example.backend` to `apps/api/.env`
+   - Copy `.env.example.frontend` to `apps/app/.env`
    - Update all required values (see below)
 
 3. **Purchase and activate a license:**

@@ -27,20 +27,20 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: apps/front-end
+        working-directory: apps/app
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: apps/front-end
+        working-directory: apps/app
         run: npm run lint
         continue-on-error: false
 
       - name: 💅 Format Check
-        working-directory: apps/front-end
+        working-directory: apps/app
         run: npm run format
 
       - name: 🧪 Run Tests
-        working-directory: apps/front-end
+        working-directory: apps/app
         run: npm run test:run
 
   deploy-frontend:
@@ -64,11 +64,11 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: apps/front-end
+        working-directory: apps/app
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: 🏗️ Build frontend for production
-        working-directory: apps/front-end
+        working-directory: apps/app
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
@@ -83,7 +83,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy apps/front-end/dist --project-name=qarote-app-production --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy apps/app/dist --project-name=qarote-app-production --branch=main --commit-hash=${{ github.sha }}
 
       - name: ✅ Deployment Success
         run: |

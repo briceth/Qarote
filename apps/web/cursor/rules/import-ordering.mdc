@@ -1,8 +1,8 @@
-# Portal Cursor Rules
+# Landing Cursor Rules
 
 ## Import Ordering Convention
 
-All imports in web files must follow this strict ordering:
+All imports in landing files must follow this strict ordering:
 
 1. **CSS and style files** - Stylesheet imports (e.g., `./index.css`, `@/styles/theme.css`, `.scss`, `.less`, `.sass`)
 2. **Node.js built-in modules** - Node.js core modules (e.g., `node:path`, `node:fs`, `node:url`)
@@ -28,6 +28,8 @@ import "@/styles/theme.css";
 import { readFileSync } from "node:fs";
 
 // 3. React modules
+// IMPORTANT: Always use named imports for React hooks (useState, useEffect, etc.)
+// NEVER use React.useState or React.useEffect - this causes production build errors
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

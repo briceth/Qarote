@@ -1,8 +1,8 @@
-# Portal Cursor Rules
+# App Cursor Rules
 
 ## Import Ordering Convention
 
-All imports in web files must follow this strict ordering:
+All imports in app files must follow this strict ordering:
 
 1. **CSS and style files** - Stylesheet imports (e.g., `./index.css`, `@/styles/theme.css`, `.scss`, `.less`, `.sass`)
 2. **Node.js built-in modules** - Node.js core modules (e.g., `node:path`, `node:fs`, `node:url`)
@@ -76,7 +76,7 @@ Run `npm run lint:fix` to automatically fix import ordering.
 
 ## Tailwind Configuration
 
-- **ALWAYS reference `web/tailwind.config.ts` before creating or updating components**
+- **ALWAYS reference `app/tailwind.config.ts` before creating or updating components**
   - Check available custom colors, animations, and design tokens defined in the config
   - Use the predefined color palette (primary, secondary, destructive, muted, accent, etc.)
   - Use custom background gradients (`gradient-page`, `gradient-button`, `gradient-title`) when appropriate

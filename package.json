@@ -14,9 +14,9 @@
     "url": "https://github.com/LaGriffe/rabbit-dash-board.git"
   },
   "workspaces": [
-    "apps/front-end",
-    "apps/back-end",
-    "apps/landing",
+    "apps/app",
+    "apps/api",
+    "apps/web",
     "apps/portal",
     "infrastructure"
   ],
@@ -25,27 +25,27 @@
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "dev:front": "npm run dev --workspace=apps/front-end",
-    "dev:back": "npm run dev --workspace=apps/back-end",
-    "dev:back:alert": "npm run dev:alert --workspace=apps/back-end",
-    "dev:landing": "npm run dev --workspace=apps/landing",
+    "dev:front": "npm run dev --workspace=apps/app",
+    "dev:back": "npm run dev --workspace=apps/api",
+    "dev:back:alert": "npm run dev:alert --workspace=apps/api",
+    "dev:landing": "npm run dev --workspace=apps/web",
     "dev:portal": "npm run dev --workspace=apps/portal",
-    "build": "npm run build --workspace=apps/back-end",
-    "start": "npm run start --workspace=apps/back-end",
+    "build": "npm run build --workspace=apps/api",
+    "start": "npm run start --workspace=apps/api",
     "prepare": "husky || true"
   },
   "lint-staged": {
-    "apps/back-end/**/*.{ts,tsx}": [
-      "bash -c 'cd apps/back-end && npx eslint --fix \"$@\"' _",
-      "bash -c 'cd apps/back-end && npx prettier --write \"$@\"' _"
+    "apps/api/**/*.{ts,tsx}": [
+      "bash -c 'cd apps/api && npx eslint --fix \"$@\"' _",
+      "bash -c 'cd apps/api && npx prettier --write \"$@\"' _"
     ],
-    "apps/front-end/**/*.{ts,tsx,js,jsx}": [
-      "bash -c 'cd apps/front-end && npx eslint --fix --max-warnings=-1 \"$@\"' _",
-      "bash -c 'cd apps/front-end && npx prettier --write \"$@\"' _"
+    "apps/app/**/*.{ts,tsx,js,jsx}": [
+      "bash -c 'cd apps/app && npx eslint --fix --max-warnings=-1 \"$@\"' _",
+      "bash -c 'cd apps/app && npx prettier --write \"$@\"' _"
     ],
-    "apps/landing/**/*.{ts,tsx,js,jsx}": [
-      "bash -c 'cd apps/landing && npx eslint --fix --max-warnings=-1 \"$@\"' _",
-      "bash -c 'cd apps/landing && npx prettier --write \"$@\"' _"
+    "apps/web/**/*.{ts,tsx,js,jsx}": [
+      "bash -c 'cd apps/web && npx eslint --fix --max-warnings=-1 \"$@\"' _",
+      "bash -c 'cd apps/web && npx prettier --write \"$@\"' _"
     ],
     "apps/portal/**/*.{ts,tsx,js,jsx}": [
       "bash -c 'cd apps/portal && npx eslint --fix --max-warnings=-1 \"$@\"' _",
