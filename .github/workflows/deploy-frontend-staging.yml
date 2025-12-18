@@ -61,7 +61,6 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: apps/app
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: Build frontend

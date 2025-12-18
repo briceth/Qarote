@@ -57,7 +57,6 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: 📦 Install dependencies
-        working-directory: apps/portal
         run: npm ci --ignore-scripts # Ignore scripts to avoid husky errors
 
       - name: 🏗️ Build portal
