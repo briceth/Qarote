@@ -1,4 +1,4 @@
-name: Deploy Customer Portal to Staging
+name: Deploy Portal to Staging
 
 on:
   push:

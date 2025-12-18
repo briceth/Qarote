@@ -72,6 +72,20 @@ jobs:
           ssh dokku@${{ vars.DOKKU_HOST }} apps:create ${{ env.APP_NAME }} || \
             echo "App already exists or creation failed"
 
+      - name: 🔗 Link to staging database
+        run: |
+          echo "Removing any stale DATABASE_URL..."
+          ssh dokku@${{ vars.DOKKU_HOST }} config:unset ${{ env.APP_NAME }} DATABASE_URL || \
+            echo "DATABASE_URL not set (this is OK)"
+          echo "Linking worker app to staging database (rabbit-hq-db)..."
+          ssh dokku@${{ vars.DOKKU_HOST }} postgres:link rabbit-hq-db ${{ env.APP_NAME }} || \
+            echo "Database link may already exist (this is OK)"
+          echo "Ensuring DATABASE_URL is set from postgres link..."
+          DATABASE_URL=$(ssh dokku@${{ vars.DOKKU_HOST }} config:get ${{ env.APP_NAME }} DOKKU_POSTGRES_AQUA_URL)
+          if [ -n "$DATABASE_URL" ]; then
+            ssh dokku@${{ vars.DOKKU_HOST }} config:set ${{ env.APP_NAME }} DATABASE_URL="$DATABASE_URL"
+          fi
+
       - name: 📝 Configure Environment Variables
         run: |
           ssh dokku@${{ vars.DOKKU_HOST }} config:set ${{ env.APP_NAME }} \

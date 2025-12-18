@@ -1,4 +1,4 @@
-name: Deploy Customer Portal to Production
+name: Deploy Portal to Production
 
 on:
   workflow_dispatch:
