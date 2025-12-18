@@ -46,7 +46,7 @@ services:
 
   backend:
     build:
-      context: ./back-end
+      context: ./apps/api
       dockerfile: Dockerfile
     container_name: qarote_backend
     restart: unless-stopped
@@ -88,12 +88,12 @@ services:
     networks:
       - qarote_network
     volumes:
-      - ./back-end:/app
+      - ./apps/api:/app
       - /app/node_modules
 
   frontend:
     build:
-      context: ./front-end
+      context: ./apps/app
       dockerfile: Dockerfile
     container_name: qarote_frontend
     restart: unless-stopped

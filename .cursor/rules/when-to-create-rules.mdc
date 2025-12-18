@@ -51,7 +51,7 @@ Do NOT create a rule for:
 
 ## Rule file organization
 
-- Place rules in `.cursor/rules/` directory at the appropriate level (root, `back-end/`, `front-end/`, etc.)
+- Place rules in `.cursor/rules/` directory at the appropriate level (root, `api/`, `app/`, etc.)
 - Use descriptive filenames that indicate the rule's purpose
 - Set `alwaysApply: true` for rules that should be active in every conversation
 - Group related rules logically (e.g., project structure, coding conventions, architecture)

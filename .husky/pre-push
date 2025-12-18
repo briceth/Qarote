@@ -4,33 +4,21 @@ echo "🔍 Running type checks before push..."
 remote_branch=${1:-main}
 
 # Run type-check for backend if any backend files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/back-end/"; then
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/api/"; then
   echo "📦 Checking backend types..."
-  npm run type-check --workspace=apps/back-end || exit 1
+  npm run type-check --workspace=apps/api || exit 1
 fi
 
 # Run type-check for frontend if any frontend files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/front-end/"; then
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/app/"; then
   echo "📦 Checking frontend types..."
-  npm run type-check --workspace=apps/front-end || exit 1
+  npm run type-check --workspace=apps/app || exit 1
 fi
 
 # Run type-check for landing if any landing files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/landing/"; then
+if git diff --name-only $remote_branch...HEAD | grep -q "^apps/web/"; then
   echo "📦 Checking landing types..."
-  npm run type-check --workspace=apps/landing || exit 1
-fi
-
-# Run type-check for portal if any portal files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/portal/"; then
-  echo "📦 Checking portal types..."
-  npm run type-check --workspace=apps/portal || exit 1
-fi
-
-# Run type-check for landing if any landing files changed
-if git diff --name-only $remote_branch...HEAD | grep -q "^apps/landing/"; then
-  echo "📦 Checking landing types..."
-  npm run type-check --workspace=apps/landing || exit 1
+  npm run type-check --workspace=apps/web || exit 1
 fi
 
 # Run type-check for portal if any portal files changed

@@ -31,19 +31,19 @@ jobs:
         run: npm ci
 
       - name: 🔍 Type Check
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run type-check
 
       - name: 🧹 Lint
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run lint
 
       - name: 💅 Format Check
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run format
 
       - name: 🧪 Run Tests
-        working-directory: apps/back-end
+        working-directory: apps/api
         run: npm run test:run
 
   configure-worker-app:
