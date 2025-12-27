@@ -115,7 +115,6 @@ export type Config = z.infer<typeof envSchema>;
 // Helper functions to check configuration
 export const isDevelopment = () => config.NODE_ENV === "development";
 export const isProduction = () => config.NODE_ENV === "production";
-export const isTest = () => config.NODE_ENV === "test";
 
 // Specific config getters with validation
 export const serverConfig = {
@@ -127,10 +126,6 @@ export const serverConfig = {
 export const authConfig = {
   jwtSecret: config.JWT_SECRET,
   encryptionKey: config.ENCRYPTION_KEY,
-} as const;
-
-export const databaseConfig = {
-  url: config.DATABASE_URL,
 } as const;
 
 export const corsConfig = {
@@ -183,11 +178,6 @@ export const sentryConfig = {
 export const googleConfig = {
   clientId: config.GOOGLE_CLIENT_ID,
   enabled: config.ENABLE_OAUTH,
-} as const;
-
-export const licenseConfig = {
-  licenseKey: config.LICENSE_KEY,
-  validationUrl: config.LICENSE_VALIDATION_URL || "https://api.qarote.io",
 } as const;
 
 export const notionConfig = {
