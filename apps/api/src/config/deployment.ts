@@ -10,9 +10,24 @@ import { deploymentConfig } from "./index";
 export const isCloudMode = () => deploymentConfig.isCloud();
 
 /**
- * Check if running in self-hosted mode
+ * Check if running in self-hosted mode (community or enterprise)
  */
-const isSelfHostedMode = () => deploymentConfig.isSelfHosted();
+export const isSelfHostedMode = () => deploymentConfig.isSelfHosted();
+
+/**
+ * Check if running in community mode
+ */
+export const isCommunityMode = () => deploymentConfig.isCommunity();
+
+/**
+ * Check if running in enterprise mode
+ */
+export const isEnterpriseMode = () => deploymentConfig.isEnterprise();
+
+/**
+ * Get current deployment mode
+ */
+export const getDeploymentMode = () => deploymentConfig.mode;
 
 /**
  * Validate that required services are available based on deployment mode
@@ -41,14 +56,25 @@ export const validateDeploymentMode = () => {
           `Please set the corresponding environment variables or switch to self-hosted mode.`
       );
     }
-  } else if (isSelfHostedMode()) {
-    // Self-hosted mode requires license key
-    if (!process.env.LICENSE_KEY || process.env.LICENSE_KEY === "") {
+  } else if (isEnterpriseMode()) {
+    // Enterprise mode requires license file
+    if (!process.env.LICENSE_FILE_PATH && !process.env.LICENSE_KEY) {
       throw new Error(
-        "Self-hosted deployment mode requires LICENSE_KEY. " +
-          "Please set LICENSE_KEY environment variable or purchase a license from the Customer Portal."
+        "Enterprise deployment mode requires LICENSE_FILE_PATH or LICENSE_KEY. " +
+          "Please set LICENSE_FILE_PATH environment variable or purchase a license from the Customer Portal."
       );
     }
+    
+    // Enterprise mode requires public key for validation
+    if (!process.env.LICENSE_PUBLIC_KEY) {
+      throw new Error(
+        "Enterprise deployment mode requires LICENSE_PUBLIC_KEY. " +
+          "Please set LICENSE_PUBLIC_KEY environment variable."
+      );
+    }
+  } else if (isCommunityMode()) {
+    // Community mode doesn't require license - all premium features disabled
+    // No validation needed
   }
-  // Self-hosted mode doesn't require other services (they're optional)
+  // Self-hosted modes don't require other services (they're optional)
 };

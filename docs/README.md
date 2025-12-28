@@ -1,6 +1,11 @@
-# Qarote Standalone Deployment
+# Qarote Documentation
 
-This directory contains configuration files and examples for deploying Qarote as a standalone, self-hosted application.
+This directory contains documentation for deploying and using Qarote.
+
+## Self-Hosted Deployment
+
+- **[Self-Hosted Deployment Guide](SELF_HOSTED_DEPLOYMENT.md)** - Complete guide for deploying Community and Enterprise editions
+- **[Standalone Deployment](STANDALONE_DEPLOYMENT.md)** - Legacy standalone deployment guide (see SELF_HOSTED_DEPLOYMENT.md for updated information)
 
 ## Quick Start
 

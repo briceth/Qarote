@@ -11,6 +11,7 @@ import { ResolvedAlertsList } from "@/components/alerts/ResolvedAlertsList";
 import { AppSidebar } from "@/components/AppSidebar";
 import { NoServerConfigured } from "@/components/NoServerConfigured";
 import { PageLoader } from "@/components/PageLoader";
+import { FeatureGate } from "@/components/FeatureGate";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -194,11 +195,12 @@ const Alerts = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="page-layout">
-        <AppSidebar />
-        <main className="main-content-scrollable">
-          <div className="content-container-large">
+    <FeatureGate feature="alerting">
+      <SidebarProvider>
+        <div className="page-layout">
+          <AppSidebar />
+          <main className="main-content-scrollable">
+            <div className="content-container-large">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -305,6 +307,7 @@ const Alerts = () => {
         onClose={() => setShowAlertRulesModal(false)}
       />
     </SidebarProvider>
+    </FeatureGate>
   );
 };
 

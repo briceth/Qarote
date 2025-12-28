@@ -3,7 +3,7 @@
   "description": "RabbitMQ Dashboard Monitoring Tool",
   "private": true,
   "author": "La  Griffe",
-  "license": "ISC",
+  "license": "MIT",
   "keywords": [
     "rabbitmq",
     "dashboard",

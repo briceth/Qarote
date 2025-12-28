@@ -1,6 +1,7 @@
 import { UserPlan, UserRole } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
+import { requirePremiumFeature } from "@/core/feature-flags";
 import {
   ensureWorkspaceMember,
   getUserWorkspaceRole,
@@ -18,10 +19,13 @@ import {
   WorkspaceIdParamSchema,
 } from "@/schemas/workspace";
 
+import { FEATURES } from "@/config/features";
+
 import { WorkspaceMapper } from "@/mappers/workspace";
 
 import {
   planValidationProcedure,
+  protectedProcedure,
   rateLimitedProcedure,
   router,
   workspaceProcedure,
@@ -151,9 +155,10 @@ export const managementRouter = router({
   }),
 
   /**
-   * Create a new workspace (PROTECTED with plan validation)
+   * Create a new workspace (PROTECTED with plan validation and feature gating)
    */
   create: planValidationProcedure
+    .use(requirePremiumFeature(FEATURES.WORKSPACE_MANAGEMENT))
     .input(CreateWorkspaceSchema)
     .mutation(async ({ input, ctx }) => {
       const user = ctx.user;
@@ -271,9 +276,10 @@ export const managementRouter = router({
     }),
 
   /**
-   * Update workspace (PROTECTED - owner only)
+   * Update workspace (PROTECTED - owner only, feature gated)
    */
-  update: rateLimitedProcedure
+  update: protectedProcedure
+    .use(requirePremiumFeature(FEATURES.WORKSPACE_MANAGEMENT))
     .input(WorkspaceIdParamSchema.merge(UpdateWorkspaceSchema))
     .mutation(async ({ input, ctx }) => {
       const user = ctx.user;
@@ -357,9 +363,10 @@ export const managementRouter = router({
     }),
 
   /**
-   * Delete workspace (PROTECTED - owner only)
+   * Delete workspace (PROTECTED - owner only, feature gated)
    */
-  delete: rateLimitedProcedure
+  delete: protectedProcedure
+    .use(requirePremiumFeature(FEATURES.WORKSPACE_MANAGEMENT))
     .input(WorkspaceIdParamSchema)
     .mutation(async ({ input, ctx }) => {
       const user = ctx.user;
@@ -417,9 +424,10 @@ export const managementRouter = router({
     }),
 
   /**
-   * Switch active workspace (WORKSPACE)
+   * Switch active workspace (WORKSPACE, feature gated)
    */
   switch: workspaceProcedure
+    .use(requirePremiumFeature(FEATURES.WORKSPACE_MANAGEMENT))
     .input(WorkspaceIdParamSchema)
     .mutation(async ({ input, ctx }) => {
       const user = ctx.user;

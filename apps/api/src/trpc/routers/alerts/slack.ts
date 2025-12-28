@@ -1,10 +1,14 @@
 import { TRPCError } from "@trpc/server";
 
+import { requirePremiumFeature } from "@/core/feature-flags";
+
 import {
   CreateSlackConfigSchema,
   SlackConfigIdSchema,
   UpdateSlackConfigWithIdSchema,
 } from "@/schemas/alerts";
+
+import { FEATURES } from "@/config/features";
 
 import { router, workspaceProcedure } from "@/trpc/trpc";
 
@@ -14,34 +18,36 @@ import { router, workspaceProcedure } from "@/trpc/trpc";
  */
 export const slackRouter = router({
   /**
-   * Get all Slack configurations for the workspace (WORKSPACE)
+   * Get all Slack configurations for the workspace (WORKSPACE, feature gated)
    */
-  getConfigs: workspaceProcedure.query(async ({ ctx }) => {
-    const { workspaceId } = ctx;
+  getConfigs: workspaceProcedure
+    .use(requirePremiumFeature(FEATURES.SLACK_INTEGRATION))
+    .query(async ({ ctx }) => {
+      const { workspaceId } = ctx;
 
-    try {
-      const slackConfigs = await ctx.prisma.slackConfig.findMany({
-        where: {
-          workspaceId,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+      try {
+        const slackConfigs = await ctx.prisma.slackConfig.findMany({
+          where: {
+            workspaceId,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
 
-      return slackConfigs.map((config) => ({
-        ...config,
-        createdAt: config.createdAt.toISOString(),
-        updatedAt: config.updatedAt.toISOString(),
-      }));
-    } catch (error) {
-      ctx.logger.error({ error }, "Error getting Slack configurations");
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to get Slack configurations",
-      });
-    }
-  }),
+        return slackConfigs.map((config) => ({
+          ...config,
+          createdAt: config.createdAt.toISOString(),
+          updatedAt: config.updatedAt.toISOString(),
+        }));
+      } catch (error) {
+        ctx.logger.error({ error }, "Error getting Slack configurations");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get Slack configurations",
+        });
+      }
+    }),
 
   /**
    * Create a new Slack configuration (WORKSPACE)
@@ -80,6 +86,7 @@ export const slackRouter = router({
    * Update a Slack configuration (WORKSPACE)
    */
   updateConfig: workspaceProcedure
+    .use(requirePremiumFeature(FEATURES.SLACK_INTEGRATION))
     .input(UpdateSlackConfigWithIdSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
@@ -139,6 +146,7 @@ export const slackRouter = router({
    * Delete a Slack configuration (WORKSPACE)
    */
   deleteConfig: workspaceProcedure
+    .use(requirePremiumFeature(FEATURES.SLACK_INTEGRATION))
     .input(SlackConfigIdSchema)
     .mutation(async ({ input, ctx }) => {
       const { id } = input;

@@ -1,8 +1,12 @@
+import { UserRole } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+
+import { requirePremiumFeature } from "@/core/feature-flags";
+import { FEATURES } from "@/config/features";
 
 import { WorkspaceIdParamSchema } from "@/schemas/workspace";
 
-import { rateLimitedAdminProcedure, router } from "@/trpc/trpc";
+import { authorize, router } from "@/trpc/trpc";
 
 /**
  * Workspace data router
@@ -10,9 +14,10 @@ import { rateLimitedAdminProcedure, router } from "@/trpc/trpc";
  */
 export const dataRouter = router({
   /**
-   * Export all workspace data (ADMIN ONLY - RATE LIMITED)
+   * Export all workspace data (ADMIN ONLY, feature gated)
    */
-  export: rateLimitedAdminProcedure
+  export: authorize([UserRole.ADMIN])
+    .use(requirePremiumFeature(FEATURES.DATA_EXPORT))
     .input(WorkspaceIdParamSchema)
     .query(async ({ input, ctx }) => {
       const { workspaceId } = input;

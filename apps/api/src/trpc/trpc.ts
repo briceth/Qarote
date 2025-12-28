@@ -31,7 +31,7 @@ const publicProcedure = t.procedure;
 /**
  * Protected procedure - requires authentication
  */
-const protectedProcedure = publicProcedure.use(async (opts) => {
+export const protectedProcedure = publicProcedure.use(async (opts) => {
   const { ctx } = opts;
 
   if (!ctx.user) {
