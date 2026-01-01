@@ -94,23 +94,89 @@ qarote/
 
 2. **Make your changes** and test locally
 
-3. **Run linting and type checking:**
+3. **Format and lint your code:**
 
    ```bash
+   # Auto-fix formatting and linting issues
+   pnpm run format:fix
+   pnpm run lint:fix
+
+   # Or check without fixing
+   pnpm run format
    pnpm run lint
+   ```
+
+4. **Run type checking:**
+
+   ```bash
    pnpm run type-check
    ```
 
-4. **Commit your changes:**
+5. **Commit your changes:**
 
    ```bash
    git commit -m "feat: add your feature description"
    ```
 
-5. **Push and create a Pull Request:**
+6. **Push and create a Pull Request:**
    ```bash
    git push origin feature/your-feature-name
    ```
+
+## Code Formatting
+
+All code must be properly formatted before committing. We use:
+
+- **Prettier** for code formatting
+- **ESLint** for linting
+- **EditorConfig** for editor settings
+
+### Before Committing
+
+1. **Format your code:**
+   ```bash
+   pnpm run format:fix  # Auto-fix formatting
+   pnpm run lint:fix    # Auto-fix linting issues
+   ```
+
+2. **Check formatting:**
+   ```bash
+   pnpm run format      # Check if code is formatted
+   pnpm run lint        # Check for linting issues
+   ```
+
+### Pre-commit Hooks
+
+We use Husky to automatically format and lint your code before commits:
+
+- **Pre-commit**: Automatically runs `eslint --fix` and `prettier --write` on staged files
+- **Pre-push**: Runs type checks and dependency version checks
+
+If formatting fails, the commit will be blocked. Fix the issues and try again.
+
+### Editor Setup
+
+To ensure consistent formatting:
+
+1. **Install EditorConfig extension** in your editor (VS Code, WebStorm, etc.)
+2. **Install Prettier extension** in your editor
+3. **Enable "Format on Save"** in your editor settings
+
+This ensures your code is automatically formatted as you work.
+
+### Formatting Rules
+
+- **Indentation**: 2 spaces (no tabs)
+- **Line width**: 80 characters
+- **Semicolons**: Required
+- **Quotes**: Double quotes (single quotes for JSX attributes if needed)
+- **Trailing commas**: ES5 style
+- **Line endings**: LF (Unix-style)
+
+These rules are enforced by:
+- `.editorconfig` - Editor settings
+- `.prettierrc` - Prettier configuration
+- `eslint.config.*` - ESLint configuration per app
 
 ### Code Style
 
