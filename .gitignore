@@ -17,9 +17,6 @@ bun.lockb
 node_modules
 dist
 
-# Infrastructure (SaaS deployment - private)
-infrastructure/
-
 # Turborepo
 .turbo
 

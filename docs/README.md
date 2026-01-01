@@ -1,92 +1,138 @@
-# Qarote Documentation
+# Qarote Documentation Hub
 
-This directory contains documentation for deploying and using Qarote.
+Welcome to the Qarote documentation! This hub provides comprehensive guides for deploying, using, and contributing to Qarote.
 
-## Editions
+## 📚 Table of Contents
+
+### Getting Started
 
 - **[Community Edition](COMMUNITY_EDITION.md)** - Open-source edition guide
+  - Free, MIT-licensed edition
+  - Core RabbitMQ monitoring features
+  - Self-hosting with Dokku or Docker Compose
+
 - **[Enterprise Edition](ENTERPRISE_EDITION.md)** - Licensed edition guide
-- **[Feature Comparison](FEATURE_COMPARISON.md)** - Detailed feature comparison between editions
+  - Commercial license with premium features
+  - Workspace management, alerting, integrations
+  - License activation and offline validation
 
-## Self-Hosted Deployment
+- **[Feature Comparison](FEATURE_COMPARISON.md)** - Detailed feature comparison
+  - Side-by-side comparison of Community vs Enterprise
+  - Feature availability matrix
+  - Upgrade path information
 
-- **[Self-Hosted Deployment Guide](SELF_HOSTED_DEPLOYMENT.md)** - Complete guide for deploying Community and Enterprise editions
-- **[Standalone Deployment](STANDALONE_DEPLOYMENT.md)** - Legacy standalone deployment guide (see SELF_HOSTED_DEPLOYMENT.md for updated information)
+### Deployment Guides
 
-## Quick Start
+- **[Self-Hosted Deployment](SELF_HOSTED_DEPLOYMENT.md)** - Complete deployment guide
+  - Supports both Community and Enterprise editions
+  - Docker Compose setup
+  - Environment configuration
+  - License setup (Enterprise)
 
-1. **Choose your deployment option:**
-   - **Self-Hosted**: `docker-compose.selfhosted.yml` - Supports both Community (open-source) and Enterprise (licensed) editions
-   
-   Note: For development/testing with RabbitMQ, use the main `docker-compose.yml` file.
+- **[Standalone Deployment](STANDALONE_DEPLOYMENT.md)** - Legacy deployment guide
+  - Legacy standalone deployment instructions
+  - ⚠️ **Note**: See [SELF_HOSTED_DEPLOYMENT.md](SELF_HOSTED_DEPLOYMENT.md) for updated information
 
-2. **Set up environment variables:**
-   - Copy `.env.example.backend` to `apps/api/.env`
-   - Copy `.env.example.frontend` to `apps/app/.env`
-   - Update all required values (see below)
+### Development & Testing
 
-3. **Set deployment mode:**
-   - For **Community Edition**: Set `DEPLOYMENT_MODE=community` in your `.env` file
-   - For **Enterprise Edition**: Set `DEPLOYMENT_MODE=enterprise` and configure license:
-     - Visit the Customer Portal at `portal.qarote.io`
-     - Purchase a license
-     - Download your license file (JSON format)
-     - Place license file at `./license.json` (or set `LICENSE_FILE_PATH`)
-     - Set `LICENSE_PUBLIC_KEY` environment variable
+- **[Testing GitHub Actions Locally](ACT_TESTING.md)** - Local testing guide
+  - Using `act` to test GitHub Actions workflows
+  - Setting up local environment
+  - Debugging workflows
 
-4. **Deploy:**
+## 🚀 Quick Start
 
+### For Users
+
+1. **Choose your edition:**
+   - **Community Edition**: Free, open-source - [Get Started](COMMUNITY_EDITION.md)
+   - **Enterprise Edition**: Licensed with premium features - [Get Started](ENTERPRISE_EDITION.md)
+
+2. **Deploy:**
+   - **Recommended (Community)**: [Dokku Deployment](COMMUNITY_EDITION.md#recommended-dokku-deployment)
+   - **Alternative**: [Docker Compose](SELF_HOSTED_DEPLOYMENT.md)
+
+3. **Configure:**
+   - Set `DEPLOYMENT_MODE=community` or `DEPLOYMENT_MODE=enterprise`
+   - Configure environment variables (see deployment guide)
+   - For Enterprise: Set up license file
+
+### For Contributors
+
+1. **Read the [Contributing Guide](../CONTRIBUTING.md)** in the root directory
+2. **Set up development environment:**
    ```bash
-   # Both Community and Enterprise use the same file
-   docker-compose -f docker-compose.selfhosted.yml up -d
+   pnpm install
+   docker-compose up -d
+   pnpm run dev
    ```
+3. **Follow code formatting guidelines** (see CONTRIBUTING.md)
 
-## Required Configuration
+## 📖 Documentation Structure
 
-### Backend (.env)
+```
+docs/
+├── README.md (this file)              # Documentation hub
+├── COMMUNITY_EDITION.md                 # Community Edition guide
+├── ENTERPRISE_EDITION.md                # Enterprise Edition guide
+├── FEATURE_COMPARISON.md                # Feature comparison
+├── SELF_HOSTED_DEPLOYMENT.md            # Main deployment guide
+├── STANDALONE_DEPLOYMENT.md             # Legacy deployment guide
+└── ACT_TESTING.md                       # Testing GitHub Actions
+```
 
-**Mandatory (Enterprise Edition):**
+## 🎯 Common Tasks
 
-- `LICENSE_FILE_PATH` - Path to license file (default: `./license.json`)
-- `LICENSE_PUBLIC_KEY` - Public key for license validation (provided with license)
-- `JWT_SECRET` - Secret for JWT tokens (min 32 characters)
-- `ENCRYPTION_KEY` - Key for encrypting credentials (min 32 characters)
-- `DATABASE_URL` - PostgreSQL connection string
+### Deploying Community Edition
 
-**Optional (can be disabled for air-gapped deployments):**
+1. Read [COMMUNITY_EDITION.md](COMMUNITY_EDITION.md)
+2. Choose deployment method (Dokku recommended)
+3. Follow setup instructions
+4. Configure environment variables
 
-- `ENABLE_SENTRY` - Enable error tracking
-- `ENABLE_EMAIL` - Enable email notifications
-- `ENABLE_OAUTH` - Enable OAuth authentication
+### Deploying Enterprise Edition
 
-### Frontend (.env)
+1. Read [ENTERPRISE_EDITION.md](ENTERPRISE_EDITION.md)
+2. Purchase license from Customer Portal
+3. Download license file
+4. Follow [SELF_HOSTED_DEPLOYMENT.md](SELF_HOSTED_DEPLOYMENT.md)
+5. Configure license in environment
 
-**Mandatory:**
+### Comparing Editions
 
-- `VITE_API_URL` - Backend API URL
+- See [FEATURE_COMPARISON.md](FEATURE_COMPARISON.md) for detailed comparison
+- Community Edition: Core monitoring features
+- Enterprise Edition: Advanced features (workspaces, alerting, integrations)
 
-**Optional:**
+### Testing Workflows Locally
 
-- `VITE_ENABLE_SENTRY` - Enable error tracking
+- See [ACT_TESTING.md](ACT_TESTING.md) for using `act` to test GitHub Actions
+- Useful for debugging CI/CD workflows before pushing
 
-## License Activation (Enterprise Edition)
+## 🔗 External Resources
 
-1. Purchase a license from the Customer Portal
-2. Download your license file (JSON format, cryptographically signed)
-3. Place the license file at `./license.json` (or set `LICENSE_FILE_PATH`)
-4. Set `LICENSE_PUBLIC_KEY` environment variable (provided with your license)
-5. Restart the backend service
+- **Main Repository**: [GitHub Repository](https://github.com/your-org/qarote)
+- **Issues**: [GitHub Issues](https://github.com/your-org/qarote/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/qarote/discussions)
+- **Security**: See [SECURITY.md](../SECURITY.md) in root directory
+- **Contributing**: See [CONTRIBUTING.md](../CONTRIBUTING.md) in root directory
 
-The license is validated offline using cryptographic signatures - no internet connection required.
+## 📝 Documentation Updates
 
-## Air-Gapped Deployments
+This documentation is maintained alongside the codebase. If you find errors or have suggestions:
 
-For completely offline deployments:
+1. **For Community Edition**: Open a [GitHub Issue](https://github.com/your-org/qarote/issues/new?template=bug.yml) or submit a PR
+2. **For Enterprise Edition**: Contact [support@qarote.io](mailto:support@qarote.io)
 
-- Set all `ENABLE_*` flags to `false`
-- Use SMTP for email (if needed) instead of Resend
-- License validation will use a grace period for offline periods
+## 🆘 Need Help?
 
-## Support
+- **Community Support**: [GitHub Discussions](https://github.com/your-org/qarote/discussions)
+- **Enterprise Support**: [support@qarote.io](mailto:support@qarote.io)
+- **Security Issues**: [security@qarote.io](mailto:security@qarote.io) (see [SECURITY.md](../SECURITY.md))
+- **Bug Reports**: [GitHub Issues](https://github.com/your-org/qarote/issues/new?template=bug.yml)
 
-For more information, visit: https://qarote.io/docs/standalone
+---
+
+**Last Updated**: January 2025
+
+For the latest information, always refer to the main [README.md](../README.md) in the repository root.
