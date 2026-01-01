@@ -4,11 +4,9 @@
  * All authorization is enforced server-side.
  */
 
-import { useQuery } from "@tanstack/react-query";
-
-import { trpc } from "@/lib/trpc/client";
 import type { PremiumFeature } from "@/lib/featureFlags";
 import { isCloudMode } from "@/lib/featureFlags";
+import { trpc } from "@/lib/trpc/client";
 
 /**
  * Hook to check if a premium feature is enabled
@@ -20,10 +18,11 @@ export function useFeatureFlags() {
   const cloudMode = isCloudMode();
 
   // Query feature availability from server (for enterprise/community)
-  const { data: features } = trpc.public.getFeatureFlags.useQuery(undefined, {
-    enabled: !cloudMode,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
+  const { data: features, isLoading: queryIsLoading } =
+    trpc.public.getFeatureFlags.useQuery(undefined, {
+      enabled: !cloudMode,
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    });
 
   const hasFeature = (feature: PremiumFeature): boolean => {
     // Cloud mode: all features enabled
@@ -37,8 +36,7 @@ export function useFeatureFlags() {
 
   return {
     hasFeature,
-    isLoading: !cloudMode && !features,
+    isLoading: !cloudMode && queryIsLoading,
     features: features?.features ?? {},
   };
 }
-
