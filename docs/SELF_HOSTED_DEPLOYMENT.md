@@ -62,11 +62,18 @@ The Community Edition is free and open-source. It provides core RabbitMQ monitor
    ```bash
    dokku config:set qarote \
      DEPLOYMENT_MODE=community \
+     NODE_ID=community-1 \
+     NODE_ENV=production \
+     LOG_LEVEL=info \
      JWT_SECRET=$(openssl rand -base64 32) \
      ENCRYPTION_KEY=$(openssl rand -base64 32) \
-     NODE_ENV=production \
-     LOG_LEVEL=info
+     CORS_ORIGIN=* \
+     FRONTEND_URL=https://your-domain.com \
+     ENABLE_EMAIL=false \
+     ENABLE_SENTRY=false
    ```
+
+   **Note:** `DATABASE_URL` is automatically set by Dokku when you link the PostgreSQL service. `PORT` and `HOST` are also set automatically by Dokku.
 
 4. **Deploy:**
    ```bash
@@ -89,7 +96,7 @@ If you prefer Docker Compose or need more control over the deployment:
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/your-org/qarote.git
+   git clone https://github.com/getqarote/Qarote.git
    cd qarote
    ```
 
@@ -106,7 +113,7 @@ If you prefer Docker Compose or need more control over the deployment:
 
    ```bash
    export DEPLOYMENT_MODE=community
-   docker-compose -f docker-compose.selfhosted.yml up -d
+   docker compose -f docker-compose.selfhosted.yml up -d
    ```
 
 5. **Run database migrations:**
@@ -132,8 +139,9 @@ If you prefer Docker Compose or need more control over the deployment:
 **Optional:**
 
 - `ENABLE_EMAIL=false` - Disable email features
-- `ENABLE_OAUTH=false` - Disable OAuth authentication
 - `ENABLE_SENTRY=false` - Disable error tracking
+
+**Note:** OAuth authentication (Google Sign-In) is only available in cloud deployments. Self-hosted deployments use email/password authentication.
 
 ## Enterprise Edition
 
@@ -150,7 +158,7 @@ The Enterprise Edition requires a valid license file to unlock premium features.
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/your-org/qarote.git
+   git clone https://github.com/getqarote/Qarote.git
    cd qarote
    ```
 
@@ -171,7 +179,7 @@ The Enterprise Edition requires a valid license file to unlock premium features.
 
    ```bash
    export DEPLOYMENT_MODE=enterprise
-   docker-compose -f docker-compose.selfhosted.yml up -d
+   docker compose -f docker-compose.selfhosted.yml up -d
    ```
 
 6. **Run database migrations:**
@@ -199,8 +207,9 @@ The Enterprise Edition requires a valid license file to unlock premium features.
 **Optional:**
 
 - `ENABLE_EMAIL=false` - Disable email features (or configure SMTP)
-- `ENABLE_OAUTH=false` - Disable OAuth authentication
 - `ENABLE_SENTRY=false` - Disable error tracking
+
+**Note:** OAuth authentication (Google Sign-In) is only available in cloud deployments. Self-hosted deployments use email/password authentication.
 
 ## Prerequisites
 
@@ -215,7 +224,7 @@ The Enterprise Edition requires a valid license file to unlock premium features.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-org/qarote.git
+git clone https://github.com/getqarote/Qarote.git
 cd qarote
 
 # 2. Set required environment variables
@@ -225,7 +234,7 @@ export POSTGRES_PASSWORD=$(openssl rand -base64 16)
 
 # 3. Start services
 export DEPLOYMENT_MODE=community
-docker-compose -f docker-compose.selfhosted.yml up -d
+docker compose -f docker-compose.selfhosted.yml up -d
 
 # 4. Run migrations
 docker exec qarote_backend_community npm run db:migrate:dev
@@ -238,7 +247,7 @@ open http://localhost:8080
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-org/qarote.git
+git clone https://github.com/getqarote/Qarote.git
 cd qarote
 
 # 2. Set required environment variables
@@ -252,7 +261,7 @@ cp /path/to/your/license.json ./license.json
 
 # 4. Start services
 export DEPLOYMENT_MODE=enterprise
-docker-compose -f docker-compose.selfhosted.yml up -d
+docker compose -f docker-compose.selfhosted.yml up -d
 
 # 5. Run migrations
 docker exec qarote_backend_enterprise npm run db:migrate:dev
@@ -287,8 +296,10 @@ LICENSE_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----
 
 # Optional Services
 ENABLE_EMAIL=false
-ENABLE_OAUTH=false
 ENABLE_SENTRY=false
+
+# Note: OAuth (Google Sign-In) is only available in cloud deployments.
+# Self-hosted deployments use email/password authentication.
 
 # Email Configuration (if ENABLE_EMAIL=true)
 EMAIL_PROVIDER=smtp
@@ -388,7 +399,7 @@ Enterprise licenses are provided as JSON files with cryptographic signatures:
 
 5. **Restart backend service:**
    ```bash
-   docker-compose restart backend
+   docker compose restart backend
    ```
 
 ### Instance ID (Optional)
@@ -454,7 +465,7 @@ When purchasing a license, you can optionally provide your instance ID to lock t
 
 **Solutions:**
 
-- Verify PostgreSQL container is running: `docker-compose ps postgres`
+- Verify PostgreSQL container is running: `docker compose ps postgres`
 - Check `DATABASE_URL` format: `postgres://user:password@host:port/database`
 - Ensure database exists: `docker exec qarote_postgres psql -U postgres -c "CREATE DATABASE qarote;"`
 
@@ -464,13 +475,13 @@ When purchasing a license, you can optionally provide your instance ID to lock t
 
 ```bash
 # Backend logs
-docker-compose logs backend
+docker compose logs backend
 
 # Frontend logs
-docker-compose logs frontend
+docker compose logs frontend
 
 # Database logs
-docker-compose logs postgres
+docker compose logs postgres
 ```
 
 **Common issues:**
@@ -495,7 +506,7 @@ docker-compose logs postgres
 5. **Restart services:**
    ```bash
    export DEPLOYMENT_MODE=enterprise
-   docker-compose -f docker-compose.selfhosted.yml up -d
+   docker compose -f docker-compose.selfhosted.yml up -d
    ```
 
 ### Updating Qarote
@@ -509,8 +520,8 @@ docker-compose logs postgres
 2. **Rebuild containers:**
 
    ```bash
-   docker-compose build
-   docker-compose up -d
+   docker compose build
+   docker compose up -d
    ```
 
 3. **Run migrations:**

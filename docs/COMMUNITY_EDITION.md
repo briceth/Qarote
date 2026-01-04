@@ -91,11 +91,21 @@ The following features require an Enterprise Edition license:
    ```bash
    dokku config:set qarote \
      DEPLOYMENT_MODE=community \
+     NODE_ID=community-1 \
+     NODE_ENV=production \
+     LOG_LEVEL=info \
      JWT_SECRET=$(openssl rand -base64 32) \
      ENCRYPTION_KEY=$(openssl rand -base64 32) \
-     NODE_ENV=production \
-     LOG_LEVEL=info
+     CORS_ORIGIN=* \
+     FRONTEND_URL=https://your-domain.com \
+     ENABLE_EMAIL=false \
+     ENABLE_SENTRY=false
    ```
+
+   **Note:**
+   - `DATABASE_URL` is automatically set by Dokku when you link the PostgreSQL service
+   - `PORT` and `HOST` are automatically set by Dokku
+   - Replace `https://your-domain.com` with your actual domain (or set it after configuring the domain in step 6)
 
 5. **Deploy:**
    ```bash
@@ -129,7 +139,7 @@ If you prefer Docker Compose or need more control over the deployment, you can u
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-org/qarote.git
+   git clone https://github.com/getqarote/Qarote.git
    cd qarote
    ```
 
@@ -146,17 +156,17 @@ If you prefer Docker Compose or need more control over the deployment, you can u
    JWT_SECRET=your-secret-key-min-32-chars
    ENCRYPTION_KEY=your-encryption-key-min-32-chars
    POSTGRES_PASSWORD=your-secure-password
-   
+
    # Optional
    ENABLE_EMAIL=false
-   ENABLE_OAUTH=false
    ENABLE_SENTRY=false
+   # Note: OAuth (Google Sign-In) is only available in cloud deployments
    ```
 
 4. **Start services:**
    ```bash
    export DEPLOYMENT_MODE=community
-   docker-compose -f docker-compose.selfhosted.yml up -d
+   docker compose -f docker-compose.selfhosted.yml up -d
    ```
 
 5. **Run database migrations:**
@@ -182,10 +192,11 @@ If you prefer Docker Compose or need more control over the deployment, you can u
 #### Optional
 
 - `ENABLE_EMAIL=false` - Disable email features (default: false)
-- `ENABLE_OAUTH=false` - Disable OAuth authentication (default: false)
 - `ENABLE_SENTRY=false` - Disable error tracking (default: false)
 - `CORS_ORIGIN` - CORS origin (default: `*`)
 - `LOG_LEVEL` - Logging level (default: `info`)
+
+**Note:** OAuth authentication (Google Sign-In) is only available in cloud deployments. Community Edition uses email/password authentication.
 
 ## Usage
 

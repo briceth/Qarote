@@ -59,7 +59,7 @@ Welcome to the Qarote documentation! This hub provides comprehensive guides for 
 2. **Set up development environment:**
    ```bash
    pnpm install
-   docker-compose up -d
+   docker compose up -d
    pnpm run dev
    ```
 3. **Follow code formatting guidelines** (see CONTRIBUTING.md)
@@ -106,9 +106,9 @@ docs/
 
 ## 🔗 External Resources
 
-- **Main Repository**: [GitHub Repository](https://github.com/your-org/qarote)
-- **Issues**: [GitHub Issues](https://github.com/your-org/qarote/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/qarote/discussions)
+- **Main Repository**: [GitHub Repository](https://github.com/getqarote/Qarote)
+- **Issues**: [GitHub Issues](https://github.com/getqarote/Qarote/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/getqarote/Qarote/discussions)
 - **Security**: See [SECURITY.md](../SECURITY.md) in root directory
 - **Contributing**: See [CONTRIBUTING.md](../CONTRIBUTING.md) in root directory
 
@@ -116,15 +116,15 @@ docs/
 
 This documentation is maintained alongside the codebase. If you find errors or have suggestions:
 
-1. **For Community Edition**: Open a [GitHub Issue](https://github.com/your-org/qarote/issues/new?template=bug.yml) or submit a PR
+1. **For Community Edition**: Open a [GitHub Issue](https://github.com/getqarote/Qarote/issues/new?template=bug.yml) or submit a PR
 2. **For Enterprise Edition**: Contact [support@qarote.io](mailto:support@qarote.io)
 
 ## 🆘 Need Help?
 
-- **Community Support**: [GitHub Discussions](https://github.com/your-org/qarote/discussions)
+- **Community Support**: [GitHub Discussions](https://github.com/getqarote/Qarote/discussions)
 - **Enterprise Support**: [support@qarote.io](mailto:support@qarote.io)
 - **Security Issues**: [security@qarote.io](mailto:security@qarote.io) (see [SECURITY.md](../SECURITY.md))
-- **Bug Reports**: [GitHub Issues](https://github.com/your-org/qarote/issues/new?template=bug.yml)
+- **Bug Reports**: [GitHub Issues](https://github.com/getqarote/Qarote/issues/new?template=bug.yml)
 
 ---
 

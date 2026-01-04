@@ -91,7 +91,7 @@ License files are cryptographically signed JSON files that include:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-org/qarote.git
+   git clone https://github.com/getqarote/Qarote.git
    cd qarote
    ```
 
@@ -120,7 +120,7 @@ License files are cryptographically signed JSON files that include:
 5. **Start services:**
    ```bash
    export DEPLOYMENT_MODE=enterprise
-   docker-compose -f docker-compose.selfhosted.yml up -d
+   docker compose -f docker-compose.selfhosted.yml up -d
    ```
 
 6. **Run database migrations:**
@@ -149,8 +149,9 @@ License files are cryptographically signed JSON files that include:
 
 - `INSTANCE_ID` - Override instance fingerprint (for testing)
 - `ENABLE_EMAIL` - Enable email features
-- `ENABLE_OAUTH` - Enable OAuth authentication
 - `ENABLE_SENTRY` - Enable error tracking
+
+**Note:** OAuth authentication (Google Sign-In) is only available in cloud deployments. Enterprise Edition self-hosted deployments use email/password authentication.
 
 ### License File Security
 

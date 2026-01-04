@@ -101,7 +101,7 @@ cp .env.selfhosted.example .env
 #    - Enterprise: DEPLOYMENT_MODE=enterprise (also configure license)
 
 # 3. Start services
-docker-compose -f docker-compose.selfhosted.yml up -d
+docker compose -f docker-compose.selfhosted.yml up -d
 ```
 
 📖 **[Complete Deployment Guide](docs/SELF_HOSTED_DEPLOYMENT.md)**
@@ -111,7 +111,7 @@ docker-compose -f docker-compose.selfhosted.yml up -d
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/your-org/qarote.git
+   git clone https://github.com/getqarote/Qarote.git
    cd qarote
    ```
 
@@ -124,7 +124,7 @@ docker-compose -f docker-compose.selfhosted.yml up -d
 3. **Start local services (PostgreSQL, RabbitMQ):**
 
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **Run database migrations:**
@@ -197,13 +197,13 @@ This repository includes Docker Compose configuration for a complete development
 
 ```bash
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ### 📊 Services
@@ -265,8 +265,8 @@ Instead, email **security@qarote.io** with:
 
 ### 💬 Community Support
 
-- **[GitHub Discussions](https://github.com/your-org/qarote/discussions)** - Ask questions and share ideas
-- **[GitHub Issues](https://github.com/your-org/qarote/issues)** - Report bugs and request features
+- **[GitHub Discussions](https://github.com/getqarote/Qarote/discussions)** - Ask questions and share ideas
+- **[GitHub Issues](https://github.com/getqarote/Qarote/issues)** - Report bugs and request features
 
 ### 💼 Enterprise Support
 

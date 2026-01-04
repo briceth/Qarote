@@ -4,7 +4,7 @@ This repository uses [`act`](https://github.com/nektos/act) to test GitHub Actio
 
 ## Installation
 
-**Note**: `act` must be installed locally on your machine. It is not available via docker-compose.
+**Note**: `act` must be installed locally on your machine. It is not available via docker compose.
 
 ### macOS
 
@@ -154,7 +154,7 @@ pnpm run test:corepack
 
 This script simulates the Heroku buildpack behavior and tests:
 - `bin/prebuild` script execution
-- `heroku-prebuild` script execution  
+- `heroku-prebuild` script execution
 - Corepack availability and pnpm preparation
 - Simulates the `binaries.sh: line 244` check that fails in Dokku
 

@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Qarote! We welcome contributions 
 
 ## Feedback, Advice, and General Help
 
-If you're looking to provide general feedback, get help, or ask questions, please utilize [GitHub Discussions](https://github.com/your-org/qarote/discussions) rather than GitHub Issues.
+If you're looking to provide general feedback, get help, or ask questions, please utilize [GitHub Discussions](https://github.com/getqarote/Qarote/discussions) rather than GitHub Issues.
 
 For Enterprise Edition support, please contact [support@qarote.io](mailto:support@qarote.io) or use the [Customer Portal](https://portal.qarote.io).
 
@@ -24,7 +24,7 @@ Want to contribute to this repository? Follow the development documentation belo
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/your-org/qarote.git
+   git clone https://github.com/getqarote/Qarote.git
    cd qarote
    ```
 
@@ -47,7 +47,7 @@ Want to contribute to this repository? Follow the development documentation belo
 4. **Start local services (PostgreSQL, RabbitMQ):**
 
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 5. **Run database migrations:**
@@ -272,7 +272,7 @@ When contributing:
 
 ### Reporting Issues
 
-Please use our [GitHub Issue Templates](https://github.com/your-org/qarote/issues/new/choose):
+Please use our [GitHub Issue Templates](https://github.com/getqarote/Qarote/issues/new/choose):
 
 - 🐛 Bug Report
 - ✨ Feature Request
@@ -293,7 +293,7 @@ Instead, email **security@qarote.io** with:
 
 ### Questions?
 
-- **General questions**: [GitHub Discussions](https://github.com/your-org/qarote/discussions)
+- **General questions**: [GitHub Discussions](https://github.com/getqarote/Qarote/discussions)
 - **Enterprise support**: [support@qarote.io](mailto:support@qarote.io)
 - **Security issues**: [security@qarote.io](mailto:security@qarote.io)
 

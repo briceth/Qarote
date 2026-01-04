@@ -20,7 +20,7 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 
 **For Community Edition (Open Source):**
 - **Email**: [security@qarote.io](mailto:security@qarote.io)
-- **GitHub Security Advisory**: Use [GitHub's private vulnerability reporting](https://github.com/briceth/Qarote/security/advisories/new) (preferred)
+- **GitHub Security Advisory**: Use [GitHub's private vulnerability reporting](https://github.com/getqarote/Qarote/security/advisories/new) (preferred)
 
 **For Enterprise Edition:**
 - **Email**: [security@qarote.io](mailto:security@qarote.io)
