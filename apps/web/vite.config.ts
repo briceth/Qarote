@@ -33,13 +33,10 @@ export default defineConfig({
           // CRITICAL: React must be in its own chunk to prevent bundling issues
           // This ensures React is properly resolved and prevents production errors
           "vendor-react": ["react", "react-dom", "react-router-dom"],
-          // UI components chunk
+          // UI components chunk - only include installed packages
           "vendor-ui": [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-select",
+            "@radix-ui/react-accordion",
             "@radix-ui/react-slot",
-            "@radix-ui/react-tabs",
             "@radix-ui/react-toast",
             "@radix-ui/react-tooltip",
           ],
@@ -47,11 +44,8 @@ export default defineConfig({
           "vendor-data": ["@tanstack/react-query"],
           // Icons
           "vendor-icons": ["lucide-react"],
-          // Form and validation
-          "vendor-forms": ["react-hook-form", "@hookform/resolvers"],
           // Date and time utilities
           "vendor-utils": [
-            "date-fns",
             "clsx",
             "class-variance-authority",
             "tailwind-merge",
