@@ -78,7 +78,7 @@
     "google-auth-library": "^10.3.0",
     "@hono/trpc-server": "^0.4.1",
     "@trpc/server": "^11.0.0",
-    "hono": "^4.11.1",
+    "hono": "^4.11.4",
     "hono-rate-limiter": "^0.4.2",
     "nodemailer": "^7.0.11",
     "pino": "^9.7.0",
