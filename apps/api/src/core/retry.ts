@@ -140,7 +140,7 @@ function isNotion5xxError(error: unknown): boolean {
  * Check if an error should be retried
  * Retries on 5xx errors and timeout errors, but not on 4xx errors
  */
-export function shouldRetry(
+function shouldRetry(
   error: unknown,
   errorType?: "resend" | "stripe" | "notion" | "generic"
 ): boolean {
