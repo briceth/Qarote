@@ -98,7 +98,7 @@ export function initSentry() {
   }
 
   Sentry.init({
-    dsn: sentryConfig.dsn,
+    dsn: dsn,
     environment: sentryConfig.environment,
     // Enable logs to be sent to Sentry
     enableLogs: true,

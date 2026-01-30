@@ -75,7 +75,8 @@ function is5xxError(error: unknown): boolean {
 }
 
 /**
- * Check if an error is a Stripe 5xx error
+ * Check if an error is a Stripe 5xx error or 429 (rate limiting)
+ * 429 is included as it's a transient error that should be retried
  */
 function isStripe5xxError(error: unknown): boolean {
   if (!error) return false;
@@ -83,11 +84,9 @@ function isStripe5xxError(error: unknown): boolean {
   // Stripe errors have a statusCode property
   if (typeof error === "object" && error !== null && "statusCode" in error) {
     const stripeError = error as { statusCode?: number };
-    if (
-      typeof stripeError.statusCode === "number" &&
-      stripeError.statusCode >= 500
-    ) {
-      return true;
+    if (typeof stripeError.statusCode === "number") {
+      // Retry on 5xx errors or 429 (rate limiting)
+      return stripeError.statusCode >= 500 || stripeError.statusCode === 429;
     }
   }
 
@@ -95,7 +94,8 @@ function isStripe5xxError(error: unknown): boolean {
 }
 
 /**
- * Check if an error is a Notion 5xx error
+ * Check if an error is a Notion 5xx error or rate limiting error
+ * Rate limiting is included as it's a transient error that should be retried
  */
 function isNotion5xxError(error: unknown): boolean {
   if (!error) return false;
@@ -112,6 +112,7 @@ function isNotion5xxError(error: unknown): boolean {
         code === "internal_server_error" ||
         code === "service_unavailable" ||
         code === "RequestTimeout" ||
+        code === "rate_limited" ||
         code.includes("InternalServerError") ||
         code.includes("ServiceUnavailable")
       );
@@ -127,9 +128,9 @@ function isNotion5xxError(error: unknown): boolean {
       );
     }
 
-    // Check for numeric status codes
-    if (typeof code === "number" && code >= 500) {
-      return true;
+    // Check for numeric status codes (5xx or 429)
+    if (typeof code === "number") {
+      return code >= 500 || code === 429;
     }
   }
 
@@ -164,13 +165,19 @@ function shouldRetry(
 
 /**
  * Create a timeout promise that rejects after the specified time
+ * Returns both the promise and the timeout ID for cleanup
  */
-function createTimeout(timeoutMs: number): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
+function createTimeout(timeoutMs: number): {
+  promise: Promise<never>;
+  timeoutId: NodeJS.Timeout;
+} {
+  let timeoutId: NodeJS.Timeout;
+  const promise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
       reject(new Error(`Operation timed out after ${timeoutMs}ms`));
     }, timeoutMs);
   });
+  return { promise, timeoutId: timeoutId! };
 }
 
 /**
@@ -196,16 +203,19 @@ export async function retryWithBackoff<T>(
   let attempt = 0;
 
   while (attempt <= maxRetries) {
-    try {
-      // Create timeout promise
-      const timeoutPromise = createTimeout(timeoutMs);
+    // Create timeout promise with cleanup handle
+    const { promise: timeoutPromise, timeoutId } = createTimeout(timeoutMs);
 
+    try {
       // Race between the function and timeout
       const result = await Promise.race([fn(), timeoutPromise]);
 
-      // If we get here, the function succeeded
+      // If we get here, the function succeeded - clear the timeout
+      clearTimeout(timeoutId);
       return result;
     } catch (error) {
+      // Clear the timeout on error as well
+      clearTimeout(timeoutId);
       lastError = error;
 
       // Check if we should retry
